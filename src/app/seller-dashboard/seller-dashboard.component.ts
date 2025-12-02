@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { map, Subject, switchMap } from 'rxjs';
 import { takeUntil, forkJoin, catchError, of } from 'rxjs';
@@ -54,8 +54,21 @@ interface Product {
   price: number;
   sale_price?: number;
   stock: number;
-  specs?: { key: string, value: string }[] | string;
+  specs?: { key: string; value: string }[] | string;
   status?: string;
+}
+
+interface Offer {
+  offer_id?: any;
+  title: string;
+  description: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  valid_from: string;
+  valid_until: string;
+  is_active: boolean;
+  product_ids?: string[];
+  created_at?: string;
 }
 
 interface Category {
@@ -80,7 +93,7 @@ interface SellerProfile {
   selector: 'app-seller-dashboard',
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './seller-dashboard.component.html',
-  styleUrl: './seller-dashboard.component.css'
+  styleUrl: './seller-dashboard.component.css',
 })
 export class SellerDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -89,6 +102,9 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
   // Navigation state
   currentView = 'dashboard';
+
+  // Mobile menu state
+  isMobileMenuOpen = false;
 
   // User state
   notificationCount = 0;
@@ -106,7 +122,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       change: 'Loading...',
       changeClass: 'positive',
       icon: '💰',
-      iconClass: 'revenue'
+      iconClass: 'revenue',
     },
     {
       title: 'Total Orders',
@@ -114,7 +130,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       change: 'Loading...',
       changeClass: 'positive',
       icon: '📦',
-      iconClass: 'orders'
+      iconClass: 'orders',
     },
     {
       title: 'Active Products',
@@ -122,7 +138,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       change: 'Loading...',
       changeClass: 'positive',
       icon: '📱',
-      iconClass: 'products'
+      iconClass: 'products',
     },
     {
       title: 'Customer Reviews',
@@ -130,8 +146,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       change: 'Loading...',
       changeClass: 'positive',
       icon: '⭐',
-      iconClass: 'customers'
-    }
+      iconClass: 'customers',
+    },
   ];
 
   orders: Order[] = [];
@@ -141,42 +157,42 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     {
       icon: '➕',
       text: 'Add Product',
-      action: 'add-product'
+      action: 'add-product',
     },
     {
       icon: '📦',
       text: 'Manage Orders',
-      action: 'manage-orders'
+      action: 'manage-orders',
     },
     {
       icon: '📊',
       text: 'View Analytics',
-      action: 'analytics'
+      action: 'analytics',
     },
     {
       icon: '🎯',
       text: 'Create Deal',
-      action: 'promotions'
-    }
+      action: 'promotions',
+    },
   ];
 
   performanceMetrics: PerformanceMetric[] = [
     {
       label: 'Conversion Rate',
-      value: 'Loading...'
+      value: 'Loading...',
     },
     {
       label: 'Average Order Value',
-      value: 'Loading...'
+      value: 'Loading...',
     },
     {
       label: 'Return Rate',
-      value: 'Loading...'
+      value: 'Loading...',
     },
     {
       label: 'Customer Satisfaction',
-      value: 'Loading...'
-    }
+      value: 'Loading...',
+    },
   ];
 
   // Products management
@@ -189,17 +205,17 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     price: 0,
     sale_price: undefined,
     stock: 0,
-    specs: []
+    specs: [],
   };
 
   // Specifications array for add product form
-  specs: { key: string, value: string }[] = [{ key: '', value: '' }];
+  specs: { key: string; value: string }[] = [{ key: '', value: '' }];
 
   // Images array for add product form
-  uploadedImages: { file: File, url: string, name: string }[] = [];
+  uploadedImages: { file: File; url: string; name: string }[] = [];
 
   editingProduct: Product | null = null;
-  editingProductImages: { file: File, url: string, name: string }[] = [];
+  editingProductImages: { file: File; url: string; name: string }[] = [];
   editingProductExistingImages: any[] = [];
   productError: string | null = null;
   productSuccess: string | null = null;
@@ -222,23 +238,29 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     };
     revenueByMonth: { month: string; revenue: number }[];
   } = {
-      salesTrend: [],
-      topProducts: [],
-      customerStats: {},
-      revenueByMonth: []
-    };
+    salesTrend: [],
+    topProducts: [],
+    customerStats: {},
+    revenueByMonth: [],
+  };
 
   // Promotions/Deals
-  specialOffers: any[] = [];
-  newOffer = {
+  offers: Offer[] = [];
+  newOffer: Offer = {
     title: '',
     description: '',
-    discountType: 'percentage',
-    discountValue: 0,
-    validFrom: '',
-    validTo: '',
-    isActive: true
+    discount_type: 'percentage',
+    discount_value: 0,
+    valid_from: '',
+    valid_until: '',
+    is_active: true,
+    product_ids: [],
   };
+  editingOffer: Offer | null = null;
+  selectedProductsForOffer: string[] = [];
+  offerError: string | null = null;
+  offerSuccess: string | null = null;
+  isSubmittingOffer = false;
 
   // Profile management
   sellerProfile: SellerProfile | null = null;
@@ -246,7 +268,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   profileForm: SellerProfile = {
     business_name: '',
     tax_id: '',
-    business_license: ''
+    business_license: '',
   };
   profileError: string | null = null;
   profileSuccess: string | null = null;
@@ -262,12 +284,9 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   isLoadingOrderDetails = false;
   isSubmittingProduct = false;
   navigate: any;
-  isSeller: boolean = false
+  isSeller: boolean = false;
 
-  constructor(
-    private apiService: ApiService,
-    private router: Router
-  ) { }
+  constructor(private apiService: ApiService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -276,6 +295,29 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // Mobile Menu Methods
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    if (window.innerWidth > 1024 && this.isMobileMenuOpen) {
+      this.closeMobileMenu();
+    }
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onKeydownHandler(event: KeyboardEvent): void {
+    if (this.isMobileMenuOpen) {
+      this.closeMobileMenu();
+    }
   }
 
   // Navigation methods
@@ -297,7 +339,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         this.loadAnalytics();
         break;
       case 'promotions':
-        this.loadSpecialOffers();
+        this.loadOffers();
         break;
       case 'products':
         this.loadProducts();
@@ -341,14 +383,17 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         const seller = response.seller;
 
         if (seller) {
-          this.isSeller = true
-        };
+          this.isSeller = true;
+        }
 
         this.userName = user.name || 'User';
         this.userRole = user.role || 'buyer';
 
         // Check authorization
-        if (this.userRole.toLowerCase() !== 'seller' && this.userRole.toLowerCase() !== 'admin') {
+        if (
+          this.userRole.toLowerCase() !== 'seller' &&
+          this.userRole.toLowerCase() !== 'admin'
+        ) {
           this.isAuthorized = false;
           this.isLoading = false;
           return;
@@ -375,9 +420,11 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         this.error = 'Failed to load user data. Please log in again.';
         this.isLoading = false;
         setTimeout(() => {
-          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } })
+          this.router.navigate(['/login'], {
+            queryParams: { returnUrl: this.router.url },
+          });
         }, 5000);
-      }
+      },
     });
   }
 
@@ -389,104 +436,122 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     }
 
     // Load platform-wide dashboard stats (not seller-specific)
-    this.apiService.getSellerDashboardStats(this.currentSellerId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        console.log('✅ Dashboard stats loaded:', response);
+    this.apiService
+      .getSellerDashboardStats(this.currentSellerId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Dashboard stats loaded:', response);
 
-        if (response.success && response.data) {
-          const data = response.data;
+          if (response.success && response.data) {
+            const data = response.data;
 
-          // Process stats
-          this.processNewDashboardStats(data);
+            // Process stats
+            this.processNewDashboardStats(data);
 
-          // Process recent orders
-          if (data.orders?.recent) {
-            this.orders = data.orders.recent.slice(0, 5).map((order: any) => ({
-              id: order.order_id || 'N/A',
-              customer: order.customer_name || 'Unknown',
-              product: 'Multiple Items',
-              amount: this.formatCurrency(order.total_amount || 0),
-              status: this.mapOrderStatus(order.status),
-              date: this.formatDate(order.created_at),
-              statusClass: this.getStatusClass(order.status)
-            }));
+            // Process recent orders
+            if (data.orders?.recent) {
+              this.orders = data.orders.recent
+                .slice(0, 5)
+                .map((order: any) => ({
+                  id: order.order_id || 'N/A',
+                  customer: order.customer_name || 'Unknown',
+                  product: 'Multiple Items',
+                  amount: this.formatCurrency(order.total_amount || 0),
+                  status: this.mapOrderStatus(order.status),
+                  date: this.formatDate(order.created_at),
+                  statusClass: this.getStatusClass(order.status),
+                }));
+            }
+
+            // Process top products for analytics
+            if (data.topProducts) {
+              this.analyticsData.topProducts = data.topProducts.map(
+                (p: any) => ({
+                  name: p.title,
+                  sales: p.unitsSold || 0,
+                  revenue: p.revenue || 0,
+                })
+              );
+            }
+
+            // Process monthly trend
+            if (data.revenue?.monthlyTrend) {
+              this.analyticsData.revenueByMonth = data.revenue.monthlyTrend;
+            }
+
+            // Process performance metrics
+            this.processPerformanceMetrics(data);
+
+            // Generate activities from recent data
+            this.generateActivitiesFromData(data);
           }
 
-          // Process top products for analytics
-          if (data.topProducts) {
-            this.analyticsData.topProducts = data.topProducts.map((p: any) => ({
-              name: p.title,
-              sales: p.unitsSold || 0,
-              revenue: p.revenue || 0
-            }));
-          }
-
-          // Process monthly trend
-          if (data.revenue?.monthlyTrend) {
-            this.analyticsData.revenueByMonth = data.revenue.monthlyTrend;
-          }
-
-          // Process performance metrics
-          this.processPerformanceMetrics(data);
-
-          // Generate activities from recent data
-          this.generateActivitiesFromData(data);
-        }
-
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading dashboard stats:', err);
-        this.error = 'Failed to load dashboard data. Please try again.';
-        this.setDefaultStats();
-        this.isLoading = false;
-      }
-    });
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading dashboard stats:', err);
+          this.error = 'Failed to load dashboard data. Please try again.';
+          this.setDefaultStats();
+          this.isLoading = false;
+        },
+      });
   }
 
   /**
    * Process dashboard stats from API
    */
   private processNewDashboardStats(statsData: any): void {
-    const revenueChange = statsData.revenue?.last30Days > 0
-      ? `+${((statsData.revenue.last30Days / statsData.revenue.total) * 100).toFixed(1)}%`
-      : '+0%';
+    const revenueChange =
+      statsData.revenue?.last30Days > 0
+        ? `+${(
+            (statsData.revenue.last30Days / statsData.revenue.total) *
+            100
+          ).toFixed(1)}%`
+        : '+0%';
 
     this.stats = [
       {
         title: 'Total Revenue',
         value: this.formatCurrency(statsData.revenue?.total || 0),
-        change: `Last 30 days: ${this.formatCurrency(statsData.revenue?.last30Days || 0)}`,
+        change: `Last 30 days: ${this.formatCurrency(
+          statsData.revenue?.last30Days || 0
+        )}`,
         changeClass: statsData.revenue?.last30Days > 0 ? 'positive' : 'warning',
         icon: '💰',
-        iconClass: 'revenue'
+        iconClass: 'revenue',
       },
       {
         title: 'Total Orders',
         value: (statsData.orders?.total || 0).toString(),
-        change: `${statsData.orders?.pending || 0} pending • ${statsData.orders?.processing || 0} processing`,
+        change: `${statsData.orders?.pending || 0} pending • ${
+          statsData.orders?.processing || 0
+        } processing`,
         changeClass: statsData.orders?.total > 0 ? 'positive' : 'warning',
         icon: '📦',
-        iconClass: 'orders'
+        iconClass: 'orders',
       },
       {
         title: 'Active Products',
         value: (statsData.products?.total || 0).toString(),
-        change: `${statsData.products?.inStock || 0} in stock • ${statsData.products?.outOfStock || 0} out`,
+        change: `${statsData.products?.inStock || 0} in stock • ${
+          statsData.products?.outOfStock || 0
+        } out`,
         changeClass: statsData.products?.inStock > 0 ? 'positive' : 'warning',
         icon: '📱',
-        iconClass: 'products'
+        iconClass: 'products',
       },
       {
         title: 'Customer Reviews',
         value: `${statsData.reviews?.averageRating || 0}/5`,
         change: `${statsData.reviews?.total || 0} total reviews`,
-        changeClass: parseFloat(statsData.reviews?.averageRating || '0') >= 4 ? 'positive' : 'warning',
+        changeClass:
+          parseFloat(statsData.reviews?.averageRating || '0') >= 4
+            ? 'positive'
+            : 'warning',
         icon: '⭐',
-        iconClass: 'customers'
-      }
+        iconClass: 'customers',
+      },
     ];
   }
 
@@ -494,10 +559,10 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
    * Set default stats when API fails
    */
   private setDefaultStats(): void {
-    this.stats = this.stats.map(stat => ({
+    this.stats = this.stats.map((stat) => ({
       ...stat,
       value: '0',
-      change: 'No data'
+      change: 'No data',
     }));
   }
 
@@ -510,7 +575,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
     const returnedOrders = data.orders?.cancelled || 0;
-    const returnRate = totalOrders > 0 ? (returnedOrders / totalOrders) * 100 : 0;
+    const returnRate =
+      totalOrders > 0 ? (returnedOrders / totalOrders) * 100 : 0;
 
     const avgRating = parseFloat(data.reviews?.averageRating || '0');
 
@@ -518,23 +584,24 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       {
         label: 'Conversion Rate',
         value: `${((totalOrders / 100) * 100).toFixed(1)}%`,
-        valueClass: totalOrders > 0 ? 'positive' : 'warning'
+        valueClass: totalOrders > 0 ? 'positive' : 'warning',
       },
       {
         label: 'Average Order Value',
         value: this.formatCurrency(avgOrderValue),
-        valueClass: avgOrderValue > 0 ? 'positive' : 'warning'
+        valueClass: avgOrderValue > 0 ? 'positive' : 'warning',
       },
       {
         label: 'Return Rate',
         value: `${returnRate.toFixed(1)}%`,
-        valueClass: returnRate <= 5 ? 'positive' : 'warning'
+        valueClass: returnRate <= 5 ? 'positive' : 'warning',
       },
       {
         label: 'Customer Satisfaction',
         value: `${avgRating.toFixed(1)}/5.0`,
-        valueClass: avgRating >= 4 ? 'positive' : avgRating >= 3 ? 'warning' : 'negative'
-      }
+        valueClass:
+          avgRating >= 4 ? 'positive' : avgRating >= 3 ? 'warning' : 'negative',
+      },
     ];
   }
 
@@ -550,7 +617,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           icon: '📦',
           iconClass: 'order',
           text: `New order from ${order.customer_name || 'Customer'}`,
-          time: this.getRelativeTime(order.created_at)
+          time: this.getRelativeTime(order.created_at),
         });
       });
     }
@@ -558,10 +625,10 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     if (data.products?.lowStock && data.products.lowStock.length > 0) {
       data.products.lowStock.slice(0, 2).forEach((product: any) => {
         activities.push({
-          icon: '⚠️',
+          icon: '📱',
           iconClass: 'product',
           text: `Low stock alert: ${product.title} (${product.stock} left)`,
-          time: 'Recently'
+          time: 'Recently',
         });
       });
     }
@@ -571,16 +638,21 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         icon: '⭐',
         iconClass: 'review',
         text: `Average rating: ${data.reviews.averageRating}/5 (${data.reviews.total} reviews)`,
-        time: 'Overall'
+        time: 'Overall',
       });
     }
 
-    this.activities = activities.length > 0 ? activities : [{
-      icon: '📌',
-      iconClass: 'order',
-      text: 'No recent activity',
-      time: 'Start selling to see activities'
-    }];
+    this.activities =
+      activities.length > 0
+        ? activities
+        : [
+            {
+              icon: '📌',
+              iconClass: 'order',
+              text: 'No recent activity',
+              time: 'Start selling to see activities',
+            },
+          ];
   }
 
   // Profile management methods
@@ -589,9 +661,11 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.profileError = null;
 
     try {
-      this.apiService.getCurrentUser().subscribe(user => {
+      this.apiService.getCurrentUser().subscribe((user) => {
         if (!user || !user.user) {
-          this.router.navigate(['/login'], { queryParams: { returnUrl: '/seller-dashboard' } });
+          this.router.navigate(['/login'], {
+            queryParams: { returnUrl: '/seller-dashboard' },
+          });
           this.profileError = 'User session expired. Please log in again.';
           this.profileLoading = false;
           return;
@@ -599,7 +673,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
         const userId = user.user.user_id;
 
-        this.apiService.getSellers()
+        this.apiService
+          .getSellers()
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (sellers) => {
@@ -610,7 +685,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
                 this.profileForm = {
                   business_name: userSeller.business_name || '',
                   tax_id: userSeller.tax_id || '',
-                  business_license: userSeller.business_license || ''
+                  business_license: userSeller.business_license || '',
                 };
               } else {
                 this.sellerProfile = null;
@@ -619,15 +694,19 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
               console.error('Error loading seller profile:', error);
-              this.router.navigate(['/login'], { queryParams: { returnUrl: '/seller-dashboard' } });
+              this.router.navigate(['/login'], {
+                queryParams: { returnUrl: '/seller-dashboard' },
+              });
               this.profileError = 'Failed to load profile. Please try again.';
               this.profileLoading = false;
-            }
+            },
           });
       });
     } catch (error) {
       console.error('Error parsing user data:', error);
-      this.router.navigate(['/login'], { queryParams: { returnUrl: '/seller-dashboard' } });
+      this.router.navigate(['/login'], {
+        queryParams: { returnUrl: '/seller-dashboard' },
+      });
       this.profileError = 'Invalid user session. Please log in again.';
       this.profileLoading = false;
     }
@@ -645,7 +724,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       this.profileForm = {
         business_name: this.sellerProfile.business_name || '',
         tax_id: this.sellerProfile.tax_id || '',
-        business_license: this.sellerProfile.business_license || ''
+        business_license: this.sellerProfile.business_license || '',
       };
     }
     this.profileError = null;
@@ -661,7 +740,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.profileSuccess = null;
 
     if (this.sellerProfile && this.sellerProfile.seller_id) {
-      this.apiService.updateSeller(this.sellerProfile.seller_id.toString(), this.profileForm)
+      this.apiService
+        .updateSeller(this.sellerProfile.seller_id.toString(), this.profileForm)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -673,10 +753,11 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
             console.error('Error updating profile:', error);
             this.profileError = 'Failed to update profile. Please try again.';
             this.profileLoading = false;
-          }
+          },
         });
     } else {
-      this.apiService.createSeller(this.profileForm)
+      this.apiService
+        .createSeller(this.profileForm)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -688,7 +769,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
             console.error('Error creating profile:', error);
             this.profileError = 'Failed to create profile. Please try again.';
             this.profileLoading = false;
-          }
+          },
         });
     }
   }
@@ -713,7 +794,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   private loadProducts(): void {
     console.log('🔍 Loading all products for seller dashboard');
 
-    this.apiService.getProducts()
+    this.apiService
+      .getProducts()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -725,7 +807,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           console.error('❌ Error loading products:', error);
           this.products = [];
           this.filteredProductsList = [];
-        }
+        },
       });
   }
 
@@ -743,12 +825,16 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   filterProducts(): void {
     const search = (this.productSearch || '').trim().toLowerCase();
     const category = this.productFilterCategory;
-    const min = this.productFilterMinPrice !== null && this.productFilterMinPrice !== undefined
-      ? Number(this.productFilterMinPrice)
-      : null;
-    const max = this.productFilterMaxPrice !== null && this.productFilterMaxPrice !== undefined
-      ? Number(this.productFilterMaxPrice)
-      : null;
+    const min =
+      this.productFilterMinPrice !== null &&
+      this.productFilterMinPrice !== undefined
+        ? Number(this.productFilterMinPrice)
+        : null;
+    const max =
+      this.productFilterMaxPrice !== null &&
+      this.productFilterMaxPrice !== undefined
+        ? Number(this.productFilterMaxPrice)
+        : null;
     const status = (this.productFilterStatus || '').toLowerCase();
 
     let filtered = Array.isArray(this.products) ? [...this.products] : [];
@@ -762,22 +848,33 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     }
 
     if (category) {
-      filtered = filtered.filter((p: any) =>
-        (p.category_id || p.category || '').toString() === category.toString()
+      filtered = filtered.filter(
+        (p: any) =>
+          (p.category_id || p.category || '').toString() === category.toString()
       );
     }
 
     if (min !== null && !Number.isNaN(min)) {
-      filtered = filtered.filter((p: any) => Number(p.price || p.sale_price || 0) >= min);
+      filtered = filtered.filter(
+        (p: any) => Number(p.price || p.sale_price || 0) >= min
+      );
     }
 
     if (max !== null && !Number.isNaN(max)) {
-      filtered = filtered.filter((p: any) => Number(p.price || p.sale_price || 0) <= max);
+      filtered = filtered.filter(
+        (p: any) => Number(p.price || p.sale_price || 0) <= max
+      );
     }
 
     if (status) {
       filtered = filtered.filter((p: any) => {
-        const st = (p.status || (p.isActive === false ? 'inactive' : 'active') || '').toString().toLowerCase();
+        const st = (
+          p.status ||
+          (p.isActive === false ? 'inactive' : 'active') ||
+          ''
+        )
+          .toString()
+          .toLowerCase();
         return st === status;
       });
     }
@@ -791,11 +888,14 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.productFilterMinPrice = null;
     this.productFilterMaxPrice = null;
     this.productFilterStatus = '';
-    this.filteredProductsList = Array.isArray(this.products) ? [...this.products] : [];
+    this.filteredProductsList = Array.isArray(this.products)
+      ? [...this.products]
+      : [];
   }
 
   private loadCategories(): void {
-    this.apiService.getCategories()
+    this.apiService
+      .getCategories()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -803,7 +903,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading categories:', error);
-        }
+        },
       });
   }
 
@@ -811,14 +911,14 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
     if (files && files.length > 0) {
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = (e: any) => {
             this.uploadedImages.push({
               file: file,
               url: e.target.result,
-              name: file.name
+              name: file.name,
             });
           };
           reader.readAsDataURL(file);
@@ -848,14 +948,14 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = (e: any) => {
             this.uploadedImages.push({
               file: file,
               url: e.target.result,
-              name: file.name
+              name: file.name,
             });
           };
           reader.readAsDataURL(file);
@@ -892,7 +992,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.apiService.getCurrentUser().subscribe(user => {
+      this.apiService.getCurrentUser().subscribe((user) => {
         const sellerString = user.seller;
 
         if (user) {
@@ -900,7 +1000,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           console.log('✅ Creating product for seller ID:', seller?.seller_id);
 
           const specsObject: { [key: string]: any } = {};
-          this.specs.forEach(spec => {
+          this.specs.forEach((spec) => {
             if (spec.key && spec.value) {
               specsObject[spec.key] = spec.value;
             }
@@ -914,12 +1014,13 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
             price: this.newProduct.price,
             sale_price: this.newProduct.sale_price || null,
             stock: this.newProduct.stock || 0,
-            specs: JSON.stringify(specsObject)
+            specs: JSON.stringify(specsObject),
           };
 
           console.log('Creating product with data:', productData);
 
-          this.apiService.createProduct(productData)
+          this.apiService
+            .createProduct(productData)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (response) => {
@@ -930,8 +1031,9 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
               },
               error: (error) => {
                 console.error('Error creating product:', error);
-                this.productError = 'Failed to create product. Please try again.';
-              }
+                this.productError =
+                  'Failed to create product. Please try again.';
+              },
             });
         } else {
           this.productError = 'User session expired. Please log in again.';
@@ -958,7 +1060,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
     console.log('Uploading images for product:', productId);
 
-    this.apiService.uploadProductImages(productId.toString(), formData)
+    this.apiService
+      .uploadProductImages(productId.toString(), formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -975,8 +1078,9 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error uploading images:', error);
-          this.productError = 'Product created but failed to upload images. Please try adding images later.';
-        }
+          this.productError =
+            'Product created but failed to upload images. Please try adding images later.';
+        },
       });
   }
 
@@ -1027,7 +1131,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       price: 0,
       sale_price: undefined,
       stock: 0,
-      specs: []
+      specs: [],
     };
     this.isSubmittingProduct = false;
   }
@@ -1036,28 +1140,35 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.editingProduct = { ...product };
     this.editingProductImages = [];
     this.editingProductExistingImages = [];
-    
+
     // Load existing product images
     if (product.product_id) {
-      this.apiService.serveProductImagesSafe(product.product_id.toString())
+      this.apiService
+        .serveProductImagesSafe(product.product_id.toString())
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (images) => {
             this.editingProductExistingImages = images || [];
-            console.log('✅ Loaded existing images:', this.editingProductExistingImages);
-            
+            console.log(
+              '✅ Loaded existing images:',
+              this.editingProductExistingImages
+            );
+
             // Debug: Log the structure of the first image
             if (this.editingProductExistingImages.length > 0) {
               const firstImage = this.editingProductExistingImages[0];
               console.log('📸 First image FULL object:', firstImage);
               console.log('📸 ALL properties:', Object.keys(firstImage));
-              console.log('📸 Image as JSON:', JSON.stringify(firstImage, null, 2));
+              console.log(
+                '📸 Image as JSON:',
+                JSON.stringify(firstImage, null, 2)
+              );
             }
           },
           error: (error) => {
             console.warn('⚠️ No existing images found:', error);
             this.editingProductExistingImages = [];
-          }
+          },
         });
     }
   }
@@ -1065,14 +1176,14 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   onEditProductFileSelected(event: any): void {
     const files: FileList = event.target.files;
     if (files && files.length > 0) {
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = (e: any) => {
             this.editingProductImages.push({
               file: file,
               url: e.target.result,
-              name: file.name
+              name: file.name,
             });
           };
           reader.readAsDataURL(file);
@@ -1088,51 +1199,60 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
   removeExistingProductImage(image: any): void {
     // Check which ID property exists - try all possible variations
-    const imageId = image.image_id || 
-                    image.id || 
-                    image.productImageId || 
-                    image.product_image_id ||
-                    image.imageId;
-    
+    const imageId =
+      image.image_id ||
+      image.id ||
+      image.productImageId ||
+      image.product_image_id ||
+      image.imageId;
+
     if (!imageId) {
       console.error('❌ Image ID not found. Image object:', image);
       console.error('Available properties:', Object.keys(image));
       this.productError = 'Cannot delete image: ID not found';
-      setTimeout(() => this.productError = null, 3000);
+      setTimeout(() => (this.productError = null), 3000);
       return;
     }
 
     if (confirm('Are you sure you want to delete this image?')) {
       console.log('🗑️ Deleting image with ID:', imageId);
       console.log('Full image object:', image);
-      
-      this.apiService.deleteProductImage(imageId.toString())
+
+      this.apiService
+        .deleteProductImage(imageId.toString())
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             // Remove the image from the array using the same ID check
-            this.editingProductExistingImages = this.editingProductExistingImages.filter(
-              img => {
-                const imgId = img.image_id || img.id || img.productImageId || img.product_image_id || img.imageId;
+            this.editingProductExistingImages =
+              this.editingProductExistingImages.filter((img) => {
+                const imgId =
+                  img.image_id ||
+                  img.id ||
+                  img.productImageId ||
+                  img.product_image_id ||
+                  img.imageId;
                 return imgId !== imageId;
-              }
-            );
+              });
             this.productSuccess = 'Image deleted successfully!';
             console.log('✅ Image deleted successfully');
-            setTimeout(() => this.productSuccess = null, 3000);
+            setTimeout(() => (this.productSuccess = null), 3000);
           },
           error: (error) => {
             console.error('❌ Error deleting image:', error);
-            this.productError = `Failed to delete image: ${error.error?.message || error.message}`;
-            setTimeout(() => this.productError = null, 5000);
-          }
+            this.productError = `Failed to delete image: ${
+              error.error?.message || error.message
+            }`;
+            setTimeout(() => (this.productError = null), 5000);
+          },
         });
     }
   }
 
   onUpdateProduct(): void {
     if (this.editingProduct) {
-      this.apiService.updateProduct(this.editingProduct.product_id!, this.editingProduct)
+      this.apiService
+        .updateProduct(this.editingProduct.product_id!, this.editingProduct)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -1145,14 +1265,14 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
               this.editingProductImages = [];
               this.editingProductExistingImages = [];
               this.loadProducts();
-              setTimeout(() => this.productSuccess = null, 3000);
+              setTimeout(() => (this.productSuccess = null), 3000);
             }
           },
           error: (error) => {
             console.error('Error updating product:', error);
             this.productError = 'Failed to update product. Please try again.';
-            setTimeout(() => this.productError = null, 3000);
-          }
+            setTimeout(() => (this.productError = null), 3000);
+          },
         });
     }
   }
@@ -1168,7 +1288,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
 
     console.log('Uploading new images for product:', productId);
 
-    this.apiService.uploadProductImages(productId.toString(), formData)
+    this.apiService
+      .uploadProductImages(productId.toString(), formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -1178,23 +1299,25 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           this.editingProductImages = [];
           this.editingProductExistingImages = [];
           this.loadProducts();
-          setTimeout(() => this.productSuccess = null, 3000);
+          setTimeout(() => (this.productSuccess = null), 3000);
         },
         error: (error) => {
           console.error('Error uploading new images:', error);
-          this.productError = 'Product updated but failed to upload new images.';
+          this.productError =
+            'Product updated but failed to upload new images.';
           this.editingProduct = null;
           this.editingProductImages = [];
           this.editingProductExistingImages = [];
           this.loadProducts();
-          setTimeout(() => this.productError = null, 3000);
-        }
+          setTimeout(() => (this.productError = null), 3000);
+        },
       });
   }
 
   onDeleteProduct(productId: string): void {
     if (confirm('Are you sure you want to delete this product?')) {
-      this.apiService.deleteProduct(productId)
+      this.apiService
+        .deleteProduct(productId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -1205,7 +1328,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           error: (error) => {
             console.error('Error deleting product:', error);
             this.productError = 'Failed to delete product. Please try again.';
-          }
+          },
         });
     }
   }
@@ -1214,7 +1337,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   private loadAllOrders(): void {
     console.log('🔍 Loading all orders for seller dashboard');
 
-    this.apiService.getOrders()
+    this.apiService
+      .getOrders()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (orders: any[]) => {
@@ -1226,7 +1350,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           console.error('❌ Error loading orders:', error);
           this.allOrders = [];
           this.filteredOrders = [];
-        }
+        },
       });
   }
 
@@ -1234,18 +1358,27 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     let filtered = this.allOrders;
 
     if (this.orderFilter !== 'all') {
-      filtered = filtered.filter(order =>
-        order.status &&
-        order.status.toLowerCase() === this.orderFilter.toLowerCase()
+      filtered = filtered.filter(
+        (order) =>
+          order.status &&
+          order.status.toLowerCase() === this.orderFilter.toLowerCase()
       );
     }
 
     if (this.orderSearch.trim()) {
       const searchTerm = this.orderSearch.toLowerCase();
-      filtered = filtered.filter(order => {
+      filtered = filtered.filter((order) => {
         const id = (order.order_id || order._id || '').toString().toLowerCase();
-        const customerName = (order.user_name || order.customer?.name || '').toLowerCase();
-        const productName = (order.product_name || order.items?.[0]?.productName || '').toLowerCase();
+        const customerName = (
+          order.user_name ||
+          order.customer?.name ||
+          ''
+        ).toLowerCase();
+        const productName = (
+          order.product_name ||
+          order.items?.[0]?.productName ||
+          ''
+        ).toLowerCase();
         return (
           id.includes(searchTerm) ||
           customerName.includes(searchTerm) ||
@@ -1258,7 +1391,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
   }
 
   updateOrderStatus(orderId: string, newStatus: string): void {
-    this.apiService.updateOrder(orderId, { status: newStatus })
+    this.apiService
+      .updateOrder(orderId, { status: newStatus })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -1267,7 +1401,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating order status:', error);
-        }
+        },
       });
   }
 
@@ -1278,92 +1412,242 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.apiService.getSellerDashboardStats(this.currentSellerId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          const data = response.data;
-
-          this.analyticsData = {
-            salesTrend: data.revenue?.monthlyTrend || [],
-            topProducts: (data.topProducts || []).map((p: any) => ({
-              name: p.title,
-              sales: p.unitsSold || 0,
-              revenue: p.revenue || 0
-            })),
-            revenueByMonth: data.revenue?.monthlyTrend || [],
-            customerStats: {
-              totalCustomers: data.orders?.total || 0,
-              newCustomers: 0,
-              returningCustomers: 0,
-              customerSatisfaction: parseFloat(data.reviews?.averageRating || '0')
-            }
-          };
-        }
-      },
-      error: (err) => {
-        console.error('Error loading analytics:', err);
-      }
-    });
-  }
-
-  // Promotions methods
-  private loadSpecialOffers(): void {
-    this.apiService.getSpecialOffers()
+    this.apiService
+      .getSellerDashboardStats(this.currentSellerId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.specialOffers = response || [];
+          if (response.success && response.data) {
+            const data = response.data;
+
+            this.analyticsData = {
+              salesTrend: data.revenue?.monthlyTrend || [],
+              topProducts: (data.topProducts || []).map((p: any) => ({
+                name: p.title,
+                sales: p.unitsSold || 0,
+                revenue: p.revenue || 0,
+              })),
+              revenueByMonth: data.revenue?.monthlyTrend || [],
+              customerStats: {
+                totalCustomers: data.orders?.total || 0,
+                newCustomers: 0,
+                returningCustomers: 0,
+                customerSatisfaction: parseFloat(
+                  data.reviews?.averageRating || '0'
+                ),
+              },
+            };
+          }
+        },
+        error: (err) => {
+          console.error('Error loading analytics:', err);
+        },
+      });
+  }
+
+  // Offers/Promotions methods
+  private loadOffers(): void {
+    this.apiService
+      .getSpecialOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const allOffers = response.data || response || [];
+          // Filter offers by seller if needed (depends on your API structure)
+          this.offers = Array.isArray(allOffers) ? allOffers : [];
         },
         error: (error) => {
-          console.error('Error loading special offers:', error);
-        }
+          console.error('Error loading offers:', error);
+          this.offers = [];
+        },
       });
+  }
+
+  toggleProductSelection(productId: string): void {
+    const index = this.selectedProductsForOffer.indexOf(productId);
+    if (index > -1) {
+      this.selectedProductsForOffer.splice(index, 1);
+    } else {
+      this.selectedProductsForOffer.push(productId);
+    }
+  }
+
+  isProductSelected(productId: string): boolean {
+    return this.selectedProductsForOffer.includes(productId);
   }
 
   onCreateOffer(): void {
-    this.apiService.createSpecialOffer(this.newOffer)
+    if (!this.validateOffer()) {
+      return;
+    }
+
+    this.isSubmittingOffer = true;
+    this.clearMessages();
+
+    const offerData = {
+      ...this.newOffer,
+      product_ids: this.selectedProductsForOffer,
+    };
+
+    this.apiService
+      .createSpecialOffer(offerData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.productSuccess = 'Special offer created successfully!';
+          this.offerSuccess = 'Offer created successfully!';
+          this.isSubmittingOffer = false;
           this.resetNewOffer();
-          this.loadSpecialOffers();
+          this.selectedProductsForOffer = [];
+          this.loadOffers();
+
+          setTimeout(() => {
+            this.clearMessages();
+          }, 3000);
         },
         error: (error) => {
           console.error('Error creating offer:', error);
-          this.productError = 'Failed to create offer. Please try again.';
-        }
+          this.offerError =
+            error.error?.message || 'Failed to create offer. Please try again.';
+          this.isSubmittingOffer = false;
+        },
       });
   }
 
-  toggleOfferStatus(offerId: string): void {
-    this.apiService.toggleSpecialOfferActivation(offerId)
+  editOffer(offer: any): void {
+    this.editingOffer = { ...offer };
+    this.selectedProductsForOffer = offer.product_ids || [];
+    this.navigateTo('edit-offer');
+  }
+
+  onUpdateOffer(): void {
+    if (!this.editingOffer || !this.editingOffer.offer_id) {
+      this.offerError = 'Offer ID not found';
+      return;
+    }
+
+    if (!this.validateOffer(this.editingOffer)) {
+      return;
+    }
+
+    this.isSubmittingOffer = true;
+    this.clearMessages();
+
+    const offerData = {
+      ...this.editingOffer,
+      product_ids: this.selectedProductsForOffer,
+    };
+
+    this.apiService
+      .updateSpecialOffer(this.editingOffer.offer_id, offerData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.loadSpecialOffers();
+          this.offerSuccess = 'Offer updated successfully!';
+          this.isSubmittingOffer = false;
+          this.editingOffer = null;
+          this.selectedProductsForOffer = [];
+          this.loadOffers();
+
+          setTimeout(() => {
+            this.navigateTo('promotions');
+            this.clearMessages();
+          }, 2000);
+        },
+        error: (error) => {
+          console.error('Error updating offer:', error);
+          this.offerError = 'Failed to update offer. Please try again.';
+          this.isSubmittingOffer = false;
+        },
+      });
+  }
+
+  cancelOfferEdit(): void {
+    this.editingOffer = null;
+    this.selectedProductsForOffer = [];
+    this.navigateTo('promotions');
+  }
+
+  private validateOffer(offer: Offer = this.newOffer): boolean {
+    if (!offer.title || !offer.description) {
+      this.offerError = 'Please fill in title and description';
+      return false;
+    }
+
+    if (offer.discount_value <= 0) {
+      this.offerError = 'Discount value must be greater than 0';
+      return false;
+    }
+
+    if (offer.discount_type === 'percentage' && offer.discount_value > 100) {
+      this.offerError = 'Percentage discount cannot exceed 100%';
+      return false;
+    }
+
+    if (!offer.valid_from || !offer.valid_until) {
+      this.offerError = 'Please set valid date range';
+      return false;
+    }
+
+    const fromDate = new Date(offer.valid_from);
+    const toDate = new Date(offer.valid_until);
+
+    if (fromDate >= toDate) {
+      this.offerError = 'End date must be after start date';
+      return false;
+    }
+
+    return true;
+  }
+
+  // Add this temporarily to debug
+  toggleOfferStatus(offer: any): void {
+    console.log('Full offer object:', offer);
+    console.log('Offer ID:', offer.offer_id);
+    console.log('All keys:', Object.keys(offer));
+
+    if (!offer.offer_id) {
+      console.error('Offer ID is missing!');
+      this.offerError = 'Invalid offer - missing ID';
+      return;
+    }
+
+    const newStatus = !offer.is_active;
+
+    this.apiService
+      .toggleSpecialOfferActivation(offer.offer_id, newStatus)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          offer.is_active = response.is_active;
+          this.offerSuccess = `Offer ${
+            newStatus ? 'activated' : 'deactivated'
+          } successfully`;
+          setTimeout(() => this.clearMessages(), 3000);
         },
         error: (error) => {
           console.error('Error toggling offer status:', error);
-        }
+          this.offerError = 'Failed to toggle offer status';
+          setTimeout(() => this.clearMessages(), 3000);
+        },
       });
   }
 
   deleteOffer(offerId: string): void {
     if (confirm('Are you sure you want to delete this offer?')) {
-      this.apiService.deleteSpecialOffer(offerId)
+      this.apiService
+        .deleteSpecialOffer(offerId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
-            this.productSuccess = 'Offer deleted successfully!';
-            this.loadSpecialOffers();
+            this.offerSuccess = 'Offer deleted successfully!';
+            this.loadOffers();
+            setTimeout(() => this.clearMessages(), 3000);
           },
           error: (error) => {
             console.error('Error deleting offer:', error);
-            this.productError = 'Failed to delete offer. Please try again.';
-          }
+            this.offerError = 'Failed to delete offer. Please try again.';
+            setTimeout(() => this.clearMessages(), 3000);
+          },
         });
     }
   }
@@ -1372,35 +1656,36 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.newOffer = {
       title: '',
       description: '',
-      discountType: 'percentage',
-      discountValue: 0,
-      validFrom: '',
-      validTo: '',
-      isActive: true
+      discount_type: 'percentage',
+      discount_value: 0,
+      valid_from: '',
+      valid_until: '',
+      is_active: true,
+      product_ids: [],
     };
   }
 
   // Utility methods
   public mapOrderStatus(status: string): string {
     const statusMap: { [key: string]: string } = {
-      'pending': 'Pending',
-      'processing': 'Processing',
-      'shipped': 'Shipped',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled',
-      'returned': 'Returned'
+      pending: 'Pending',
+      processing: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled',
+      returned: 'Returned',
     };
     return statusMap[status?.toLowerCase()] || status || 'Unknown';
   }
 
   public getStatusClass(status: string): string {
     const statusClasses: { [key: string]: string } = {
-      'pending': 'pending',
-      'processing': 'processing',
-      'shipped': 'processing',
-      'delivered': 'delivered',
-      'cancelled': 'cancelled',
-      'returned': 'cancelled'
+      pending: 'pending',
+      processing: 'processing',
+      shipped: 'processing',
+      delivered: 'delivered',
+      cancelled: 'cancelled',
+      returned: 'cancelled',
     };
     return statusClasses[status?.toLowerCase()] || 'pending';
   }
@@ -1409,8 +1694,10 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES',
-      minimumFractionDigits: 0
-    }).format(amount).replace('KES', 'KSh');
+      minimumFractionDigits: 0,
+    })
+      .format(amount)
+      .replace('KES', 'KSh');
   }
 
   formatDate(dateString: string): string {
@@ -1419,7 +1706,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
@@ -1431,9 +1718,12 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800)
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
     return this.formatDate(dateString);
   }
 
@@ -1447,7 +1737,8 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
     this.isLoadingOrderDetails = true;
     this.orderDetails = {};
 
-    this.apiService.getOrderById(orderId)
+    this.apiService
+      .getOrderById(orderId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (order) => {
@@ -1457,27 +1748,38 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           const addressId = order.address_id;
 
           forkJoin({
-            user: userId ? this.apiService.getUserById(userId).pipe(catchError(() => of(null))) : of(null),
-            address: addressId ? this.apiService.getAddressById(addressId).pipe(catchError(() => of(null))) : of(null),
-            orderItems: this.apiService.getOrderItems().pipe(
-              catchError(() => of({ data: [] }))
-            ),
-            payment: this.apiService.getPayments().pipe(
-              catchError(() => of({ data: [] }))
-            )
+            user: userId
+              ? this.apiService
+                  .getUserById(userId)
+                  .pipe(catchError(() => of(null)))
+              : of(null),
+            address: addressId
+              ? this.apiService
+                  .getAddressById(addressId)
+                  .pipe(catchError(() => of(null)))
+              : of(null),
+            orderItems: this.apiService
+              .getOrderItems()
+              .pipe(catchError(() => of({ data: [] }))),
+            payment: this.apiService
+              .getPayments()
+              .pipe(catchError(() => of({ data: [] }))),
           }).subscribe({
             next: (data) => {
               this.orderDetails.user = data.user;
               this.orderDetails.address = data.address;
 
               const allItems = data.orderItems.data || data.orderItems || [];
-              this.orderDetails.items = allItems.filter((item: any) =>
-                item.order_id === orderId || item.order_id === order.order_id
+              this.orderDetails.items = allItems.filter(
+                (item: any) =>
+                  item.order_id === orderId || item.order_id === order.order_id
               );
 
               const allPayments = data.payment.data || data.payment || [];
-              this.orderDetails.payment = allPayments.find((payment: any) =>
-                payment.order_id === orderId || payment.order_id === order.order_id
+              this.orderDetails.payment = allPayments.find(
+                (payment: any) =>
+                  payment.order_id === orderId ||
+                  payment.order_id === order.order_id
               );
 
               this.isLoadingOrderDetails = false;
@@ -1486,14 +1788,16 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
             error: (error) => {
               console.error('Error loading order details:', error);
               this.isLoadingOrderDetails = false;
-            }
+            },
           });
         },
         error: (error) => {
           console.error('Error loading order:', error);
-          alert(`Error Loading Order: ${error.error.message || 'Unknown error'}`);
+          alert(
+            `Error Loading Order: ${error.error.message || 'Unknown error'}`
+          );
           this.isLoadingOrderDetails = false;
-        }
+        },
       });
   }
 

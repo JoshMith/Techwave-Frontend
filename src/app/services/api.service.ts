@@ -269,9 +269,12 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/special-offers/${id}`, offerData, this.httpOptions);
   }
 
-  toggleSpecialOfferActivation(id: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/special-offers/${id}/toggle-activation`, {}, this.httpOptions);
-  }
+  // In your api.service.ts
+toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any> {
+  return this.http.put(`${this.apiUrl}/special-offers/${offerId}/toggle-activation`, {
+    is_active: isActive
+  }, this.httpOptions);
+}
 
   deleteSpecialOffer(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/special-offers/${id}`, this.httpOptions);

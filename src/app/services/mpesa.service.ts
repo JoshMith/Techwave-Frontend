@@ -22,63 +22,75 @@ export interface MPesaStatusResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MpesaService {
-  apiUrl: string = ''
+  apiUrl: string = '';
 
-  constructor(
-    private http: HttpClient,
-    private apiService: ApiService
-  ) {
+  constructor(private http: HttpClient, private apiService: ApiService) {
     this.apiUrl = this.apiService.apiUrl;
   }
 
   private httpOptions = {
     headers: new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     }),
-    withCredentials: true // This enables sending cookies with requests
+    withCredentials: true, // This enables sending cookies with requests
   };
 
   /**
    * Initiate M-Pesa STK Push
    */
-  initiateSTKPush(phoneNumber: string, amount: number, orderId: string): Observable<MPesaInitiateResponse> {
-    return this.http.post<MPesaInitiateResponse>(`${this.apiUrl}/mpesa/stkpush`, {
-      phoneNumber,
-      amount,
-      orderId,
-      accountReference: 'TechWave'
-    },
-    this.httpOptions
-  );
+  initiateSTKPush(
+    phoneNumber: string,
+    amount: number,
+    orderId: string
+  ): Observable<MPesaInitiateResponse> {
+    return this.http.post<MPesaInitiateResponse>(
+      `${this.apiUrl}/mpesa/stkpush`,
+      {
+        phoneNumber,
+        amount,
+        orderId,
+        accountReference: 'TechWave',
+      },
+      this.httpOptions
+    );
   }
 
   /**
    * Query M-Pesa payment status
    */
-  queryPaymentStatus(checkoutRequestID: string): Observable<MPesaStatusResponse> {
-    return this.http.post<MPesaStatusResponse>(`${this.apiUrl}/mpesa/query`, {checkoutRequestID},
+  queryPaymentStatus(
+    checkoutRequestID: string
+  ): Observable<MPesaStatusResponse> {
+    return this.http.post<MPesaStatusResponse>(
+      `${this.apiUrl}/mpesa/query`,
+      { checkoutRequestID },
       this.httpOptions
-  );
+    );
   }
 
   /**
    * Poll payment status until completed or timeout
-   * Checks every 5 seconds for up to 2 minutes
+   * Checks every 10 seconds (not 5) to avoid rate limiting
    */
-  pollPaymentStatus(checkoutRequestID: string, maxAttempts: number = 24): Observable<MPesaStatusResponse> {
+  pollPaymentStatus(
+    checkoutRequestID: string,
+    maxAttempts: number = 12
+  ): Observable<MPesaStatusResponse> {
     let attempts = 0;
 
-    return interval(5000).pipe(
+    return interval(10000).pipe(
+      // ⚠️ Changed from 5000 to 10000 (10 seconds)
       switchMap(() => {
         attempts++;
-        console.log(`🔄 Polling M-Pesa status... Attempt ${attempts}/${maxAttempts}`);
+        console.log(
+          `🔄 Polling M-Pesa status... Attempt ${attempts}/${maxAttempts}`
+        );
         return this.queryPaymentStatus(checkoutRequestID);
       }),
       takeWhile((response) => {
-        // Continue polling if status is pending and haven't exceeded max attempts
         if (attempts >= maxAttempts) {
           console.log('⏰ Max polling attempts reached');
           return false;
@@ -89,7 +101,7 @@ export class MpesaService {
         }
         console.log('✅ Payment status final:', response.status);
         return false;
-      }, true) // inclusive: emit the last value even if condition is false
+      }, true)
     );
   }
 

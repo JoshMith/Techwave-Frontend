@@ -7,18 +7,30 @@
       </a>
       <span class="seller-badge">Seller Portal</span>
     </div>
+
+    <!-- ADD THIS: Hamburger Menu Button -->
+    <button class="menu-toggle" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Desktop Navigation (existing) -->
     <div class="nav-items">
-      <button class="nav-link" [class.active]="currentView === 'dashboard'" (click)="goToDashboard()" [disabled]="!isSeller">Dashboard</button>
-      <button class="nav-link" [class.active]="currentView === 'products'"
-        (click)="navigateTo('products')" [disabled]="!isSeller">Products</button>
-      <button class="nav-link" [class.active]="currentView === 'manage-orders'"
-        (click)="navigateTo('manage-orders')" [disabled]="!isSeller">Orders</button>
-      <button class="nav-link" [class.active]="currentView === 'analytics'"
-        (click)="navigateTo('analytics')" [disabled]="!isSeller">Analytics</button>
-      <button class="nav-link" [class.active]="currentView === 'promotions'"
-        (click)="navigateTo('promotions')" [disabled]="!isSeller">Promotions</button>
+      <button class="nav-link" [class.active]="currentView === 'dashboard'" (click)="goToDashboard()"
+        [disabled]="!isSeller">Dashboard</button>
+      <button class="nav-link" [class.active]="currentView === 'products'" (click)="navigateTo('products')"
+        [disabled]="!isSeller">Products</button>
+      <button class="nav-link" [class.active]="currentView === 'manage-orders'" (click)="navigateTo('manage-orders')"
+        [disabled]="!isSeller">Orders</button>
+      <button class="nav-link" [class.active]="currentView === 'analytics'" (click)="navigateTo('analytics')"
+        [disabled]="!isSeller">Analytics</button>
+      <button class="nav-link" [class.active]="currentView === 'promotions'" (click)="navigateTo('promotions')"
+        [disabled]="!isSeller">Offers</button>
       <button class="nav-link" [class.active]="currentView === 'profile'" (click)="onProfileClick()">Profile</button>
     </div>
+
+    <!-- Profile Section (existing) -->
     <div class="profile-section">
       <button class="notification-btn" title="Notifications" (click)="onNotificationClick()">
         🔔
@@ -30,6 +42,40 @@
     </div>
   </nav>
 </header>
+
+
+<!-- Mobile Overlay (darkens background when menu is open) -->
+<div class="mobile-overlay" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()">
+</div>
+
+<!-- Mobile Navigation Sidebar -->
+<div class="mobile-nav" [class.active]="isMobileMenuOpen">
+  <button class="mobile-close-btn" (click)="closeMobileMenu()" aria-label="Close menu">
+    &times;
+  </button>
+
+  <div class="mobile-nav-items">
+    <button class="mobile-nav-link" [class.active]="currentView === 'dashboard'" (click)="goToDashboard()">
+      Dashboard
+    </button>
+    <button class="mobile-nav-link" [class.active]="currentView === 'products'" (click)="navigateTo('products')">
+      Products
+    </button>
+    <button class="mobile-nav-link" [class.active]="currentView === 'manage-orders'"
+      (click)="navigateTo('manage-orders')">
+      Orders
+    </button>
+    <button class="mobile-nav-link" [class.active]="currentView === 'analytics'" (click)="navigateTo('analytics')">
+      Analytics
+    </button>
+    <button class="mobile-nav-link" [class.active]="currentView === 'promotions'" (click)="navigateTo('promotions')">
+      Offers & Promotions
+    </button>
+    <button class="mobile-nav-link" [class.active]="currentView === 'profile'" (click)="onProfileClick()">
+      Profile
+    </button>
+  </div>
+</div>
 
 <!-- Main Content -->
 <main class="main-content">
@@ -438,11 +484,13 @@
       </div>
 
       <!-- Edit Product Modal -->
-      <div *ngIf="editingProduct" class="modal-overlay" (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">
+      <div *ngIf="editingProduct" class="modal-overlay"
+        (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">
         <div class="modal modal-large" (click)="$event.stopPropagation()">
           <div class="modal-header">
             <h3>Edit Product</h3>
-            <button class="modal-close" (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">×</button>
+            <button class="modal-close"
+              (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">×</button>
           </div>
           <div class="modal-content">
             <!-- Success/Error Messages -->
@@ -513,7 +561,8 @@
               </div>
 
               <div class="form-actions">
-                <button type="button" class="btn btn-secondary" (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">Cancel</button>
+                <button type="button" class="btn btn-secondary"
+                  (click)="editingProduct = null; editingProductImages = []; editingProductExistingImages = []">Cancel</button>
                 <button type="button" class="btn btn-primary" (click)="onUpdateProduct()">Update</button>
               </div>
             </form>
@@ -858,112 +907,204 @@
       </div>
     </div>
 
-    <!-- ===== PROMOTIONS VIEW ===== -->
+    <!-- ===== PROMOTIONS/OFFERS VIEW ===== -->
     <div *ngIf="currentView === 'promotions'">
-      <div class="page-header">
-        <button class="back-btn" (click)="goToDashboard()">← Back to Dashboard</button>
-        <h1 class="page-title">Promotions & Deals</h1>
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Manage Offers & Promotions</h1>
+        <p class="dashboard-subtitle">Create and manage special offers for your products</p>
       </div>
 
       <!-- Success/Error Messages -->
-      <div *ngIf="productSuccess" class="alert alert-success">
-        {{productSuccess}}
+      <div *ngIf="offerSuccess" class="success-message">
+        {{offerSuccess}}
       </div>
-      <div *ngIf="productError" class="alert alert-error">
-        {{productError}}
+      <div *ngIf="offerError" class="error-message">
+        {{offerError}}
       </div>
 
-      <div class="promotions-container">
-        <!-- Create New Offer -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Create New Offer</h3>
-          </div>
-          <form class="offer-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Offer Title</label>
-                <input type="text" [(ngModel)]="newOffer.title" name="offerTitle" class="form-input"
-                  placeholder="Enter offer title">
-              </div>
-              <div class="form-group">
-                <label>Discount Type</label>
-                <select [(ngModel)]="newOffer.discountType" name="discountType" class="form-select">
-                  <option value="percentage">Percentage</option>
-                  <option value="fixed">Fixed Amount</option>
-                </select>
-              </div>
-            </div>
-
+      <!-- Create New Offer Form -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Create New Offer</h2>
+        </div>
+        <form class="form-section" (ngSubmit)="onCreateOffer()">
+          <div class="form-row">
             <div class="form-group">
-              <label>Description</label>
-              <textarea [(ngModel)]="newOffer.description" name="offerDescription" class="form-textarea" rows="3"
-                placeholder="Describe your offer"></textarea>
+              <label>Offer Title *</label>
+              <input type="text" [(ngModel)]="newOffer.title" name="title" placeholder="e.g., Summer Sale 2024"
+                required>
             </div>
+            <div class="form-group">
+              <label>Discount Type *</label>
+              <select [(ngModel)]="newOffer.discount_type" name="discountType" required>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (KSh)</option>
+              </select>
+            </div>
+          </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Discount Value</label>
-                <input type="number" [(ngModel)]="newOffer.discountValue" name="discountValue" class="form-input"
-                  placeholder="0" min="0">
-              </div>
-              <div class="form-group">
-                <label>Valid From</label>
-                <input type="date" [(ngModel)]="newOffer.validFrom" name="validFrom" class="form-input">
-              </div>
-              <div class="form-group">
-                <label>Valid To</label>
-                <input type="date" [(ngModel)]="newOffer.validTo" name="validTo" class="form-input">
-              </div>
-            </div>
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea [(ngModel)]="newOffer.description" name="description" placeholder="Describe your offer" rows="3"
+              required></textarea>
+          </div>
 
-            <div class="form-actions">
-              <button type="button" class="btn btn-primary" (click)="onCreateOffer()">Create Offer</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Discount Value *</label>
+              <input type="number" [(ngModel)]="newOffer.discount_value" name="discountValue" min="0"
+                [max]="newOffer.discount_type === 'percentage' ? 100 : 999999" required>
+              <small *ngIf="newOffer.discount_type === 'percentage'">Enter percentage (0-100)</small>
+              <small *ngIf="newOffer.discount_type === 'fixed'">Enter amount in KSh</small>
             </div>
-          </form>
+            <div class="form-group">
+              <label>Status</label>
+              <div class="checkbox-group">
+                <input type="checkbox" [(ngModel)]="newOffer.is_active" name="isActive" id="offerActive">
+                <label for="offerActive">Active</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valid From *</label>
+              <input type="date" [(ngModel)]="newOffer.valid_from" name="validFrom" required>
+            </div>
+            <div class="form-group">
+              <label>Valid Until *</label>
+              <input type="date" [(ngModel)]="newOffer.valid_until" name="validTo" required>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmittingOffer">
+              {{isSubmittingOffer ? 'Creating...' : 'Create Offer'}}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Existing Offers List -->
+      <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+          <h2 class="card-title">Existing Offers</h2>
         </div>
-
-        <!-- Active Offers -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Active Offers</h3>
-          </div>
-          <div *ngIf="specialOffers.length === 0" class="empty-state">
-            <p>No offers created yet</p>
-            <small>Create your first promotional offer above</small>
-          </div>
-
-          <div class="offers-grid" *ngIf="specialOffers.length > 0">
-            <div *ngFor="let offer of specialOffers" class="offer-card">
-              <div class="offer-header">
-                <h4 class="offer-title">{{offer.title}}</h4>
-                <div class="offer-actions">
-                  <button class="btn-icon" (click)="toggleOfferStatus(offer.id)"
-                    [title]="offer.isActive ? 'Deactivate' : 'Activate'">
-                    {{offer.isActive ? '🔥' : '⏸️'}}
-                  </button>
-                  <button class="btn-icon" (click)="deleteOffer(offer.id)" title="Delete">🗑️</button>
-                </div>
+        <div class="offers-grid">
+          <div *ngFor="let offer of offers" class="offer-card">
+            <div class="offer-card-header">
+              <h3>{{offer.title}}</h3>
+              <span class="offer-badge" [class.active]="offer.is_active" [class.inactive]="!offer.is_active">
+                {{offer.is_active ? 'Active' : 'Inactive'}}
+              </span>
+            </div>
+            <p class="offer-description">{{offer.description}}</p>
+            <div class="offer-details">
+              <div class="offer-detail-item">
+                <strong>Discount:</strong>
+                <span *ngIf="offer.discount_type === 'percentage'">
+                  {{offer.discount_value}}%
+                </span>
+                <span *ngIf="offer.discount_type === 'fixed'">
+                  {{formatCurrency(offer.discount_value)}}
+                </span>
               </div>
-              <div class="offer-content">
-                <p class="offer-description">{{offer.description}}</p>
-                <div class="offer-details">
-                  <span class="offer-discount">
-                    {{offer.discountValue}}{{offer.discountType === 'percentage' ? '%' : ' KSh'}} OFF
-                  </span>
-                  <span class="offer-validity">
-                    {{formatDate(offer.validFrom)}} - {{formatDate(offer.validTo)}}
-                  </span>
-                </div>
-                <div class="offer-status">
-                  <span class="status-badge" [ngClass]="offer.isActive ? 'delivered' : 'cancelled'">
-                    {{offer.isActive ? 'Active' : 'Inactive'}}
-                  </span>
-                </div>
+              <div class="offer-detail-item">
+                <strong>Valid:</strong>
+                <span>{{formatDate(offer.valid_from)}} - {{formatDate(offer.valid_until)}}</span>
               </div>
+              <div class="offer-detail-item">
+                <strong>Products:</strong>
+                <span>{{offer.product_ids?.length || 0}} associated</span>
+              </div>
+            </div>
+            <div class="offer-actions">
+              <button class="btn btn-sm btn-secondary" (click)="editOffer(offer)">
+                Edit
+              </button>
+              <button class="btn btn-sm" [class.btn-success]="!offer.is_active" [class.btn-warning]="offer.is_active"
+                (click)="toggleOfferStatus(offer)">
+                {{offer.is_active ? 'Deactivate' : 'Activate'}}
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="deleteOffer(offer.offer_id)">
+                Delete
+              </button>
             </div>
           </div>
         </div>
+        <div *ngIf="offers.length === 0" class="empty-state">
+          <p>No offers created yet</p>
+          <small>Create your first offer using the form above</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EDIT OFFER VIEW ===== -->
+    <div *ngIf="currentView === 'edit-offer' && editingOffer">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Edit Offer</h1>
+        <button class="btn btn-secondary" (click)="cancelOfferEdit()">← Back to Offers</button>
+      </div>
+
+      <div *ngIf="offerSuccess" class="success-message">{{offerSuccess}}</div>
+      <div *ngIf="offerError" class="error-message">{{offerError}}</div>
+
+      <div class="card">
+        <form class="form-section" (ngSubmit)="onUpdateOffer()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Offer Title *</label>
+              <input type="text" [(ngModel)]="editingOffer.title" name="title" required>
+            </div>
+            <div class="form-group">
+              <label>Discount Type *</label>
+              <select [(ngModel)]="editingOffer.discount_type" name="discountType" required>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (KSh)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea [(ngModel)]="editingOffer.description" name="description" rows="3" required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Discount Value *</label>
+              <input type="number" [(ngModel)]="editingOffer.discount_value" name="discountValue" min="0"
+                [max]="editingOffer.discount_type === 'percentage' ? 100 : 999999" required>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <div class="checkbox-group">
+                <input type="checkbox" [(ngModel)]="editingOffer.is_active" name="isActive" id="editOfferActive">
+                <label for="editOfferActive">Active</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valid From *</label>
+              <input type="date" [(ngModel)]="editingOffer.valid_from" name="validFrom" required>
+            </div>
+            <div class="form-group">
+              <label>Valid Until *</label>
+              <input type="date" [(ngModel)]="editingOffer.valid_until" name="validTo" required>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmittingOffer">
+              {{isSubmittingOffer ? 'Updating...' : 'Update Offer'}}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelOfferEdit()">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -998,11 +1139,11 @@
       <div *ngIf="!profileLoading && !sellerProfile && !editingProfile">
         <div *ngIf="userRole?.toLowerCase() === 'seller'; else nonSeller">
           <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Create Your Business Profile</h2>
-        </div>
-        <div style="text-align: center; padding: 2rem 0; color: #6b7280;">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">🏪</div>
+            <div class="card-header">
+              <h2 class="card-title">Create Your Business Profile</h2>
+            </div>
+            <div style="text-align: center; padding: 2rem 0; color: #6b7280;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">🏪</div>
               <p style="margin-bottom: 1rem; font-size: 1.1rem;">You don't have a business profile yet.</p>
               <p style="margin-bottom: 2rem; color: #9ca3af;">As a seller, you can create your business profile to start
                 selling on TechWave.</p>
