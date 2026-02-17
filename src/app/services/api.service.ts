@@ -1,23 +1,41 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApiService {
-  // public apiUrl = 'http://localhost:3000'; // Development URL
-  // public apiUrl = 'https://miffiest-tom-pyramidally.ngrok-free.dev'; // Ngrok Production Testing URL
-  public apiUrl = 'https://techwave-backend-lepy.onrender.com'; // Production URL
-  
+  public apiUrl: string;
+
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {
+    // Check the current url to determine if we're in development or production
+    // You can also use environment variables or Angular's environment files for this
+    if (isPlatformBrowser(this.platformId)) {
+      this.apiUrl =
+        window.location.hostname === 'localhost'
+          ? 'http://localhost:3000'
+          : 'https://techwave-backend-lepy.onrender.com';
+    } else {
+      // Default URL for server-side rendering
+      this.apiUrl = 'https://techwave-backend-lepy.onrender.com';
+    }
+  }
+
+  // public apiUrl = 'http://localhost:3000'; // Default to development URL
+  // public apiUrl = 'https://techwave-backend-lepy.onrender.com'; // Production URL
+
   private httpOptions = {
     headers: new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     }),
-    withCredentials: true // This enables sending cookies with requests
+    withCredentials: true, // This enables sending cookies with requests
   };
 
-  constructor(private http: HttpClient) { }
 
   getApiBaseUrl(): string {
     return this.apiUrl;
@@ -25,11 +43,19 @@ export class ApiService {
 
   // ========== Auth Routes ==========
   register(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/register`, userData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/auth/register`,
+      userData,
+      this.httpOptions,
+    );
   }
 
   login(credentials: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/login`, credentials, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/auth/login`,
+      credentials,
+      this.httpOptions,
+    );
   }
 
   logout(): Observable<any> {
@@ -37,14 +63,18 @@ export class ApiService {
   }
 
   verifyEmail(token: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/auth/verifyEmail?token=${token}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/auth/verifyEmail?token=${token}`,
+      this.httpOptions,
+    );
   }
 
   // Add this to handle the Google callback
   handleGoogleCallback(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/auth/google/callback`, { withCredentials: true });
+    return this.http.get(`${this.apiUrl}/auth/google/callback`, {
+      withCredentials: true,
+    });
   }
-
 
   // ========== User Routes ==========
   getUsers(): Observable<any> {
@@ -60,7 +90,10 @@ export class ApiService {
   }
 
   getCurrentUserProfile(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/profile/${id}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/users/profile/${id}`,
+      this.httpOptions,
+    );
   }
 
   createUser(userData: any): Observable<any> {
@@ -68,7 +101,11 @@ export class ApiService {
   }
 
   updateUser(id: string, userData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/users/${id}`, userData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/users/${id}`,
+      userData,
+      this.httpOptions,
+    );
   }
 
   deleteUser(id: string): Observable<any> {
@@ -85,11 +122,19 @@ export class ApiService {
   }
 
   createSeller(sellerData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/sellers`, sellerData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/sellers`,
+      sellerData,
+      this.httpOptions,
+    );
   }
 
   updateSeller(id: string, sellerData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/sellers/${id}`, sellerData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/sellers/${id}`,
+      sellerData,
+      this.httpOptions,
+    );
   }
 
   deleteSeller(id: string): Observable<any> {
@@ -106,15 +151,26 @@ export class ApiService {
   }
 
   getAddressByUserId(userId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/addresses/user/${userId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/addresses/user/${userId}`,
+      this.httpOptions,
+    );
   }
 
   createAddress(addressData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/addresses`, addressData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/addresses`,
+      addressData,
+      this.httpOptions,
+    );
   }
 
   updateAddress(id: string, addressData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/addresses/${id}`, addressData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/addresses/${id}`,
+      addressData,
+      this.httpOptions,
+    );
   }
 
   deleteAddress(id: string): Observable<any> {
@@ -131,20 +187,33 @@ export class ApiService {
   }
 
   getProductCountByCategory(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/categories/${id}/product-count`, this.httpOptions)
+    return this.http.get(
+      `${this.apiUrl}/categories/${id}/product-count`,
+      this.httpOptions,
+    );
   }
 
-
   createCategory(categoryData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/categories`, categoryData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/categories`,
+      categoryData,
+      this.httpOptions,
+    );
   }
 
   updateCategory(id: string, categoryData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/categories/${id}`, categoryData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/categories/${id}`,
+      categoryData,
+      this.httpOptions,
+    );
   }
 
   deleteCategory(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/categories/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/categories/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Product Routes ==========
@@ -157,19 +226,33 @@ export class ApiService {
   }
 
   getProductsCountByCategoryId(categoryId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/count/${categoryId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/products/count/${categoryId}`,
+      this.httpOptions,
+    );
   }
 
   getProductsByCategoryName(categoryName: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/category/${categoryName}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/products/category/${categoryName}`,
+      this.httpOptions,
+    );
   }
 
   createProduct(productData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/products`, productData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/products`,
+      productData,
+      this.httpOptions,
+    );
   }
 
   updateProduct(id: string, productData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/products/${id}`, productData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/products/${id}`,
+      productData,
+      this.httpOptions,
+    );
   }
 
   deleteProduct(id: string): Observable<any> {
@@ -178,23 +261,31 @@ export class ApiService {
 
   // ========== Product Image Routes ==========
   serveProductImagesSafe(productId: string): Observable<any[]> {
-    return this.http.get(`${this.apiUrl}/product-images/product/${productId}`, this.httpOptions).pipe(
-      map((response: any) => {
-        // Handle the response format from your API
-        if (response && response.success && Array.isArray(response.images)) {
-          return response.images;
-        }
-        return [];
-      }),
-      catchError(error => {
-        // console.warn(`No images found for product ${productId}:`, error.message);
-        return of([]);
-      })
-    );
+    return this.http
+      .get(
+        `${this.apiUrl}/product-images/product/${productId}`,
+        this.httpOptions,
+      )
+      .pipe(
+        map((response: any) => {
+          // Handle the response format from your API
+          if (response && response.success && Array.isArray(response.images)) {
+            return response.images;
+          }
+          return [];
+        }),
+        catchError((error) => {
+          // console.warn(`No images found for product ${productId}:`, error.message);
+          return of([]);
+        }),
+      );
   }
 
   getImageFile(filename: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/product-images/file/${filename}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/product-images/file/${filename}`,
+      this.httpOptions,
+    );
   }
 
   /**
@@ -205,14 +296,14 @@ export class ApiService {
   uploadProductImages(productId: string, formData: FormData): Observable<any> {
     // For file uploads, we need to let the browser set the Content-Type with boundary
     const uploadOptions = {
-      withCredentials: true
+      withCredentials: true,
       // DO NOT set Content-Type header for FormData - browser will set it automatically
     };
 
     return this.http.post(
       `${this.apiUrl}/product-images/upload/${productId}`,
       formData,
-      uploadOptions
+      uploadOptions,
     );
   }
 
@@ -220,14 +311,14 @@ export class ApiService {
     return this.http.put(
       `${this.apiUrl}/product-images/${imageId}`,
       imageData,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
   deleteProductImage(imageId: string): Observable<any> {
     return this.http.delete(
       `${this.apiUrl}/product-images/${imageId}`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
@@ -237,19 +328,33 @@ export class ApiService {
   }
 
   getProductOfferByProductId(productId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/product-offers/${productId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/product-offers/${productId}`,
+      this.httpOptions,
+    );
   }
 
   createProductOffer(offerData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/product-offers`, offerData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/product-offers`,
+      offerData,
+      this.httpOptions,
+    );
   }
 
   updateProductOffer(id: string, offerData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/product-offers/${id}`, offerData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/product-offers/${id}`,
+      offerData,
+      this.httpOptions,
+    );
   }
 
   deleteProductOffer(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/product-offers/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/product-offers/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Special Offer Routes ==========
@@ -258,26 +363,47 @@ export class ApiService {
   }
 
   getSpecialOfferById(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/special-offers/${id}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/special-offers/${id}`,
+      this.httpOptions,
+    );
   }
 
   createSpecialOffer(offerData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/special-offers`, offerData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/special-offers`,
+      offerData,
+      this.httpOptions,
+    );
   }
 
   updateSpecialOffer(id: string, offerData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/special-offers/${id}`, offerData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/special-offers/${id}`,
+      offerData,
+      this.httpOptions,
+    );
   }
 
   // In your api.service.ts
-toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any> {
-  return this.http.put(`${this.apiUrl}/special-offers/${offerId}/toggle-activation`, {
-    is_active: isActive
-  }, this.httpOptions);
-}
+  toggleSpecialOfferActivation(
+    offerId: string,
+    isActive: boolean,
+  ): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/special-offers/${offerId}/toggle-activation`,
+      {
+        is_active: isActive,
+      },
+      this.httpOptions,
+    );
+  }
 
   deleteSpecialOffer(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/special-offers/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/special-offers/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Review Routes ==========
@@ -290,15 +416,26 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   getReviewsByProductId(productId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/reviews/product/${productId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/reviews/product/${productId}`,
+      this.httpOptions,
+    );
   }
 
   createReview(reviewData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reviews`, reviewData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/reviews`,
+      reviewData,
+      this.httpOptions,
+    );
   }
 
   updateReview(id: string, reviewData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/reviews/${id}`, reviewData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/reviews/${id}`,
+      reviewData,
+      this.httpOptions,
+    );
   }
 
   deleteReview(id: string): Observable<any> {
@@ -311,19 +448,33 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   getDeliveryPriceById(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/delivery-prices/${id}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/delivery-prices/${id}`,
+      this.httpOptions,
+    );
   }
 
   createDeliveryPrice(priceData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/delivery-prices`, priceData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/delivery-prices`,
+      priceData,
+      this.httpOptions,
+    );
   }
 
   updateDeliveryPrice(id: string, priceData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/delivery-prices/${id}`, priceData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/delivery-prices/${id}`,
+      priceData,
+      this.httpOptions,
+    );
   }
 
   deleteDeliveryPrice(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delivery-prices/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/delivery-prices/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Cart Routes ==========
@@ -336,11 +487,17 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   getCartByUserId(userId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/carts/user/${userId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/carts/user/${userId}`,
+      this.httpOptions,
+    );
   }
 
   getCartBySessionId(sessionId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/carts/session/${sessionId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/carts/session/${sessionId}`,
+      this.httpOptions,
+    );
   }
 
   createCart(cartData: any): Observable<any> {
@@ -348,7 +505,11 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   updateCart(id: string, cartData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/carts/${id}`, cartData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/carts/${id}`,
+      cartData,
+      this.httpOptions,
+    );
   }
 
   deleteCart(id: string): Observable<any> {
@@ -356,16 +517,25 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   clearCart(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/carts/${id}/clear`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/carts/${id}/clear`,
+      this.httpOptions,
+    );
   }
 
   // ========== Cart Item Routes ==========
   getCartItemsByCartId(cartId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/cart-items/cart/${cartId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/cart-items/cart/${cartId}`,
+      this.httpOptions,
+    );
   }
 
   getCartSummary(cartId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/cart-items/cart/${cartId}/summary`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/cart-items/cart/${cartId}/summary`,
+      this.httpOptions,
+    );
   }
 
   getCartItemById(id: string): Observable<any> {
@@ -373,15 +543,26 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   addCartItem(itemData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cart-items`, itemData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/cart-items`,
+      itemData,
+      this.httpOptions,
+    );
   }
 
   updateCartItem(id: string, itemData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/cart-items/${id}`, itemData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/cart-items/${id}`,
+      itemData,
+      this.httpOptions,
+    );
   }
 
   removeCartItem(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/cart-items/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/cart-items/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Order Routes ==========
@@ -394,7 +575,10 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   getOrdersByUserId(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/orders/user/orderdetails`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/orders/user/orderdetails`,
+      this.httpOptions,
+    );
   }
 
   createOrder(orderData: any): Observable<any> {
@@ -402,7 +586,11 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   updateOrder(id: string, orderData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/orders/${id}`, orderData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/orders/${id}`,
+      orderData,
+      this.httpOptions,
+    );
   }
 
   deleteOrder(id: string): Observable<any> {
@@ -419,17 +607,28 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   createOrderItem(itemData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/order-items`, itemData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/order-items`,
+      itemData,
+      this.httpOptions,
+    );
   }
 
   // Note: Your backend has PUT and DELETE for order-items also calling createOrderItem
   // You might want to fix this in your backend
   updateOrderItem(id: string, itemData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/order-items/${id}`, itemData, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/order-items/${id}`,
+      itemData,
+      this.httpOptions,
+    );
   }
 
   deleteOrderItem(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/order-items/${id}`, this.httpOptions);
+    return this.http.delete(
+      `${this.apiUrl}/order-items/${id}`,
+      this.httpOptions,
+    );
   }
 
   // ========== Payment Routes ==========
@@ -442,15 +641,26 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   }
 
   getPaymentByUserId(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/payments/user/payments`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/payments/user/payments`,
+      this.httpOptions,
+    );
   }
 
   createPayment(paymentData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/payments`, paymentData, this.httpOptions);
+    return this.http.post(
+      `${this.apiUrl}/payments`,
+      paymentData,
+      this.httpOptions,
+    );
   }
 
   confirmPayment(orderId: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/payments/${orderId}/confirm`, {}, this.httpOptions);
+    return this.http.put(
+      `${this.apiUrl}/payments/${orderId}/confirm`,
+      {},
+      this.httpOptions,
+    );
   }
 
   deletePayment(id: string): Observable<any> {
@@ -463,30 +673,42 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
    * Get seller dashboard statistics
    */
   getSellerDashboardStats(sellerId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sellers/${sellerId}/dashboard-stats`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/sellers/${sellerId}/dashboard-stats`,
+      this.httpOptions,
+    );
   }
 
   /**
    * Get seller-specific orders
    */
   getSellerOrders(sellerId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/orders/seller/${sellerId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/orders/seller/${sellerId}`,
+      this.httpOptions,
+    );
   }
 
   /**
    * Get seller-specific products
    */
   getSellerProducts(sellerId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/seller/${sellerId}`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/products/seller/${sellerId}`,
+      this.httpOptions,
+    );
   }
 
   /**
    * Get sales trend analytics
    */
-  getSellerSalesTrend(sellerId: string, period: string = '6months'): Observable<any> {
+  getSellerSalesTrend(
+    sellerId: string,
+    period: string = '6months',
+  ): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/sellers/${sellerId}/analytics/sales-trend?period=${period}`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
@@ -496,17 +718,20 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   getSellerTopProducts(sellerId: string, limit: number = 5): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/sellers/${sellerId}/analytics/top-products?limit=${limit}`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
   /**
    * Get revenue by month
    */
-  getSellerRevenueByMonth(sellerId: string, period: string = '6months'): Observable<any> {
+  getSellerRevenueByMonth(
+    sellerId: string,
+    period: string = '6months',
+  ): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/sellers/${sellerId}/analytics/revenue-by-month?period=${period}`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
@@ -514,7 +739,10 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
    * Get performance metrics
    */
   getSellerMetrics(sellerId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sellers/${sellerId}/metrics`, this.httpOptions);
+    return this.http.get(
+      `${this.apiUrl}/sellers/${sellerId}/metrics`,
+      this.httpOptions,
+    );
   }
 
   /**
@@ -523,7 +751,7 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   getSellerCustomerStats(sellerId: string): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/sellers/${sellerId}/analytics/customer-stats`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 
@@ -533,7 +761,7 @@ toggleSpecialOfferActivation(offerId: string, isActive: boolean): Observable<any
   getSellerActivities(sellerId: string, limit: number = 5): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/sellers/${sellerId}/activities?limit=${limit}`,
-      this.httpOptions
+      this.httpOptions,
     );
   }
 }
