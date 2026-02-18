@@ -19,10 +19,10 @@ export class ApiService {
       this.apiUrl =
         window.location.hostname === 'localhost'
           ? 'http://localhost:3000'
-          : 'https://techwave-backend-lepy.onrender.com';
+          : 'https://techwaveelectronics.co.ke/api';
     } else {
       // Default URL for server-side rendering
-      this.apiUrl = 'https://techwave-backend-lepy.onrender.com';
+      this.apiUrl = 'https://techwaveelectronics.co.ke/api';
     }
   }
 
