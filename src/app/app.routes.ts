@@ -31,9 +31,9 @@ export const routes: Routes = [
     { path: 'categories/Phones', component: PhonesComponent },
     { path: 'categories/Laptops', component: LaptopsComponent },
     { path: 'categories/Accessories', component: AccessoriesComponent },
-    { path: 'categories/Home Appliances', component: HomeAppliancesComponent },
+    { path: 'categories/Home-Appliances', component: HomeAppliancesComponent },
     { path: 'categories/Gaming', component: GamingComponent },
-    { path: 'categories/Audio & Sound', component: AudioSoundComponent },
+    { path: 'categories/Audio-Sound', component: AudioSoundComponent },
     { path: 'deals', component: DealsComponent },
     
     // Checkout routes with proper structure
