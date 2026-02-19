@@ -1,58 +1,136 @@
 import { Routes } from '@angular/router';
 
-import { HomepageComponent } from './homepage/homepage.component';
-import { GamingComponent } from './categories/gaming/gaming.component';
-import { HomeAppliancesComponent } from './categories/home-appliances/home-appliances.component';
-import { AccessoriesComponent } from './categories/accessories/accessories.component';
-import { LaptopsComponent } from './categories/laptops/laptops.component';
-import { PhonesComponent } from './categories/phones/phones.component';
-import { ShopComponent } from './shop/shop.component';
-import { AudioSoundComponent } from './categories/audio-sound/audio-sound.component';
-import { DealsComponent } from './deals/deals.component';
-import { CartComponent } from './checkout/cart/cart.component';
-import { DetailsComponent } from './checkout/details/details.component';
-import { PaymentComponent } from './checkout/payment/payment.component';
-import { ProfileComponent } from './profile/profile.component';
-import { SellerDashboardComponent } from './seller-dashboard/seller-dashboard.component';
-import { ProductComponent } from './product/product.component';
-import { LoginComponent } from './auth/login/login.component';
-import { ForgotPwdComponent } from './auth/forgot-pwd/forgot-pwd.component';
-import { SignupComponent } from './auth/signup/signup.component';
-import { OrdersComponent } from './checkout/orders/orders.component';
-import { TermsofserviceComponent } from './legal/termsofservice/termsofservice.component';
-import { PrivacypolicyComponent } from './legal/privacypolicy/privacypolicy.component';
-import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
-import { SearchResultsComponent } from './shared/search-results/search-results.component';
-
-
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
-    { path: 'home', component: HomepageComponent },
-    { path: 'shop', component: ShopComponent },
-    { path: 'search', component: SearchResultsComponent },
-    { path: 'categories/Phones', component: PhonesComponent },
-    { path: 'categories/Laptops', component: LaptopsComponent },
-    { path: 'categories/Accessories', component: AccessoriesComponent },
-    { path: 'categories/Home Appliances', component: HomeAppliancesComponent },
-    { path: 'categories/Gaming', component: GamingComponent },
-    { path: 'categories/Audio & Sound', component: AudioSoundComponent },
-    { path: 'deals', component: DealsComponent },
-    
-    // Checkout routes with proper structure
-    { path: 'cart', component: CartComponent },
-    { path: 'checkout/details', component: DetailsComponent },
-    { path: 'checkout/payment', component: PaymentComponent },
-    { path: 'checkout/orders', component: OrdersComponent },
-    
-    { path: 'profile', component: ProfileComponent },
-    { path: 'seller-dashboard', component: SellerDashboardComponent },
-    { path: 'product/:id', component: ProductComponent, providers: [] },
-    { path: 'login', component: LoginComponent },
-    { path: 'signup', component: SignupComponent },
-    { path: 'forgot-pwd', component: ForgotPwdComponent },
-    { path: 'termsofservice', component: TermsofserviceComponent },
-    { path: 'privacypolicy', component: PrivacypolicyComponent },
-    { path: 'admin', component: AdminDashboardComponent },
+
+    // ── Public pages ─────────────────────────────────────────────────────────
+    {
+        path: 'home',
+        loadComponent: () => import('./homepage/homepage.component')
+            .then(m => m.HomepageComponent)
+    },
+    {
+        path: 'shop',
+        loadComponent: () => import('./shop/shop.component')
+            .then(m => m.ShopComponent)
+    },
+    {
+        path: 'search',
+        loadComponent: () => import('./shared/search-results/search-results.component')
+            .then(m => m.SearchResultsComponent)
+    },
+    {
+        path: 'deals',
+        loadComponent: () => import('./deals/deals.component')
+            .then(m => m.DealsComponent)
+    },
+
+    // ── Category pages ────────────────────────────────────────────────────────
+    {
+        path: 'categories/Phones',
+        loadComponent: () => import('./categories/phones/phones.component')
+            .then(m => m.PhonesComponent)
+    },
+    {
+        path: 'categories/Laptops',
+        loadComponent: () => import('./categories/laptops/laptops.component')
+            .then(m => m.LaptopsComponent)
+    },
+    {
+        path: 'categories/Accessories',
+        loadComponent: () => import('./categories/accessories/accessories.component')
+            .then(m => m.AccessoriesComponent)
+    },
+    {
+        path: 'categories/Home Appliances',
+        loadComponent: () => import('./categories/home-appliances/home-appliances.component')
+            .then(m => m.HomeAppliancesComponent)
+    },
+    {
+        path: 'categories/Gaming',
+        loadComponent: () => import('./categories/gaming/gaming.component')
+            .then(m => m.GamingComponent)
+    },
+    {
+        path: 'categories/Audio & Sound',
+        loadComponent: () => import('./categories/audio-sound/audio-sound.component')
+            .then(m => m.AudioSoundComponent)
+    },
+
+    // ── Product ───────────────────────────────────────────────────────────────
+    {
+        path: 'product/:id',
+        loadComponent: () => import('./product/product.component')
+            .then(m => m.ProductComponent)
+    },
+
+    // ── Checkout flow ─────────────────────────────────────────────────────────
+    {
+        path: 'cart',
+        loadComponent: () => import('./checkout/cart/cart.component')
+            .then(m => m.CartComponent)
+    },
+    {
+        path: 'checkout/details',
+        loadComponent: () => import('./checkout/details/details.component')
+            .then(m => m.DetailsComponent)
+    },
+    {
+        path: 'checkout/payment',
+        loadComponent: () => import('./checkout/payment/payment.component')
+            .then(m => m.PaymentComponent)
+    },
+    {
+        path: 'checkout/orders',
+        loadComponent: () => import('./checkout/orders/orders.component')
+            .then(m => m.OrdersComponent)
+    },
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    {
+        path: 'login',
+        loadComponent: () => import('./auth/login/login.component')
+            .then(m => m.LoginComponent)
+    },
+    {
+        path: 'signup',
+        loadComponent: () => import('./auth/signup/signup.component')
+            .then(m => m.SignupComponent)
+    },
+    {
+        path: 'forgot-pwd',
+        loadComponent: () => import('./auth/forgot-pwd/forgot-pwd.component')
+            .then(m => m.ForgotPwdComponent)
+    },
+
+    // ── User pages ────────────────────────────────────────────────────────────
+    {
+        path: 'profile',
+        loadComponent: () => import('./profile/profile.component')
+            .then(m => m.ProfileComponent)
+    },
+    {
+        path: 'seller-dashboard',
+        loadComponent: () => import('./seller-dashboard/seller-dashboard.component')
+            .then(m => m.SellerDashboardComponent)
+    },
+
+    // ── Legal ─────────────────────────────────────────────────────────────────
+    {
+        path: 'termsofservice',
+        loadComponent: () => import('./legal/termsofservice/termsofservice.component')
+            .then(m => m.TermsofserviceComponent)
+    },
+    {
+        path: 'privacypolicy',
+        loadComponent: () => import('./legal/privacypolicy/privacypolicy.component')
+            .then(m => m.PrivacypolicyComponent)
+    },
+
+    // ── Admin ─────────────────────────────────────────────────────────────────
+    {
+        path: 'admin',
+        loadComponent: () => import('./admin-dashboard/admin-dashboard.component')
+            .then(m => m.AdminDashboardComponent)
+    },
 ];
-
-

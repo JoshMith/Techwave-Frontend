@@ -64,6 +64,15 @@ logo, img {
     opacity: 0.9;
 }
 
+.back-to-signup {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: auto;
+    padding: 1rem 2rem;
+    transition: color 0.3s ease;
+}
+
 /* ========================================
    CONTAINER & LAYOUT
    ======================================== */
