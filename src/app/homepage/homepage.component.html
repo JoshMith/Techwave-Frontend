@@ -71,18 +71,26 @@
             <section class="featured-categories">
                 <h2>Featured Categories</h2>
                 <div class="categories-grid">
-                    <div *ngFor="let category of featuredCategories" (click)="selectCategory(category)"
-                        class="category-card">
-                        <span class="category-icon">{{ category.icon }}</span>
-                        <h3>{{ category.name }}</h3>
-                        <p>{{ category.count }} products</p>
-                    </div>
+                    <!-- Skeleton Loading -->
+                    <ng-container *ngIf="isLoading">
+                        <div class="skeleton-loader" *ngFor="let item of [0,1,2,3,4,5]">
+                            <div class="skeleton skeleton-icon"></div>
+                            <div class="skeleton skeleton-title"></div>
+                            <div class="skeleton skeleton-text"></div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Actual Categories -->
+                    <ng-container *ngIf="!isLoading">
+                        <div *ngFor="let category of featuredCategories" (click)="selectCategory(category)"
+                            class="category-card">
+                            <span class="category-icon">{{ category.icon }}</span>
+                            <h3>{{ category.name }}</h3>
+                            <p>{{ category.count }} products</p>
+                        </div>
+                    </ng-container>
                 </div>
             </section>
-
-            <div *ngIf="isLoading" class="loading-indicator">
-                Loading categories...
-            </div>
 
             <div *ngIf="error" class="error-message">
                 {{ error }}
