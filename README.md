@@ -162,8 +162,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 **Josh** — Full-Stack Developer  
 🎓 BSc Information Technology, Dedan Kimathi University of Technology  
-🐙 GitHub: [@yourusername](https://github.com/yourusername)  
-💼 LinkedIn: [your-linkedin](https://linkedin.com/in/your-linkedin)
+🐙 GitHub: [@yourusername](https://github.com/JoshMith)  
+💼 LinkedIn: [your-linkedin](https://linkedin.com/in/joshua-mithamo-505591330)
 
 ---
 
