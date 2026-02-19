@@ -55,20 +55,20 @@
   </button>
 
   <div class="mobile-nav-items">
-    <button class="mobile-nav-link" [class.active]="currentView === 'dashboard'" (click)="goToDashboard()" (click)="closeMobileMenu()">
+    <button class="mobile-nav-link" [class.active]="currentView === 'dashboard'" (click)="goToDashboard()" (click)="closeMobileMenu()" [disabled]="!isSeller">
       Dashboard
     </button>
-    <button class="mobile-nav-link" [class.active]="currentView === 'products'" (click)="navigateTo('products')" (click)="closeMobileMenu()">
+    <button class="mobile-nav-link" [class.active]="currentView === 'products'" (click)="navigateTo('products')" (click)="closeMobileMenu()" [disabled]="!isSeller">
       Products
     </button>
     <button class="mobile-nav-link" [class.active]="currentView === 'manage-orders'"
-      (click)="navigateTo('manage-orders')" (click)="closeMobileMenu()">
+      (click)="navigateTo('manage-orders')" (click)="closeMobileMenu()" [disabled]="!isSeller">
       Orders
     </button>
-    <button class="mobile-nav-link" [class.active]="currentView === 'analytics'" (click)="navigateTo('analytics')" (click)="closeMobileMenu()">
+    <button class="mobile-nav-link" [class.active]="currentView === 'analytics'" (click)="navigateTo('analytics')" (click)="closeMobileMenu()" [disabled]="!isSeller">
       Analytics
     </button>
-    <button class="mobile-nav-link" [class.active]="currentView === 'promotions'" (click)="navigateTo('promotions')" (click)="closeMobileMenu()">
+    <button class="mobile-nav-link" [class.active]="currentView === 'promotions'" (click)="navigateTo('promotions')" (click)="closeMobileMenu()" [disabled]="!isSeller">
       Offers & Promotions
     </button>
     <button class="mobile-nav-link" [class.active]="currentView === 'profile'" (click)="onProfileClick()">
