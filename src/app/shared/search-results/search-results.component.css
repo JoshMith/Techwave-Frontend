@@ -1,4 +1,4 @@
-/* search-results.component.css */
+/* search-results.component.css (MOBILE FIXED) */
 
 :host {
   display: block;
@@ -55,6 +55,7 @@
   color: #1f2937;
   background: transparent;
   padding: 0.4rem 0;
+  min-width: 0;
 }
 
 .main-search-input::placeholder { color: #9ca3af; }
@@ -70,6 +71,8 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.2s;
+  /* FIX: ensure touch target */
+  min-height: 44px;
 }
 
 .search-btn:hover { background: #2563eb; }
@@ -160,11 +163,14 @@
   border-radius: 6px;
   font-size: 0.875rem;
   color: #374151;
+  /* FIX: prevent iOS zoom */
+  font-size: 16px;
 }
 
 .price-inputs input:focus {
   outline: none;
   border-color: #3b82f6;
+  font-size: 16px;
 }
 
 .price-separator { color: #9ca3af; font-size: 0.85rem; }
@@ -180,6 +186,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 .apply-price-btn:hover { background: #dbeafe; }
@@ -191,11 +198,35 @@
   align-items: center;
   gap: 0.6rem;
   cursor: pointer;
+  /* FIX: touch target */
+  min-height: 36px;
 }
 
 .radio-item input[type="radio"] { cursor: pointer; accent-color: #3b82f6; }
 .radio-label { font-size: 0.9rem; color: #4b5563; cursor: pointer; }
 .radio-item:has(input:checked) .radio-label { color: #3b82f6; font-weight: 500; }
+
+/* ─── Mobile Filter Toggle (only visible on mobile) ── */
+.filter-toggle-btn {
+  display: none;
+  width: 100%;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  min-height: 44px;
+  transition: border-color 0.2s;
+}
+
+.filter-toggle-btn:hover { border-color: #3b82f6; color: #3b82f6; }
 
 /* ─── Results Section ────────────────────────────── */
 .results-section { min-width: 0; }
@@ -209,6 +240,8 @@
   padding: 0.875rem 1.25rem;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .showing-text { font-size: 0.9rem; color: #6b7280; }
@@ -216,10 +249,15 @@
 .sort-control {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   font-size: 0.9rem;
   color: #374151;
+  /* FIX: prevent wrapping on mobile */
+  flex-shrink: 0;
 }
+
+/* FIX: hide "Sort by:" label on very small screens to save space */
+.sort-label { white-space: nowrap; }
 
 .select-wrapper {
   position: relative;
@@ -234,7 +272,9 @@
   color: #374151;
   background: white;
   cursor: pointer;
-  min-width: 180px;
+  min-width: 160px;
+  /* FIX: touch target */
+  min-height: 40px;
 }
 
 .select-wrapper::after {
@@ -334,6 +374,10 @@
   color: #9ca3af;
   margin-bottom: 0.75rem;
   min-height: 1.2em;
+  /* FIX: prevent specs from overflowing on narrow cards */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-rating {
@@ -376,6 +420,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  /* FIX: touch target */
+  min-height: 44px;
 }
 
 .add-to-cart-btn:hover:not(:disabled) { background: #2563eb; }
@@ -392,6 +438,7 @@
   cursor: pointer;
   transition: background 0.2s;
   white-space: nowrap;
+  min-height: 44px;
 }
 
 .view-btn:hover { background: #059669; }
@@ -447,6 +494,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  min-height: 44px;
 }
 
 .reset-btn-lg:hover { background: #2563eb; }
@@ -468,6 +516,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  min-height: 44px;
 }
 
 /* ─── Pagination ─────────────────────────────────── */
@@ -489,8 +538,13 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.15s;
-  min-width: 42px;
+  min-width: 44px;
+  /* FIX: proper touch target height */
+  min-height: 44px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .page-btn:hover:not(:disabled):not(.active) {
@@ -516,32 +570,95 @@
 
 @media (max-width: 768px) {
   .container { padding: 1rem; }
-  
+
+  /* FIX: stack layout — results first, filters below */
   .search-layout {
     grid-template-columns: 1fr;
   }
 
   .filters-sidebar {
     position: static;
+    /* FIX: filters show BELOW results on mobile */
     order: 2;
   }
 
   .results-section { order: 1; }
 
+  /* FIX: toolbar stacks cleanly */
   .results-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .showing-text {
+    font-size: 0.82rem;
+    flex: 1;
+  }
+
+  .sort-label { display: none; }
+
+  .select-wrapper select {
+    min-width: 130px;
+    font-size: 0.85rem;
   }
 
   .search-input-group { max-width: 100%; }
-  
+
+  /* FIX: 2 columns at tablet */
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
+
+  /* FIX: reduce card padding on smaller screens */
+  .product-info { padding: 0.875rem; }
+  .product-title { font-size: 0.9rem; }
+  .current-price { font-size: 1.05rem; }
+
+  /* FIX: main search input prevent iOS zoom */
+  .main-search-input { font-size: 16px; }
+  .price-inputs input { font-size: 16px; }
 }
 
 @media (max-width: 480px) {
-  .products-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .product-info { padding: 0.875rem; }
+  .container { padding: 0.75rem; }
+
+  /* FIX: single column on very small phones */
+  .products-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .product-info { padding: 0.75rem; }
+  .product-category { font-size: 0.7rem; }
+  .product-title { font-size: 0.85rem; }
+  .product-specs { display: none; } /* FIX: hide specs on very small cards */
+  .current-price { font-size: 1rem; }
+
+  /* FIX: action buttons stack vertically on very small cards */
+  .product-actions {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .add-to-cart-btn,
+  .view-btn {
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* FIX: filter sidebar collapses to more compact form */
+  .filters-sidebar { padding: 1rem; }
+  .filter-section { margin-bottom: 1.25rem; padding-bottom: 1.25rem; }
+
+  /* FIX: pagination compact on mobile */
+  .pagination { gap: 0.25rem; }
+  .page-btn { min-width: 38px; min-height: 38px; font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+  .page-btn.prev, .page-btn.next { padding: 0.4rem 0.75rem; }
+
+  /* FIX: search bar compact */
+  .search-btn { padding: 0.55rem 1rem; font-size: 0.875rem; }
 }
