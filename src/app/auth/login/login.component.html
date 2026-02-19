@@ -20,6 +20,11 @@
       <p class="login-subtitle">Sign in to your TechWave account</p>
     </div>
 
+    <!-- Draft restored notice -->
+    <div *ngIf="draftRestored" class="alert alert-draft">
+      ✏️ Your email was restored — continue where you left off.
+    </div>
+
     <!-- Success Message -->
     <div *ngIf="loginMessage" class="alert alert-success">
       {{ loginMessage }}

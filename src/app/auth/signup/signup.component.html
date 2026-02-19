@@ -20,6 +20,11 @@
       <p class="signup-subtitle">Create your account to get started</p>
     </div>
 
+    <!-- Draft restored notice -->
+    <div *ngIf="draftRestored" class="alert alert-draft">
+      ✏️ Your details were restored — continue where you left off.
+    </div>
+
     <!-- Success Message -->
     <div *ngIf="signupMessage" class="alert alert-success">
       {{ signupMessage }}
