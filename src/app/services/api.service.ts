@@ -2,6 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environment';
 
 @Injectable({
   providedIn: 'root',
@@ -19,10 +20,10 @@ export class ApiService {
       this.apiUrl =
         window.location.hostname === 'localhost'
           ? 'http://localhost:3000'
-          : 'https://techwaveelectronics.co.ke/api';
+          : environment.apiUrl;
     } else {
-      // Default URL for server-side rendering
-      this.apiUrl = 'https://techwaveelectronics.co.ke/api';
+      // Default URL for server-side renderingx`
+      this.apiUrl = environment.apiUrl;
     }
   }
 
