@@ -22,6 +22,7 @@ import { OrdersComponent } from './checkout/orders/orders.component';
 import { TermsofserviceComponent } from './legal/termsofservice/termsofservice.component';
 import { PrivacypolicyComponent } from './legal/privacypolicy/privacypolicy.component';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { SearchResultsComponent } from './shared/search-results/search-results.component';
 
 
 export const routes: Routes = [
@@ -50,7 +51,9 @@ export const routes: Routes = [
     { path: 'forgot-pwd', component: ForgotPwdComponent },
     { path: 'termsofservice', component: TermsofserviceComponent },
     { path: 'privacypolicy', component: PrivacypolicyComponent },
-    { path: 'admin', component: AdminDashboardComponent }
+    { path: 'admin', component: AdminDashboardComponent },
+    { path: 'search-results', component: SearchResultsComponent }
+
     
 ];
 

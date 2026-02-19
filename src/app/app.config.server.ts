@@ -30,7 +30,8 @@ const serverConfig: ApplicationConfig = {
       { path: 'forgot-pwd', renderMode: RenderMode.Server },
       { path: 'termsofservice', renderMode: RenderMode.Server },
       { path: 'privacypolicy', renderMode: RenderMode.Server },
-      { path: 'admin', renderMode: RenderMode.Server }
+      { path: 'admin', renderMode: RenderMode.Server },
+      { path: 'search-results', renderMode: RenderMode.Server }
     ])
   ]
 };

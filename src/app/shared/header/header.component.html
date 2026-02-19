@@ -1,97 +1,143 @@
-<!-- Header Navigation -->
+<!-- header.component.html (UPDATED) -->
 <header class="header">
     <nav class="nav-container">
+        <!-- Logo -->
         <a routerLink="/" class="logo">
-            <img routerLink="/" src="favicon.ico" width="50px" alt="Logo">
+            <img src="favicon.ico" width="50px" alt="TechWave Logo">
         </a>
-        <!-- Hamburger Menu Button -->
-        <button class="menu-toggle" 
-                [class.active]="isMobileMenuOpen"
-                (click)="toggleMobileMenu()" 
-                aria-label="Toggle menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+
+        <!-- Desktop Search Bar -->
+        <div class="search-container desktop-search">
+            <div class="search-input-wrapper" [class.focused]="showSuggestions">
+                <svg class="search-icon-inner" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                    <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input
+                    type="text"
+                    class="search-input"
+                    [(ngModel)]="searchQuery"
+                    (input)="onSearchInput()"
+                    (keyup.enter)="onSearchSubmit()"
+                    (blur)="hideSuggestions()"
+                    (focus)="onSearchInput()"
+                    placeholder="Search products, brands..."
+                    autocomplete="off"
+                    aria-label="Search products"
+                >
+                <button class="search-submit-btn" (click)="onSearchSubmit()" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="8" stroke="white" stroke-width="2.5"/>
+                        <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Autocomplete Suggestions Dropdown -->
+            <div class="suggestions-dropdown" *ngIf="showSuggestions">
+                <!-- Loading state -->
+                <div class="suggestion-loading" *ngIf="isSearching">
+                    <div class="suggestion-spinner"></div>
+                    <span>Searching...</span>
+                </div>
+
+                <!-- Categories -->
+                <div *ngIf="suggestions.categories?.length > 0 && !isSearching">
+                    <div class="suggestion-section-label">Categories</div>
+                    <div
+                        class="suggestion-item category-suggestion"
+                        *ngFor="let cat of suggestions.categories"
+                        (mousedown)="selectCategorySuggestion(cat.category_name)"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="7" height="7" rx="1" stroke="#6b7280" stroke-width="2"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1" stroke="#6b7280" stroke-width="2"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1" stroke="#6b7280" stroke-width="2"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1" stroke="#6b7280" stroke-width="2"/>
+                        </svg>
+                        <span>{{ cat.category_name }}</span>
+                        <span class="suggestion-meta">{{ cat.count }} products</span>
+                    </div>
+                </div>
+
+                <!-- Products -->
+                <div *ngIf="suggestions.products?.length > 0 && !isSearching">
+                    <div class="suggestion-section-label">Products</div>
+                    <div
+                        class="suggestion-item product-suggestion"
+                        *ngFor="let product of suggestions.products"
+                        (mousedown)="selectSuggestion(product.title)"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="11" cy="11" r="8" stroke="#9ca3af" stroke-width="1.5"/>
+                            <path d="M21 21l-4.35-4.35" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <div class="suggestion-product-info">
+                            <span class="suggestion-title">{{ product.title }}</span>
+                            <span class="suggestion-category">{{ product.category_name }}</span>
+                        </div>
+                        <span class="suggestion-price">KSh {{ product.display_price | number:'1.0-0' }}</span>
+                    </div>
+                </div>
+
+                <!-- View all results -->
+                <div class="suggestion-footer" *ngIf="!isSearching && (suggestions.products?.length > 0 || suggestions.categories?.length > 0)">
+                    <button class="view-all-btn" (mousedown)="onSearchSubmit()">
+                        View all results for "{{ searchQuery }}"
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Navigation -->
         <div class="nav-items">
             <a routerLink="/" class="nav-link">Home</a>
             <a routerLink="/shop" class="nav-link">Shop</a>
             <div class="dropdown">
                 <a class="nav-link dropdown-trigger">
                     Categories
-                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </a>
                 <div class="dropdown-menu">
                     <a routerLink="/categories/Phones" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <line x1="12" y1="18" x2="12.01" y2="18" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        Phones
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                            <line x1="12" y1="18" x2="12.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg> Phones
                     </a>
                     <a routerLink="/categories/Laptops" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="4" width="20" height="12" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Laptops
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="4" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="2"/>
+                        </svg> Laptops
                     </a>
                     <a routerLink="/categories/Accessories" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 18V15C3 13.3431 4.34315 12 6 12C7.65686 12 9 13.3431 9 15V18"
-                                stroke="currentColor" stroke-width="2" />
-                            <path d="M21 18V15C21 13.3431 19.6569 12 18 12C16.3431 12 15 13.3431 15 15V18"
-                                stroke="currentColor" stroke-width="2" />
-                            <path
-                                d="M9 9C9 6.79086 10.7909 5 13 5H11C8.79086 5 7 6.79086 7 9V12H15V9C15 6.79086 16.2091 5 18.5 5H16.5C14.2909 5 12.5 6.79086 12.5 9"
-                                stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Accessories
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 18V15C3 13.34 4.34 12 6 12s3 1.34 3 3v3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M21 18V15c0-1.66-1.34-3-3-3s-3 1.34-3 3v3" stroke="currentColor" stroke-width="2"/>
+                        </svg> Accessories
                     </a>
                     <a routerLink="/categories/Home Appliances" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
-                            <path d="M12 1V3" stroke="currentColor" stroke-width="2" />
-                            <path d="M21 12H23" stroke="currentColor" stroke-width="2" />
-                            <path d="M12 21V23" stroke="currentColor" stroke-width="2" />
-                            <path d="M1 12H3" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Home Appliances
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        </svg> Home Appliances
                     </a>
                     <a routerLink="/categories/Gaming" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="6" width="20" height="12" rx="4" ry="4" stroke="currentColor"
-                                stroke-width="2" />
-                            <circle cx="8" cy="12" r="2" stroke="currentColor" stroke-width="2" />
-                            <path d="M16 10L18 12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                        Gaming
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="6" width="20" height="12" rx="4" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="8" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
+                        </svg> Gaming
                     </a>
                     <a routerLink="/categories/Audio & Sound" class="dropdown-link">
-                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="currentColor"
-                                stroke-width="2" />
-                            <path
-                                d="M19.07 4.93C20.98 6.84 20.98 10.16 19.07 12.07M15.54 8.46C16.17 9.09 16.17 10.09 15.54 10.72"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        Audio & Sound
+                        <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="currentColor" stroke-width="2"/>
+                        </svg> Audio &amp; Sound
                     </a>
                 </div>
             </div>
@@ -99,99 +145,70 @@
             <a routerLink="/login" class="nav-link">Signup</a>
             <a routerLink="/profile" class="nav-link">Profile</a>
         </div>
+
+        <!-- Hamburger Menu -->
+        <button class="menu-toggle" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+
         <!-- Cart Icon -->
         <div class="cart-icon-container">
-            <button class="cart-icon" aria-label="Cart" (click)="goToCart()" title="Cart">
+            <button class="cart-icon" (click)="goToCart()" aria-label="Cart">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"
-                        stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M3 6H21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <path
-                        d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"
-                        stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M6 2L3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6L18 2H6Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 6H21" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M16 10C16 12.21 14.21 14 12 14C9.79 14 8 12.21 8 10" stroke="white" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span class="cart-count" *ngIf="cartCount > 0">{{ cartCount }}</span>
             </button>
         </div>
     </nav>
 
-    <!-- Overlay (darkens the background when menu is open) -->
-    <div class="mobile-overlay" 
-         [class.active]="isMobileMenuOpen" 
-         (click)="closeMobileMenu()">
-    </div>
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
 
-    <!-- Mobile Navigation Menu (Sidebar) -->
+    <!-- Mobile Sidebar -->
     <div class="mobile-nav" [class.active]="isMobileMenuOpen">
-        <button class="mobile-close-btn" (click)="closeMobileMenu()" aria-label="Close menu">
-            &times;
-        </button>
+        <button class="mobile-close-btn" (click)="closeMobileMenu()">&times;</button>
+
+        <!-- Mobile Search -->
+        <div class="mobile-search-container">
+            <div class="mobile-search-input-wrapper">
+                <input
+                    type="text"
+                    class="mobile-search-input"
+                    [(ngModel)]="searchQuery"
+                    (keyup.enter)="onSearchSubmit()"
+                    placeholder="Search products..."
+                    autocomplete="off"
+                >
+                <button class="mobile-search-btn" (click)="onSearchSubmit()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="8" stroke="white" stroke-width="2.5"/>
+                        <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
 
         <div class="mobile-nav-items">
             <a routerLink="/" class="mobile-nav-link" (click)="closeMobileMenu()">Home</a>
             <a routerLink="/shop" class="mobile-nav-link" (click)="closeMobileMenu()">Shop</a>
 
-            <!-- Mobile Categories Dropdown -->
             <div class="mobile-dropdown" [class.active]="isMobileCategoriesOpen">
                 <button class="mobile-dropdown-trigger" (click)="toggleMobileCategories()">
                     Categories
                     <svg class="mobile-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </button>
                 <div class="mobile-dropdown-menu">
-                    <a routerLink="/categories/Phones" class="mobile-dropdown-link" (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <line x1="12" y1="18" x2="12.01" y2="18" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" />
-                        </svg>
-                        Phones
-                    </a>
-                    <a routerLink="/categories/Laptops" class="mobile-dropdown-link" (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="2" y="4" width="20" height="12" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Laptops
-                    </a>
-                    <a routerLink="/categories/Accessories" class="mobile-dropdown-link" (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M3 18V15C3 13.3431 4.34315 12 6 12C7.65686 12 9 13.3431 9 15V18"
-                                stroke="currentColor" stroke-width="2" />
-                            <path d="M21 18V15C21 13.3431 19.6569 12 18 12C16.3431 12 15 13.3431 15 15V18"
-                                stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Accessories
-                    </a>
-                    <a routerLink="/categories/Home-Appliances" class="mobile-dropdown-link"
-                        (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" />
-                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Home Appliances
-                    </a>
-                    <a routerLink="/categories/Gaming" class="mobile-dropdown-link" (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="2" y="6" width="20" height="12" rx="4" ry="4" stroke="currentColor"
-                                stroke-width="2" />
-                            <circle cx="8" cy="12" r="2" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        Gaming
-                    </a>
-                    <a routerLink="/categories/Audio-Sound" class="mobile-dropdown-link" (click)="closeMobileMenu()">
-                        <svg class="mobile-dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="currentColor"
-                                stroke-width="2" />
-                        </svg>
-                        Audio & Sound
-                    </a>
+                    <a routerLink="/categories/Phones" class="mobile-dropdown-link" (click)="closeMobileMenu()">📱 Phones</a>
+                    <a routerLink="/categories/Laptops" class="mobile-dropdown-link" (click)="closeMobileMenu()">💻 Laptops</a>
+                    <a routerLink="/categories/Accessories" class="mobile-dropdown-link" (click)="closeMobileMenu()">🎧 Accessories</a>
+                    <a routerLink="/categories/Home Appliances" class="mobile-dropdown-link" (click)="closeMobileMenu()">🏠 Home Appliances</a>
+                    <a routerLink="/categories/Gaming" class="mobile-dropdown-link" (click)="closeMobileMenu()">🎮 Gaming</a>
+                    <a routerLink="/categories/Audio & Sound" class="mobile-dropdown-link" (click)="closeMobileMenu()">🔊 Audio &amp; Sound</a>
                 </div>
             </div>
 

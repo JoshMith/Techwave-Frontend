@@ -1,0 +1,258 @@
+<!-- search-results.component.html -->
+<app-header></app-header>
+
+<main class="search-page">
+  <div class="container">
+    
+    <!-- Search Header -->
+    <div class="search-header">
+      <div class="search-bar-wrapper">
+        <div class="search-input-group">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="#6b7280" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input 
+            type="text" 
+            class="main-search-input"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="applySearch()"
+            placeholder="Search for phones, laptops, accessories..."
+            autocomplete="off"
+          >
+          <button class="search-btn" (click)="applySearch()">Search</button>
+        </div>
+      </div>
+
+      <div class="search-meta" *ngIf="searchQuery && !loading">
+        <span class="results-count" *ngIf="total > 0">
+          <strong>{{ total | number }}</strong> results for "<strong>{{ searchQuery }}</strong>"
+        </span>
+        <span class="no-results-text" *ngIf="total === 0 && !loading">
+          No results for "<strong>{{ searchQuery }}</strong>"
+        </span>
+      </div>
+    </div>
+
+    <div class="search-layout">
+      
+      <!-- Filters Sidebar -->
+      <aside class="filters-sidebar">
+        <div class="filter-header">
+          <h2>Filters</h2>
+          <button class="reset-btn" (click)="resetFilters()">Reset All</button>
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-section">
+          <h3 class="filter-heading">Price Range (KSh)</h3>
+          <div class="price-inputs">
+            <input 
+              type="number" 
+              [(ngModel)]="priceRange.min" 
+              (change)="onFilterChange()"
+              placeholder="Min"
+              min="0"
+            >
+            <span class="price-separator">—</span>
+            <input 
+              type="number" 
+              [(ngModel)]="priceRange.max" 
+              (change)="onFilterChange()"
+              placeholder="Max"
+              min="0"
+            >
+          </div>
+          <button class="apply-price-btn" (click)="onFilterChange()">Apply</button>
+        </div>
+
+        <!-- Category -->
+        <div class="filter-section" *ngIf="availableCategories.length > 0">
+          <h3 class="filter-heading">Category</h3>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="category" value="" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+              <span class="radio-label">All Categories</span>
+            </label>
+            <label class="radio-item" *ngFor="let cat of availableCategories">
+              <input type="radio" name="category" [value]="cat" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+              <span class="radio-label">{{ cat }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Brand -->
+        <div class="filter-section" *ngIf="availableBrands.length > 0">
+          <h3 class="filter-heading">Brand</h3>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="brand" value="" [(ngModel)]="selectedBrand" (change)="onFilterChange()">
+              <span class="radio-label">All Brands</span>
+            </label>
+            <label class="radio-item" *ngFor="let brand of availableBrands">
+              <input type="radio" name="brand" [value]="brand" [(ngModel)]="selectedBrand" (change)="onFilterChange()">
+              <span class="radio-label">{{ brand }}</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Results Section -->
+      <section class="results-section">
+        
+        <!-- Sort Controls -->
+        <div class="results-toolbar">
+          <span class="showing-text" *ngIf="total > 0">
+            Showing {{ (currentPage - 1) * limit + 1 }}–{{ Math.min(currentPage * limit, total) }} of {{ total | number }}
+          </span>
+          <div class="sort-control">
+            <label for="sort-select">Sort by:</label>
+            <div class="select-wrapper">
+              <select id="sort-select" [(ngModel)]="selectedSort" (change)="onSortChange()">
+                <option *ngFor="let opt of sortOptions" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-container" *ngIf="loading || loadingImages">
+          <div class="loading-spinner"></div>
+          <p>{{ loading ? 'Searching...' : 'Loading images...' }}</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" *ngIf="errorMessage && !loading">
+          <p>{{ errorMessage }}</p>
+          <button (click)="doSearch()">Try Again</button>
+        </div>
+
+        <!-- Empty State - no query -->
+        <div class="empty-state centered" *ngIf="!searchQuery && !loading">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="#d1d5db" stroke-width="1.5"/>
+            <path d="M21 21l-4.35-4.35" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <h3>Start searching</h3>
+          <p>Type something above to find products</p>
+        </div>
+
+        <!-- No Results -->
+        <div class="empty-state" *ngIf="searchQuery && total === 0 && !loading">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="#9ca3af" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8" y1="11" x2="14" y2="11" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h3>No products found</h3>
+          <p>Try different keywords or adjust your filters</p>
+          <div class="suggestions">
+            <p class="suggestion-title">Suggestions:</p>
+            <ul>
+              <li>Check the spelling of your search</li>
+              <li>Use more general terms</li>
+              <li>Try a different category</li>
+            </ul>
+          </div>
+          <button class="reset-btn-lg" (click)="resetFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" *ngIf="products.length > 0 && !loading">
+          <div class="product-card" *ngFor="let product of products">
+            <div class="product-badge" *ngIf="product.sale_price">
+              {{ ((product.price - product.sale_price) / product.price * 100).toFixed(0) }}% OFF
+            </div>
+            
+            <div class="product-image" (click)="viewProductDetails(product)">
+              <img 
+                [src]="getProductImage(product)" 
+                [alt]="product.title" 
+                (error)="onImageError($event)"
+                loading="lazy"
+              >
+            </div>
+
+            <div class="product-info">
+              <div class="product-category">{{ product.category_name }}</div>
+              <h3 class="product-title" (click)="viewProductDetails(product)">{{ product.title }}</h3>
+              <p class="product-specs">{{ formatSpecs(product.specs) }}</p>
+
+              <div class="product-rating">
+                <div class="stars">
+                  <span *ngFor="let star of [1,2,3,4,5]" class="star" [class.filled]="star <= product.rating">★</span>
+                </div>
+                <span class="rating-count">({{ product.review_count }})</span>
+              </div>
+
+              <div class="product-price-section">
+                <span class="original-price" *ngIf="product.sale_price">
+                  KSh {{ product.price | number:'1.0-0' }}
+                </span>
+                <span class="current-price">
+                  KSh {{ (product.sale_price || product.price) | number:'1.0-0' }}
+                </span>
+              </div>
+
+              <div class="product-actions">
+                <button 
+                  class="add-to-cart-btn" 
+                  (click)="addToCart(product)"
+                  [disabled]="addingToCart || product.stock < 1"
+                >
+                  {{ product.stock < 1 ? 'Out of Stock' : 'Add to Cart' }}
+                </button>
+                <button class="view-btn" (click)="viewProductDetails(product)">View</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button 
+            class="page-btn prev" 
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)"
+          >
+            ← Prev
+          </button>
+          
+          <button 
+            *ngIf="currentPage > 3"
+            class="page-btn"
+            (click)="goToPage(1)"
+          >1</button>
+          
+          <span *ngIf="currentPage > 4" class="ellipsis">...</span>
+          
+          <button 
+            *ngFor="let page of getPageNumbers()"
+            class="page-btn"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >{{ page }}</button>
+          
+          <span *ngIf="currentPage < totalPages - 3" class="ellipsis">...</span>
+          
+          <button 
+            *ngIf="currentPage < totalPages - 2"
+            class="page-btn"
+            (click)="goToPage(totalPages)"
+          >{{ totalPages }}</button>
+          
+          <button 
+            class="page-btn next"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)"
+          >
+            Next →
+          </button>
+        </div>
+
+      </section>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>
