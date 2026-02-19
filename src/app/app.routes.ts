@@ -29,6 +29,7 @@ export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: 'home', component: HomepageComponent },
     { path: 'shop', component: ShopComponent },
+    { path: 'search', component: SearchResultsComponent },
     { path: 'categories/Phones', component: PhonesComponent },
     { path: 'categories/Laptops', component: LaptopsComponent },
     { path: 'categories/Accessories', component: AccessoriesComponent },
@@ -52,9 +53,6 @@ export const routes: Routes = [
     { path: 'termsofservice', component: TermsofserviceComponent },
     { path: 'privacypolicy', component: PrivacypolicyComponent },
     { path: 'admin', component: AdminDashboardComponent },
-    { path: 'search-results', component: SearchResultsComponent }
-
-    
 ];
 
 

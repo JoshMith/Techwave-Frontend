@@ -2,7 +2,6 @@ import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
 import { provideServerRendering } from '@angular/platform-server';
 import { provideServerRouting, RenderMode } from '@angular/ssr';
 import { appConfig } from './app.config';
-import { serverRoutes } from './app.routes.server';
 
 const serverConfig: ApplicationConfig = {
   providers: [
@@ -11,6 +10,7 @@ const serverConfig: ApplicationConfig = {
       { path: '', renderMode: RenderMode.Server },
       { path: 'home', renderMode: RenderMode.Server },
       { path: 'shop', renderMode: RenderMode.Server },
+      { path: 'search', renderMode: RenderMode.Server },
       { path: 'categories/Phones', renderMode: RenderMode.Server },
       { path: 'categories/Laptops', renderMode: RenderMode.Server },
       { path: 'categories/Accessories', renderMode: RenderMode.Server },
@@ -31,7 +31,6 @@ const serverConfig: ApplicationConfig = {
       { path: 'termsofservice', renderMode: RenderMode.Server },
       { path: 'privacypolicy', renderMode: RenderMode.Server },
       { path: 'admin', renderMode: RenderMode.Server },
-      { path: 'search-results', renderMode: RenderMode.Server }
     ])
   ]
 };

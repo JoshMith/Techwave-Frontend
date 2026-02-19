@@ -1,5 +1,5 @@
 // ============================================
-// header.component.ts (With search)
+// header.component.ts (With search + keyboard navigation)
 // ============================================
 
 import { Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
@@ -11,7 +11,6 @@ import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/o
 import { ApiService } from '../../services/api.service';
 import { CartService } from '../../services/cart.service';
 import { SearchService } from '../../services/search.service';
-
 
 interface GuestUser {
   session_id: string;
@@ -52,6 +51,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   suggestions: any = { products: [], categories: [] };
   showSuggestions = false;
   isSearching = false;
+
+  // Keyboard navigation
+  activeIndex = -1;          // -1 = nothing selected
+  // Flat list combining categories then products for arrow key nav
+  get flatSuggestions(): any[] {
+    const cats = (this.suggestions.categories || []).map((c: any) => ({ ...c, _type: 'category' }));
+    const prods = (this.suggestions.products || []).map((p: any) => ({ ...p, _type: 'product' }));
+    return [...cats, ...prods];
+  }
+
   private searchInput$ = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -110,6 +119,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (!query || query.trim().length < 2) {
           this.suggestions = { products: [], categories: [] };
           this.showSuggestions = false;
+          this.activeIndex = -1;
           return [];
         }
         this.isSearching = true;
@@ -121,6 +131,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isSearching = false;
         if (result) {
           this.suggestions = result;
+          this.activeIndex = -1;
           this.showSuggestions = (result.products?.length > 0 || result.categories?.length > 0);
         }
       },
@@ -132,34 +143,118 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSearchInput(): void {
+    this.activeIndex = -1;
     this.searchInput$.next(this.searchQuery);
     if (!this.searchQuery.trim()) {
       this.showSuggestions = false;
     }
   }
 
+  /** Called on Enter key or clicking the search button */
   onSearchSubmit(): void {
+    // If an item is highlighted via arrow keys, select it
+    if (this.activeIndex >= 0 && this.flatSuggestions.length > 0) {
+      this.selectActiveItem();
+      return;
+    }
     if (!this.searchQuery.trim()) return;
     this.showSuggestions = false;
+    this.activeIndex = -1;
     this.router.navigate(['/search'], { queryParams: { q: this.searchQuery.trim() } });
     if (this.isMobileMenuOpen) this.closeMobileMenu();
+  }
+
+  /** Keyboard ArrowDown / ArrowUp / Enter / Escape inside the search input */
+  onSearchKeydown(event: KeyboardEvent): void {
+    const total = this.flatSuggestions.length;
+
+    if (!this.showSuggestions || total === 0) {
+      if (event.key === 'Enter') this.onSearchSubmit();
+      return;
+    }
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.activeIndex = (this.activeIndex + 1) % total;
+        this.updateInputFromActive();
+        break;
+
+      case 'ArrowUp':
+        event.preventDefault();
+        this.activeIndex = this.activeIndex <= 0 ? total - 1 : this.activeIndex - 1;
+        this.updateInputFromActive();
+        break;
+
+      case 'Enter':
+        event.preventDefault();
+        if (this.activeIndex >= 0) {
+          this.selectActiveItem();
+        } else {
+          this.onSearchSubmit();
+        }
+        break;
+
+      case 'Escape':
+        this.showSuggestions = false;
+        this.activeIndex = -1;
+        break;
+    }
+  }
+
+  private updateInputFromActive(): void {
+    const item = this.flatSuggestions[this.activeIndex];
+    if (!item) return;
+    if (item._type === 'category') {
+      this.searchQuery = item.category_name;
+    } else {
+      this.searchQuery = item.title;
+    }
+  }
+
+  private selectActiveItem(): void {
+    const item = this.flatSuggestions[this.activeIndex];
+    if (!item) return;
+    if (item._type === 'category') {
+      this.selectCategorySuggestion(item.category_name);
+    } else {
+      this.selectSuggestion(item.title);
+    }
   }
 
   selectSuggestion(title: string): void {
     this.searchQuery = title;
     this.showSuggestions = false;
+    this.activeIndex = -1;
     this.router.navigate(['/search'], { queryParams: { q: title } });
   }
 
   selectCategorySuggestion(categoryName: string): void {
     this.showSuggestions = false;
+    this.activeIndex = -1;
     this.searchQuery = '';
     this.router.navigate(['/categories', categoryName]);
   }
 
   hideSuggestions(): void {
-    // Small delay so clicks on suggestions register
-    setTimeout(() => { this.showSuggestions = false; }, 150);
+    // Small delay so clicks on suggestions register before hiding
+    setTimeout(() => {
+      this.showSuggestions = false;
+      this.activeIndex = -1;
+    }, 150);
+  }
+
+  // Helper so template can check if a flat index matches a category or product item
+  getCategoryFlatIndex(cat: any): number {
+    return this.flatSuggestions.findIndex(
+      i => i._type === 'category' && i.category_name === cat.category_name
+    );
+  }
+
+  getProductFlatIndex(product: any): number {
+    return this.flatSuggestions.findIndex(
+      i => i._type === 'product' && i.product_id === product.product_id
+    );
   }
 
   // ─── Mobile menu ─────────────────────────────────
@@ -190,7 +285,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape', ['$event'])
   onKeydownHandler(event: KeyboardEvent): void {
     if (this.isMobileMenuOpen) this.closeMobileMenu();
-    if (this.showSuggestions) this.showSuggestions = false;
+    if (this.showSuggestions) {
+      this.showSuggestions = false;
+      this.activeIndex = -1;
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -198,6 +296,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.search-container')) {
       this.showSuggestions = false;
+      this.activeIndex = -1;
     }
   }
 

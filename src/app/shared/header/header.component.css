@@ -528,3 +528,19 @@
   outline: 2px solid rgba(255,255,255,0.5);
   outline-offset: 2px;
 }
+
+/* ─── Keyboard navigation highlight ─────────────── */
+.suggestion-item.active {
+  background: #eff6ff;
+  outline: none;
+}
+
+.suggestion-item.active .suggestion-title { color: #1d4ed8; }
+.suggestion-item.active .suggestion-price { color: #1d4ed8; }
+
+/* ─── Keyboard-active suggestion highlight ───────── */
+.suggestion-item.active {
+  background: #f0f7ff;
+  outline: 2px solid #bfdbfe;
+  outline-offset: -2px;
+}

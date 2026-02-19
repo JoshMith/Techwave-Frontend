@@ -423,7 +423,7 @@ export class SellerDashboardComponent implements OnInit, OnDestroy {
           this.router.navigate(['/login'], {
             queryParams: { returnUrl: this.router.url },
           });
-        }, 5000);
+        }, 1000);
       },
     });
   }

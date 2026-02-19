@@ -1,4 +1,4 @@
-<!-- header.component.html (UPDATED) -->
+<!-- header.component.html -->
 <header class="header">
     <nav class="nav-container">
         <!-- Logo -->
@@ -18,12 +18,15 @@
                     class="search-input"
                     [(ngModel)]="searchQuery"
                     (input)="onSearchInput()"
-                    (keyup.enter)="onSearchSubmit()"
+                    (keydown)="onSearchKeydown($event)"
                     (blur)="hideSuggestions()"
                     (focus)="onSearchInput()"
                     placeholder="Search products, brands..."
                     autocomplete="off"
                     aria-label="Search products"
+                    role="combobox"
+                    [attr.aria-expanded]="showSuggestions"
+                    aria-autocomplete="list"
                 >
                 <button class="search-submit-btn" (click)="onSearchSubmit()" aria-label="Search">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -34,7 +37,7 @@
             </div>
 
             <!-- Autocomplete Suggestions Dropdown -->
-            <div class="suggestions-dropdown" *ngIf="showSuggestions">
+            <div class="suggestions-dropdown" *ngIf="showSuggestions" role="listbox">
                 <!-- Loading state -->
                 <div class="suggestion-loading" *ngIf="isSearching">
                     <div class="suggestion-spinner"></div>
@@ -47,7 +50,10 @@
                     <div
                         class="suggestion-item category-suggestion"
                         *ngFor="let cat of suggestions.categories"
+                        [class.active]="activeIndex === getCategoryFlatIndex(cat)"
                         (mousedown)="selectCategorySuggestion(cat.category_name)"
+                        (mouseover)="activeIndex = getCategoryFlatIndex(cat)"
+                        role="option"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <rect x="3" y="3" width="7" height="7" rx="1" stroke="#6b7280" stroke-width="2"/>
@@ -66,7 +72,10 @@
                     <div
                         class="suggestion-item product-suggestion"
                         *ngFor="let product of suggestions.products"
+                        [class.active]="activeIndex === getProductFlatIndex(product)"
                         (mousedown)="selectSuggestion(product.title)"
+                        (mouseover)="activeIndex = getProductFlatIndex(product)"
+                        role="option"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <circle cx="11" cy="11" r="8" stroke="#9ca3af" stroke-width="1.5"/>
@@ -178,7 +187,7 @@
                     type="text"
                     class="mobile-search-input"
                     [(ngModel)]="searchQuery"
-                    (keyup.enter)="onSearchSubmit()"
+                    (keydown)="onSearchKeydown($event)"
                     placeholder="Search products..."
                     autocomplete="off"
                 >
