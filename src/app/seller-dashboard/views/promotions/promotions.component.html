@@ -1,0 +1,178 @@
+<!-- promotions.component.html -->
+
+<div class="dashboard-header">
+  <h1 class="dashboard-title">Manage Offers & Promotions</h1>
+  <p class="dashboard-subtitle">Create and manage special offers for your products</p>
+</div>
+
+<div *ngIf="offerSuccess" class="alert alert-success">{{ offerSuccess }}</div>
+<div *ngIf="offerError"   class="alert alert-error">{{ offerError }}</div>
+
+<!-- Create New Offer Form -->
+<div class="card" *ngIf="!showEditForm">
+  <div class="card-header"><h2 class="card-title">Create New Offer</h2></div>
+  <form class="product-form" (ngSubmit)="onCreateOffer()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Offer Title *</label>
+        <input type="text" [(ngModel)]="newOffer.title" name="title" class="form-input"
+          placeholder="e.g., Summer Sale 2025" required>
+      </div>
+      <div class="form-group">
+        <label>Discount Type *</label>
+        <select [(ngModel)]="newOffer.discount_type" name="discountType" class="form-select" required>
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed Amount (KSh)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea [(ngModel)]="newOffer.description" name="description" class="form-textarea"
+        placeholder="Describe your offer" rows="3" required></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Discount Value *</label>
+        <input type="number" [(ngModel)]="newOffer.discount_value" name="discountValue"
+          class="form-input" min="0" [max]="newOffer.discount_type === 'percentage' ? 100 : 999999" required>
+        <small style="color:#6b7280;font-size:0.8rem;">
+          {{ newOffer.discount_type === 'percentage' ? 'Enter percentage (0–100)' : 'Enter amount in KSh' }}
+        </small>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+          <input type="checkbox" [(ngModel)]="newOffer.is_active" name="isActive" id="offerActive"
+            style="width:20px;height:20px;">
+          <label for="offerActive">Active</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valid From *</label>
+        <input type="date" [(ngModel)]="newOffer.valid_from" name="validFrom" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label>Valid Until *</label>
+        <input type="date" [(ngModel)]="newOffer.valid_until" name="validTo" class="form-input" required>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmittingOffer">
+        {{ isSubmittingOffer ? 'Creating...' : 'Create Offer' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Edit Offer Form -->
+<div class="card" *ngIf="showEditForm && editingOffer">
+  <div class="card-header">
+    <h2 class="card-title">Edit Offer</h2>
+    <button class="btn btn-secondary btn-small" (click)="cancelOfferEdit()">← Back to Offers</button>
+  </div>
+  <form class="product-form" (ngSubmit)="onUpdateOffer()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Offer Title *</label>
+        <input type="text" [(ngModel)]="editingOffer.title" name="editTitle" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label>Discount Type *</label>
+        <select [(ngModel)]="editingOffer.discount_type" name="editDiscountType" class="form-select" required>
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed Amount (KSh)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea [(ngModel)]="editingOffer.description" name="editDescription" class="form-textarea" rows="3" required></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Discount Value *</label>
+        <input type="number" [(ngModel)]="editingOffer.discount_value" name="editDiscountValue"
+          class="form-input" min="0" [max]="editingOffer.discount_type === 'percentage' ? 100 : 999999" required>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+          <input type="checkbox" [(ngModel)]="editingOffer.is_active" name="editIsActive" id="editOfferActive"
+            style="width:20px;height:20px;">
+          <label for="editOfferActive">Active</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valid From *</label>
+        <input type="date" [(ngModel)]="editingOffer.valid_from" name="editValidFrom" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label>Valid Until *</label>
+        <input type="date" [(ngModel)]="editingOffer.valid_until" name="editValidTo" class="form-input" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancelOfferEdit()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmittingOffer">
+        {{ isSubmittingOffer ? 'Updating...' : 'Update Offer' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Existing Offers List -->
+<div class="card" style="margin-top:2rem;" *ngIf="!showEditForm">
+  <div class="card-header"><h2 class="card-title">Existing Offers</h2></div>
+  <div *ngIf="offers.length === 0" class="empty-state">
+    <p>No offers created yet</p>
+    <small>Create your first offer using the form above</small>
+  </div>
+  <div class="offers-grid" *ngIf="offers.length > 0">
+    <div *ngFor="let offer of offers" class="offer-card">
+      <div class="offer-card-header">
+        <h3>{{ offer.title }}</h3>
+        <span class="offer-badge" [class.active]="offer.is_active" [class.inactive]="!offer.is_active">
+          {{ offer.is_active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <p class="offer-description">{{ offer.description }}</p>
+      <div class="offer-details">
+        <div class="offer-detail-item">
+          <strong>Discount:</strong>
+          <span *ngIf="offer.discount_type === 'percentage'">{{ offer.discount_value }}%</span>
+          <span *ngIf="offer.discount_type === 'fixed'">{{ formatCurrency(offer.discount_value) }}</span>
+        </div>
+        <div class="offer-detail-item">
+          <strong>Valid:</strong>
+          <span>{{ formatDate(offer.valid_from) }} – {{ formatDate(offer.valid_until) }}</span>
+        </div>
+        <div class="offer-detail-item">
+          <strong>Products:</strong>
+          <span>{{ offer.product_ids?.length || 0 }} associated</span>
+        </div>
+      </div>
+      <div class="offer-actions">
+        <button class="btn btn-secondary btn-small" (click)="editOffer(offer)">Edit</button>
+        <button class="btn btn-small"
+          [class.btn-success]="!offer.is_active"
+          [ngStyle]="{'background': offer.is_active ? '#f59e0b' : '', 'color': offer.is_active ? 'white' : ''}"
+          (click)="toggleOfferStatus(offer)">
+          {{ offer.is_active ? 'Deactivate' : 'Activate' }}
+        </button>
+        <button class="btn btn-small" style="background:#ef4444;color:white;"
+          (click)="deleteOffer(offer.offer_id!)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

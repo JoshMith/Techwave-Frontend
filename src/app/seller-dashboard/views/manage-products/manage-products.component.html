@@ -1,0 +1,178 @@
+<!-- manage-products.component.html -->
+
+<div class="page-header">
+  <button class="back-btn" (click)="router.navigate(['/seller-dashboard/overview'])">← Back to Dashboard</button>
+  <h1 class="page-title">Manage Products</h1>
+  <button class="btn btn-primary" (click)="goToAddProduct()">+ Add Product</button>
+</div>
+
+<div *ngIf="productSuccess" class="alert alert-success">{{ productSuccess }}</div>
+<div *ngIf="productError"   class="alert alert-error">{{ productError }}</div>
+
+<!-- Filters -->
+<div class="filters-container">
+  <div class="filter-group">
+    <label>Search</label>
+    <input type="text" [(ngModel)]="productSearch" (ngModelChange)="applyFilters()"
+      class="form-input" placeholder="Search by name or description">
+  </div>
+  <div class="filter-group">
+    <label>Min Price</label>
+    <input type="number" [(ngModel)]="productFilterMinPrice" (ngModelChange)="applyFilters()"
+      class="form-input" placeholder="0" min="0">
+  </div>
+  <div class="filter-group">
+    <label>Max Price</label>
+    <input type="number" [(ngModel)]="productFilterMaxPrice" (ngModelChange)="applyFilters()"
+      class="form-input" min="0">
+  </div>
+  <div class="filter-group">
+    <label>Status</label>
+    <select [(ngModel)]="productFilterStatus" (ngModelChange)="applyFilters()" class="form-select">
+      <option value="">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+  <div class="filter-group" style="justify-content:flex-end;">
+    <button class="btn btn-secondary btn-small" (click)="clearFilters()" style="margin-top:1.4rem;">
+      Clear Filters
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- Products Table -->
+<div class="card" *ngIf="!isLoading">
+  <div class="table-container">
+    <div *ngIf="filteredProducts.length === 0" class="empty-state">
+      <p>No products found</p>
+      <small>Your products will appear here</small>
+      <button class="btn btn-primary" (click)="goToAddProduct()" style="margin-top:1rem;">
+        Add Your First Product
+      </button>
+    </div>
+
+    <table class="products-table" *ngIf="filteredProducts.length > 0">
+      <thead>
+        <tr>
+          <th>Product</th><th>Category</th><th>Price</th>
+          <th>Stock</th><th>Status</th><th>Rating</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of filteredProducts">
+          <td>
+            <div class="product-info">
+              <div class="product-name">{{ product.title }}</div>
+              <div class="product-description">{{ product.description | slice:0:50 }}...</div>
+            </div>
+          </td>
+          <td>{{ product.categoryName || product.category_name || product.category_id }}</td>
+          <td>
+            <div *ngIf="product.sale_price; else regularPrice">
+              <span style="font-weight:600;color:#10b981;">{{ formatCurrency(product.sale_price!) }}</span>
+              <small style="text-decoration:line-through;color:red;display:block;">
+                {{ formatCurrency(product.price) }}
+              </small>
+            </div>
+            <ng-template #regularPrice>{{ formatCurrency(product.price) }}</ng-template>
+          </td>
+          <td>
+            <span [ngClass]="product.stock <= 5 ? 'stock-low' : 'stock-good'">
+              {{ product.stock }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="product.status === 'active' ? 'delivered' : 'cancelled'">
+              {{ product.status || 'active' }}
+            </span>
+          </td>
+          <td>⭐ {{ product.rating ?? 0 }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="openEdit(product)" title="Edit">✏️</button>
+              <button class="btn-icon" (click)="onDeleteProduct(product.product_id!)" title="Delete">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div *ngIf="editingProduct" class="modal-overlay" (click)="closeEdit()">
+  <div class="modal modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Product</h3>
+      <button class="modal-close" (click)="closeEdit()">×</button>
+    </div>
+    <div class="modal-content">
+      <div *ngIf="productSuccess" class="alert alert-success">{{ productSuccess }}</div>
+      <div *ngIf="productError"   class="alert alert-error">{{ productError }}</div>
+
+      <form class="product-form">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" [(ngModel)]="editingProduct.title" name="editName" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="editingProduct.description" name="editDescription"
+            class="form-textarea" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sale Price (KSh)</label>
+            <input type="number" [(ngModel)]="editingProduct.sale_price" name="editPrice" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" [(ngModel)]="editingProduct.stock" name="editStock" class="form-input">
+          </div>
+        </div>
+
+        <!-- Existing Images -->
+        <div class="form-section" *ngIf="editingProductExistingImages.length > 0">
+          <h3 class="section-title">Current Images</h3>
+          <div class="image-preview">
+            <div *ngFor="let img of editingProductExistingImages" class="image-preview-item">
+              <img [src]="img.image_url" [alt]="img.alt_text" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeExistingImage(img)">×</button>
+              <span *ngIf="img.is_primary" class="primary-badge">Primary</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload New Images -->
+        <div class="form-section">
+          <h3 class="section-title">Add New Images</h3>
+          <div class="image-upload-area" (click)="editFileInput.click()">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click to upload new images</div>
+            <div class="upload-subtext">PNG, JPG up to 5MB each</div>
+            <input #editFileInput type="file" class="file-input" multiple accept="image/*"
+              (change)="onEditFileSelected($event)">
+          </div>
+          <div class="image-preview" *ngIf="editingProductImages.length > 0">
+            <div *ngFor="let img of editingProductImages; let i = index" class="image-preview-item">
+              <img [src]="img.url" [alt]="img.name" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeNewEditImage(i)">×</button>
+              <span class="new-badge">New</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeEdit()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="onUpdateProduct()">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

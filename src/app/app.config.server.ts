@@ -33,7 +33,10 @@ const serverConfig: ApplicationConfig = {
       { path: 'checkout/payment',              renderMode: RenderMode.Client },
       { path: 'checkout/orders',               renderMode: RenderMode.Client },
       { path: 'profile',                       renderMode: RenderMode.Client },
-      { path: 'seller-dashboard',              renderMode: RenderMode.Client },
+
+      { path: 'seller-dashboard',               renderMode: RenderMode.Client },
+      { path: 'seller-dashboard/**',            renderMode: RenderMode.Client },
+      
       { path: 'login',                         renderMode: RenderMode.Client },
       { path: 'signup',                        renderMode: RenderMode.Client },
       { path: 'forgot-pwd',                    renderMode: RenderMode.Client },

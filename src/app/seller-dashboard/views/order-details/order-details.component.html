@@ -1,0 +1,173 @@
+<!-- order-details.component.html -->
+
+<div class="page-header">
+  <button class="back-btn" (click)="goBack()">← Back to Orders</button>
+  <h1 class="page-title">Order Details</h1>
+</div>
+
+<div *ngIf="isLoading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Loading order details...</p>
+</div>
+
+<div *ngIf="error && !isLoading" class="error-container">
+  <div class="error-message">
+    <span class="error-icon">⚠️</span>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="goBack()">← Back to Orders</button>
+  </div>
+</div>
+
+<div *ngIf="!isLoading && details" style="display:grid;gap:1.5rem;">
+
+  <!-- Order Summary -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Order Summary</h2>
+      <span class="status-badge" [ngClass]="statusClass(details.order.status)">
+        {{ mapStatus(details.order.status) }}
+      </span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;padding:1.5rem;">
+      <div>
+        <label class="profile-label">Order ID</label>
+        <div class="profile-value">{{ details.order.order_id }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Order Date</label>
+        <div class="profile-value">{{ formatDate(details.order.created_at || details.order.orderDate || '') }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Total Amount</label>
+        <div class="profile-value" style="color:#10b981;font-weight:600;font-size:1.2rem;">
+          {{ formatCurrency(details.order.total_amount || details.order.total || 0) }}
+        </div>
+      </div>
+      <div>
+        <label class="profile-label">Payment Status</label>
+        <div class="profile-value">
+          <span class="status-badge" [ngClass]="details.payment?.confirmed ? 'delivered' : 'pending'">
+            {{ details.payment?.confirmed ? 'Paid' : 'Pending' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Information -->
+  <div class="card" *ngIf="details.user">
+    <div class="card-header"><h3 class="card-title">Customer Information</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;padding:1.5rem;">
+      <div>
+        <label class="profile-label">Name</label>
+        <div class="profile-value">{{ details.user.name || details.user.Name }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Email</label>
+        <div class="profile-value">{{ details.user.email }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Phone</label>
+        <div class="profile-value">{{ details.user.phone || 'N/A' }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Customer Since</label>
+        <div class="profile-value">{{ formatDate(details.user.created_at) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery Address -->
+  <div class="card" *ngIf="details.address">
+    <div class="card-header"><h3 class="card-title">Delivery Address</h3></div>
+    <div style="padding:1.5rem;">
+      <div class="profile-value" style="line-height:1.8;">
+        <div><strong>{{ details.address.full_name || details.address.name }}</strong></div>
+        <div>{{ details.address.phone }}</div>
+        <div style="margin-top:0.5rem;">
+          {{ details.address.street_address }}<br>
+          {{ details.address.city }}, {{ details.address.state }} {{ details.address.postal_code }}<br>
+          {{ details.address.country }}
+        </div>
+        <div *ngIf="details.address.is_default" style="margin-top:0.5rem;">
+          <span class="status-badge delivered" style="font-size:0.8rem;">Default Address</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Items -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Order Items</h3></div>
+    <div class="table-container">
+      <table class="orders-table">
+        <thead>
+          <tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of details.items">
+            <td>{{ item.product_id || item.productName || 'Unknown Product' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ formatCurrency(item.price || item.unit_price || 0) }}</td>
+            <td style="font-weight:600;">
+              {{ formatCurrency((item.price || item.unit_price || 0) * item.quantity) }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid #e5e7eb;font-weight:600;">
+            <td colspan="3" style="text-align:right;padding:1rem;">Total:</td>
+            <td style="color:#10b981;font-size:1.1rem;">
+              {{ formatCurrency(details.order.total_amount || details.order.total || 0) }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Payment Information -->
+  <div class="card" *ngIf="details.payment">
+    <div class="card-header"><h3 class="card-title">Payment Information</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;padding:1.5rem;">
+      <div>
+        <label class="profile-label">Payment Method</label>
+        <div class="profile-value">{{ details.payment.method || 'N/A' }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Transaction ID</label>
+        <div class="profile-value">{{ details.payment.transaction_reference || 'N/A' }}</div>
+      </div>
+      <div>
+        <label class="profile-label">Amount Paid</label>
+        <div class="profile-value" style="color:#10b981;font-weight:600;">
+          {{ formatCurrency(details.payment.amount || 0) }}
+        </div>
+      </div>
+      <div>
+        <label class="profile-label">Payment Date</label>
+        <div class="profile-value">{{ formatDate(details.payment.created_at) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Status -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Update Order Status</h3></div>
+    <div style="padding:1.5rem;">
+      <div class="form-group">
+        <label>Current Status: <strong>{{ mapStatus(details.order.status) }}</strong></label>
+        <select [(ngModel)]="details.order.status"
+          (ngModelChange)="onStatusChange(details.order.order_id, $event)"
+          class="form-select" style="margin-top:0.5rem;">
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+</div>

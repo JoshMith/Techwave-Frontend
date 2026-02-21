@@ -1,0 +1,66 @@
+<!-- manage-orders.component.html -->
+
+<div class="page-header">
+  <button class="back-btn" (click)="router.navigate(['/seller-dashboard/overview'])">← Back to Dashboard</button>
+  <h1 class="page-title">Manage Orders</h1>
+</div>
+
+<div class="filters-container">
+  <div class="filter-group">
+    <label>Filter by Status:</label>
+    <select [(ngModel)]="orderFilter" (ngModelChange)="filterOrders()" class="form-select">
+      <option value="all">All Orders</option>
+      <option value="pending">Pending</option>
+      <option value="processing">Processing</option>
+      <option value="shipped">Shipped</option>
+      <option value="delivered">Delivered</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Search Orders:</label>
+    <input type="text" [(ngModel)]="orderSearch" (ngModelChange)="filterOrders()"
+      class="form-input" placeholder="Search by ID, customer, or product">
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="card" *ngIf="!isLoading">
+  <div class="table-container">
+    <div *ngIf="filteredOrders.length === 0" class="empty-state">
+      <p>No orders found</p>
+      <small>Orders matching your criteria will appear here</small>
+    </div>
+
+    <table class="orders-table" *ngIf="filteredOrders.length > 0">
+      <thead>
+        <tr>
+          <th>Order ID</th><th>Customer</th><th>Product</th>
+          <th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders">
+          <td><span class="order-id">{{ order.order_id }}</span></td>
+          <td>{{ order.user_name || order.customer?.name || 'Unknown' }}</td>
+          <td>{{ order.product_name || order.items?.[0]?.productName || 'Unknown' }}</td>
+          <td>{{ formatCurrency(order.total_amount || order.total || 0) }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="statusClass(order.status)">
+              {{ mapStatus(order.status) }}
+            </span>
+          </td>
+          <td>{{ formatDate(order.created_at || order.orderDate || '') }}</td>
+          <td>
+            <button class="btn btn-small btn-primary" (click)="viewOrder(order.order_id)">
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,119 @@
+<!-- add-product.component.html -->
+
+<div class="page-header">
+  <button class="back-btn" (click)="cancel()">← Back to Dashboard</button>
+  <h1 class="page-title">Add New Product</h1>
+</div>
+
+<div class="form-container">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Product Information</h2>
+    </div>
+
+    <div *ngIf="productSuccess" class="alert alert-success">{{ productSuccess }}</div>
+    <div *ngIf="productError"   class="alert alert-error">{{ productError }}</div>
+
+    <form class="product-form">
+
+      <div class="form-group">
+        <label for="productTitle">Product Title *</label>
+        <input type="text" id="productTitle" [(ngModel)]="newProduct.title" name="productTitle"
+          class="form-input" placeholder="Enter product title" required>
+      </div>
+
+      <div class="form-group">
+        <label for="productDescription">Description *</label>
+        <textarea id="productDescription" [(ngModel)]="newProduct.description" name="productDescription"
+          class="form-textarea" rows="4" placeholder="Enter product description" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="productPrice">Regular Price (KSh) *</label>
+          <input type="number" id="productPrice" [(ngModel)]="newProduct.price" name="productPrice"
+            class="form-input" placeholder="0" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="productSalePrice">Sale Price (KSh)</label>
+          <input type="number" id="productSalePrice" [(ngModel)]="newProduct.sale_price" name="productSalePrice"
+            class="form-input" placeholder="0" min="0" step="0.01">
+          <small style="color:#6b7280;font-size:0.8rem;">Optional: Leave empty if no sale</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="productStock">Stock Quantity *</label>
+          <input type="number" id="productStock" [(ngModel)]="newProduct.stock" name="productStock"
+            class="form-input" placeholder="0" min="0" required>
+        </div>
+        <div class="form-group">
+          <label for="productCategory">Category *</label>
+          <select id="productCategory" [(ngModel)]="newProduct.category_id" name="productCategory"
+            class="form-select" required>
+            <option value="">Select a category</option>
+            <option *ngFor="let category of categories" [value]="category.category_id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product Images -->
+      <div class="form-section">
+        <h3 class="section-title">Product Images (Optional)</h3>
+        <div class="form-group full-width">
+          <label class="form-label">Upload Images</label>
+          <div class="image-upload-area" (click)="fileInput.click()"
+            (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click to upload or drag and drop</div>
+            <div class="upload-subtext">PNG, JPG up to 5MB each. First image will be the main photo.</div>
+            <input #fileInput type="file" class="file-input" multiple accept="image/*"
+              (change)="onFileSelected($event)">
+          </div>
+          <div class="image-preview" *ngIf="uploadedImages.length > 0">
+            <div *ngFor="let image of uploadedImages; let i = index" class="image-preview-item">
+              <img [src]="image.url" [alt]="image.name" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeImage(i)">×</button>
+            </div>
+          </div>
+          <div *ngIf="uploadedImages.length === 0" class="info-message">
+            ℹ️ No images selected. Product will be created without images.
+          </div>
+          <span class="help-text">
+            Add multiple angles — front, back, sides, ports, and any accessories included.
+          </span>
+        </div>
+      </div>
+
+      <!-- Technical Specifications -->
+      <div class="form-section">
+        <h3 class="section-title">Technical Specifications</h3>
+        <div class="form-group full-width">
+          <label class="form-label">Specifications</label>
+          <div class="specs-container">
+            <div *ngFor="let spec of specs; let i = index" class="spec-row">
+              <input type="text" class="spec-key" [(ngModel)]="spec.key"
+                [ngModelOptions]="{standalone: true}" placeholder="Feature name (e.g., Storage)">
+              <input type="text" class="spec-value" [(ngModel)]="spec.value"
+                [ngModelOptions]="{standalone: true}" placeholder="Value (e.g., 128GB)">
+              <button type="button" class="remove-spec-btn" (click)="removeSpecification(i)">×</button>
+            </div>
+            <button type="button" class="add-spec-btn" (click)="addSpecification()">+ Add Specification</button>
+          </div>
+          <span class="help-text">Add key specifications like storage, RAM, display size, etc.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="onAddProduct()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Adding...' : 'Add Product' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
