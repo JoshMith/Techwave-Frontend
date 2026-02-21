@@ -7,7 +7,7 @@
   <!-- SEO -->
   <meta name="description"
     content="Shop the latest phones, laptops, accessories and more at TechWave Kenya. Fast delivery in Nairobi & Meru. M-Pesa accepted.">
-  <meta name="keywords" content="electronics Kenya, phones Nairobi, laptops Kenya, M-Pesa electronics">
+  <meta name="keywords" content="TechWave, techwave electronics, electronics Kenya, phones Nairobi, laptops Kenya, M-Pesa electronics">
 
   <!-- Open Graph (WhatsApp, Facebook previews) -->
   <meta property="og:title" content="TechWave Kenya">
@@ -22,7 +22,23 @@
   <meta name="twitter:description" content="Latest electronics with M-Pesa payment.">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <!-- Remove Font Awesome if replacing with SVGs -->
+
+  <!-- ── Google Analytics 4 ── -->
+  <!-- Replace G-XXXXXXXXXX with your actual Measurement ID from GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KKP7M47KMR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    // Initial config — page_view is NOT fired here automatically because
+    // Angular SSR + client-side routing means we track page views manually
+    // via the AnalyticsService on every NavigationEnd event.
+    gtag('config', 'G-KKP7M47KMR', {
+      send_page_view: false  // We send page_view manually for SSR compatibility
+    });
+  </script>
+  <!-- ── End Google Analytics ── -->
 </head>
 
 <body>

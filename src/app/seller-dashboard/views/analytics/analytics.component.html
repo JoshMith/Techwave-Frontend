@@ -4,6 +4,37 @@
   <h1 class="page-title">Analytics & Reports</h1>
 </div>
 
+<!-- Export Panel -->
+<div class="card" style="margin-bottom:2rem;" *ngIf="!isLoading && data">
+  <div class="card-header">
+    <h2 class="card-title">📤 Export Report</h2>
+  </div>
+  <div *ngIf="exportSuccess" class="alert alert-success" style="margin-bottom:1rem;">{{ exportSuccess }}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end;">
+    <div class="form-group" style="flex:1;min-width:200px;">
+      <label class="form-label">Report Type</label>
+      <select [(ngModel)]="selectedReport" class="form-select">
+        <option value="full">Full Report</option>
+        <option value="revenue">Revenue & Monthly Trend</option>
+        <option value="orders">Order Breakdown</option>
+        <option value="products">Inventory & Stock</option>
+        <option value="topProducts">Top Selling Products</option>
+      </select>
+    </div>
+    <div class="form-actions" style="margin-top:0;justify-content:flex-start;flex-wrap:wrap;">
+      <button class="btn btn-primary" (click)="exportCSV()">
+        ⬇ Download CSV
+      </button>
+      <button class="btn btn-secondary" (click)="exportPDF()">
+        🖨 Print / Save PDF
+      </button>
+    </div>
+  </div>
+  <p style="font-size:0.8rem;color:#9ca3af;margin-top:1rem;">
+    CSV saves a spreadsheet file. PDF opens a print-ready page — use your browser's "Save as PDF" option.
+  </p>
+</div>
+
 <div *ngIf="isLoading" class="loading-container">
   <div class="loading-spinner"></div><p>Loading analytics...</p>
 </div>
