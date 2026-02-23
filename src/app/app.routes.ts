@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { sellerDashboardRoutes } from './seller-dashboard/seller-dashboard.routes';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'prefix' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
 
   // ── Spread the seller-dashboard child routes ─────────────────────────────
   ...sellerDashboardRoutes,
