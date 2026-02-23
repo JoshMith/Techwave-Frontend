@@ -160,4 +160,13 @@ export const routes: Routes = [
         (m) => m.AdminDashboardComponent,
       ),
   },
+
+  // ── 404 Not Found ─────────────────────────────────────────────────────────
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./not-found/not-found.component').then(
+        (m) => m.NotFoundComponent,
+      ),
+  },
 ];

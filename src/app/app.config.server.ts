@@ -41,6 +41,8 @@ const serverConfig: ApplicationConfig = {
       { path: 'signup',                        renderMode: RenderMode.Client },
       { path: 'forgot-pwd',                    renderMode: RenderMode.Client },
       { path: 'admin',                         renderMode: RenderMode.Client },
+      // 404 Not Found is client-side only since it depends on the URL that was not matched by the server
+      { path: '**',                            renderMode: RenderMode.Client },
     ])
   ]
 };

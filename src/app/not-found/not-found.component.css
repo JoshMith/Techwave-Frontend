@@ -1,0 +1,117 @@
+/* src/app/shared/not-found/not-found.component.css */
+.error-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.error-illustration {
+  margin-bottom: 2rem;
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1;
+  margin: 0 0 0.5rem;
+}
+
+.error-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem;
+}
+
+.error-message {
+  color: #6b7280;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.btn-home, .btn-shop {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-home {
+  background: #1e3a8a;
+  color: white;
+}
+
+.btn-home:hover {
+  background: #1e40af;
+  transform: translateY(-1px);
+}
+
+.btn-shop {
+  background: white;
+  color: #1e3a8a;
+  border: 2px solid #1e3a8a;
+}
+
+.btn-shop:hover {
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.error-suggestions {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.error-suggestions p {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.suggestion-links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.suggestion-links a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.suggestion-links a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .error-code { font-size: 4rem; }
+  .error-title { font-size: 1.4rem; }
+  .error-actions { flex-direction: column; }
+  .btn-home, .btn-shop { width: 100%; text-align: center; }
+}
