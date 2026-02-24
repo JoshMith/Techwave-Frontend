@@ -1,8 +1,22 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, forkJoin, map, switchMap, Subscription, catchError, of } from 'rxjs';
+import {
+  Observable,
+  forkJoin,
+  map,
+  switchMap,
+  Subscription,
+  catchError,
+  of,
+} from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -43,7 +57,7 @@ interface ProductImage {
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './home-appliances.component.html',
-  styleUrls: ['./home-appliances.component.css']
+  styleUrls: ['./home-appliances.component.css'],
 })
 export class HomeAppliancesComponent implements OnInit, OnDestroy {
   allProducts: Product[] = [];
@@ -54,7 +68,13 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   priceRange = { min: 10000, max: 300000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
-  applianceTypes = ['TV', 'Refrigerator', 'Washing Machine', 'Microwave', 'Air Conditioner'];
+  applianceTypes = [
+    'TV',
+    'Refrigerator',
+    'Washing Machine',
+    'Microwave',
+    'Air Conditioner',
+  ];
   selectedTypes: string[] = [];
 
   sortOptions = [
@@ -62,7 +82,7 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
     { value: 'price-low', label: 'Price: Low to High' },
     { value: 'price-high', label: 'Price: High to Low' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest First' }
+    { value: 'newest', label: 'Newest First' },
   ];
   selectedSort = 'popularity';
 
@@ -75,12 +95,12 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private cartService: CartService,
     private productService: ProductService,
-    @Inject(PLATFORM_ID) private platformId: any
-  ) { }
+    @Inject(PLATFORM_ID) private platformId: any,
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to cart state
-    this.cartSubscription = this.cartService.cartState$.subscribe(state => {
+    this.cartSubscription = this.cartService.cartState$.subscribe((state) => {
       this.cartCount = state.item_count;
     });
 
@@ -106,16 +126,17 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
     this.cartService.addToCart(product.product_id, 1).subscribe({
       next: (response) => {
         this.addingToCart = false;
-        const message = response.message === 'Cart item quantity updated'
-          ? `${product.title} quantity updated in cart!`
-          : `${product.title} added to cart!`;
+        const message =
+          response.message === 'Cart item quantity updated'
+            ? `${product.title} quantity updated in cart!`
+            : `${product.title} added to cart!`;
         alert(message);
       },
       error: (err) => {
         this.addingToCart = false;
         const errorMessage = err.error?.message || 'Failed to add item to cart';
         alert(errorMessage);
-      }
+      },
     });
   }
 
@@ -134,20 +155,25 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
         this.extractBrands();
 
         // Create image requests for all products with individual error handling
-        const imageRequests = products.map(product =>
-          this.apiService.serveProductImagesSafe(product.product_id.toString()).pipe(
-            map(imagesResponse => ({
-              ...product,
-              images: this.processImages(imagesResponse)
-            })),
-            catchError(error => {
-              console.warn(`Failed to load images for product ${product.product_id}:`, error);
-              return of({
+        const imageRequests = products.map((product) =>
+          this.apiService
+            .serveProductImagesSafe(product.product_id.toString())
+            .pipe(
+              map((imagesResponse) => ({
                 ...product,
-                images: []
-              });
-            })
-          )
+                images: this.processImages(imagesResponse),
+              })),
+              catchError((error) => {
+                console.warn(
+                  `Failed to load images for product ${product.product_id}:`,
+                  error,
+                );
+                return of({
+                  ...product,
+                  images: [],
+                });
+              }),
+            ),
         );
 
         // Wait for all image requests (or their fallbacks)
@@ -161,10 +187,10 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
             error: (err) => {
               // This should rarely happen due to individual catchError above
               console.error('Unexpected error in image loading:', err);
-              this.allProducts = products.map(p => ({ ...p, images: [] }));
+              this.allProducts = products.map((p) => ({ ...p, images: [] }));
               this.applyFilters();
               this.loading = false;
-            }
+            },
           });
         } else {
           // No products, just finish loading
@@ -176,7 +202,7 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
         console.error('Error loading products:', err);
         this.errorMessage = 'Failed to load products. Please try again later.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -194,14 +220,14 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    return images.map(img => {
+    return images.map((img) => {
       // Use full_url if available, otherwise construct from image_url
       const imageUrl = img.full_url || img.image_url;
 
       return {
         image_url: this.ensureAbsoluteUrl(imageUrl),
         alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
+        is_primary: img.is_primary || false,
       };
     });
   }
@@ -225,8 +251,8 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   private extractBrands(): void {
     const brands = new Set(
       this.allProducts
-        .map(product => product.title.split(' ')[0])
-        .filter(brand => brand)
+        .map((product) => product.title.split(' ')[0])
+        .filter((brand) => brand),
     );
     this.brands = Array.from(brands).sort() as string[];
   }
@@ -252,22 +278,26 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.allProducts.filter(product => {
+    this.filteredProducts = this.allProducts.filter((product) => {
       const price = product.sale_price || product.price;
 
       if (price < this.priceRange.min || price > this.priceRange.max) {
         return false;
       }
 
-      if (this.selectedBrands.length > 0 &&
-        !this.selectedBrands.some(brand => product.title.startsWith(brand))) {
+      if (
+        this.selectedBrands.length > 0 &&
+        !this.selectedBrands.some((brand) => product.title.startsWith(brand))
+      ) {
         return false;
       }
 
       if (this.selectedTypes.length > 0) {
-        const productType = product.specs.type || product.title.split(' ')[1] || '';
-        const matchesType = this.selectedTypes.some(type =>
-          productType.toLowerCase().includes(type.toLowerCase()));
+        const productType =
+          product.specs.type || product.title.split(' ')[1] || '';
+        const matchesType = this.selectedTypes.some((type) =>
+          productType.toLowerCase().includes(type.toLowerCase()),
+        );
         if (!matchesType) return false;
       }
 
@@ -288,10 +318,14 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   private sortProducts(): void {
     switch (this.selectedSort) {
       case 'price-low':
-        this.filteredProducts.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+        this.filteredProducts.sort(
+          (a, b) => (a.sale_price || a.price) - (b.sale_price || b.price),
+        );
         break;
       case 'price-high':
-        this.filteredProducts.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+        this.filteredProducts.sort(
+          (a, b) => (b.sale_price || b.price) - (a.sale_price || a.price),
+        );
         break;
       case 'rating':
         this.filteredProducts.sort((a, b) => b.rating - a.rating);
@@ -306,12 +340,15 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
     }
   }
 
-  getProductImage(product: Product): string | null {
+  getProductImage(product: Product): string {
     if (!product.images || product.images.length === 0) {
-      return null;
+      return this.getFallbackImage();
     }
-    const image = product.images.find(img => img.is_primary) || product.images[0];
-    return image ? this.ensureAbsoluteUrl(image.image_url) : null;
+    const image =
+      product.images.find((img) => img.is_primary) || product.images[0];
+    return image
+      ? this.ensureAbsoluteUrl(image.image_url)
+      : this.getFallbackImage();
   }
 
   private getFallbackImage(): string {
@@ -335,11 +372,13 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
 
   getDiscountedPrice(price: number, discount?: number): number {
     if (!discount) return price;
-    return price - (price * discount / 100);
+    return price - (price * discount) / 100;
   }
 
   onCategoryClick(category: string): void {
-    this.router.navigate([`/categories/${category.toLowerCase().replace(' ', '-')}`]);
+    this.router.navigate([
+      `/categories/${category.toLowerCase().replace(' ', '-')}`,
+    ]);
   }
 
   onSearch(): void {
@@ -347,6 +386,8 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   }
   viewProductDetails(product: Product): void {
     this.productService.setSelectedProduct(product);
-    this.router.navigate(['/product', product.product_id], { queryParams: { returnUrl: this.router.url } });
+    this.router.navigate(['/product', product.product_id], {
+      queryParams: { returnUrl: this.router.url },
+    });
   }
 }

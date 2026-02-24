@@ -74,7 +74,7 @@
             </div>
             <div class="product-image">
               <img [src]="getProductImage(product)" [alt]="product.title" (error)="onImageError($event)" loading="lazy"
-                *ngIf="product.images; else imageLoading">
+                *ngIf="product.images?.length && getProductImage(product); else imageLoading">
               <ng-template #imageLoading>
                 <div class="image-placeholder">Gaming Product</div>
               </ng-template>

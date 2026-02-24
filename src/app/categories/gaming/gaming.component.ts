@@ -3,7 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, Subscription, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  Subscription,
+  catchError,
+  forkJoin,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -43,7 +51,7 @@ interface ProductImage {
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './gaming.component.html',
-  styleUrls: ['./gaming.component.css']
+  styleUrls: ['./gaming.component.css'],
 })
 export class GamingComponent implements OnInit {
   // Products data
@@ -56,7 +64,13 @@ export class GamingComponent implements OnInit {
   priceRange = { min: 5000, max: 250000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
-  features: string[] = ['4K Gaming', 'VR Ready', 'Wireless', 'RGB Lighting', 'Mechanical Keys'];
+  features: string[] = [
+    '4K Gaming',
+    'VR Ready',
+    'Wireless',
+    'RGB Lighting',
+    'Mechanical Keys',
+  ];
   selectedFeatures: string[] = [];
 
   // Sorting
@@ -65,7 +79,7 @@ export class GamingComponent implements OnInit {
     { value: 'price-low', label: 'Price: Low to High' },
     { value: 'price-high', label: 'Price: High to Low' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest First' }
+    { value: 'newest', label: 'Newest First' },
   ];
   selectedSort = 'popularity';
 
@@ -78,12 +92,11 @@ export class GamingComponent implements OnInit {
     private apiService: ApiService,
     private cartService: CartService,
     private productService: ProductService,
-
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to cart state
-    this.cartSubscription = this.cartService.cartState$.subscribe(state => {
+    this.cartSubscription = this.cartService.cartState$.subscribe((state) => {
       this.cartCount = state.item_count;
     });
 
@@ -109,16 +122,17 @@ export class GamingComponent implements OnInit {
     this.cartService.addToCart(product.product_id, 1).subscribe({
       next: (response) => {
         this.addingToCart = false;
-        const message = response.message === 'Cart item quantity updated'
-          ? `${product.title} quantity updated in cart!`
-          : `${product.title} added to cart!`;
+        const message =
+          response.message === 'Cart item quantity updated'
+            ? `${product.title} quantity updated in cart!`
+            : `${product.title} added to cart!`;
         alert(message);
       },
       error: (err) => {
         this.addingToCart = false;
         const errorMessage = err.error?.message || 'Failed to add item to cart';
         alert(errorMessage);
-      }
+      },
     });
   }
 
@@ -137,20 +151,25 @@ export class GamingComponent implements OnInit {
         this.extractBrands();
 
         // Create image requests for all products with individual error handling
-        const imageRequests = products.map(product =>
-          this.apiService.serveProductImagesSafe(product.product_id.toString()).pipe(
-            map(imagesResponse => ({
-              ...product,
-              images: this.processImages(imagesResponse)
-            })),
-            catchError(error => {
-              console.warn(`Failed to load images for product ${product.product_id}:`, error);
-              return of({
+        const imageRequests = products.map((product) =>
+          this.apiService
+            .serveProductImagesSafe(product.product_id.toString())
+            .pipe(
+              map((imagesResponse) => ({
                 ...product,
-                images: []
-              });
-            })
-          )
+                images: this.processImages(imagesResponse),
+              })),
+              catchError((error) => {
+                console.warn(
+                  `Failed to load images for product ${product.product_id}:`,
+                  error,
+                );
+                return of({
+                  ...product,
+                  images: [],
+                });
+              }),
+            ),
         );
 
         // Wait for all image requests (or their fallbacks)
@@ -164,10 +183,10 @@ export class GamingComponent implements OnInit {
             error: (err) => {
               // This should rarely happen due to individual catchError above
               console.error('Unexpected error in image loading:', err);
-              this.allProducts = products.map(p => ({ ...p, images: [] }));
+              this.allProducts = products.map((p) => ({ ...p, images: [] }));
               this.applyFilters();
               this.loading = false;
-            }
+            },
           });
         } else {
           // No products, just finish loading
@@ -179,7 +198,7 @@ export class GamingComponent implements OnInit {
         console.error('Error loading products:', err);
         this.errorMessage = 'Failed to load products. Please try again later.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -197,14 +216,14 @@ export class GamingComponent implements OnInit {
       return [];
     }
 
-    return images.map(img => {
+    return images.map((img) => {
       // Use full_url if available, otherwise construct from image_url
       const imageUrl = img.full_url || img.image_url;
 
       return {
         image_url: this.ensureAbsoluteUrl(imageUrl),
         alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
+        is_primary: img.is_primary || false,
       };
     });
   }
@@ -228,8 +247,8 @@ export class GamingComponent implements OnInit {
   private extractBrands(): void {
     const brands = new Set(
       this.allProducts
-        .map(product => product.title.split(' ')[0]) // Get first word as brand
-        .filter(brand => brand)
+        .map((product) => product.title.split(' ')[0]) // Get first word as brand
+        .filter((brand) => brand),
     );
     this.brands = Array.from(brands).sort() as string[];
   }
@@ -256,7 +275,7 @@ export class GamingComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.allProducts.filter(product => {
+    this.filteredProducts = this.allProducts.filter((product) => {
       const price = product.sale_price || product.price;
 
       // Price filter - only filter by price if the range is valid
@@ -277,8 +296,8 @@ export class GamingComponent implements OnInit {
       // Feature filter - only apply if features are selected
       if (this.selectedFeatures.length > 0) {
         const productFeatures = product.specs.features || '';
-        const hasMatchingFeature = this.selectedFeatures.some(feature =>
-          productFeatures.toLowerCase().includes(feature.toLowerCase())
+        const hasMatchingFeature = this.selectedFeatures.some((feature) =>
+          productFeatures.toLowerCase().includes(feature.toLowerCase()),
         );
         if (!hasMatchingFeature) return false;
       }
@@ -301,10 +320,14 @@ export class GamingComponent implements OnInit {
   private sortProducts(): void {
     switch (this.selectedSort) {
       case 'price-low':
-        this.filteredProducts.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+        this.filteredProducts.sort(
+          (a, b) => (a.sale_price || a.price) - (b.sale_price || b.price),
+        );
         break;
       case 'price-high':
-        this.filteredProducts.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+        this.filteredProducts.sort(
+          (a, b) => (b.sale_price || b.price) - (a.sale_price || a.price),
+        );
         break;
       case 'rating':
         this.filteredProducts.sort((a, b) => b.rating - a.rating);
@@ -320,12 +343,15 @@ export class GamingComponent implements OnInit {
   }
 
   // Product display methods
-  getProductImage(product: Product): string | null {
+  getProductImage(product: Product): string {
     if (!product.images || product.images.length === 0) {
-      return null;
+      return this.getFallbackImage();
     }
-    const image = product.images.find(img => img.is_primary) || product.images[0];
-    return this.ensureAbsoluteUrl(image.image_url);
+    const image =
+      product.images.find((img) => img.is_primary) || product.images[0];
+    return image
+      ? this.ensureAbsoluteUrl(image.image_url)
+      : this.getFallbackImage();
   }
 
   private getFallbackImage(): string {
@@ -348,12 +374,14 @@ export class GamingComponent implements OnInit {
 
   getDiscountedPrice(price: number, discount?: number): number {
     if (!discount) return price;
-    return price - (price * discount / 100);
+    return price - (price * discount) / 100;
   }
 
   // Navigation methods
   onCategoryClick(category: string): void {
-    this.router.navigate([`/categories/${category.toLowerCase().replace(' ', '-')}`]);
+    this.router.navigate([
+      `/categories/${category.toLowerCase().replace(' ', '-')}`,
+    ]);
   }
 
   onSearch(): void {
@@ -361,7 +389,8 @@ export class GamingComponent implements OnInit {
   }
   viewProductDetails(product: Product): void {
     this.productService.setSelectedProduct(product);
-    this.router.navigate(['/product', product.product_id], { queryParams: { returnUrl: this.router.url } });
+    this.router.navigate(['/product', product.product_id], {
+      queryParams: { returnUrl: this.router.url },
+    });
   }
-
 }

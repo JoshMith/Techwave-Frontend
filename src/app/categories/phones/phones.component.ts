@@ -9,7 +9,6 @@ import { ProductService } from '../../services/product.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 
-
 interface Product {
   product_id: number;
   title: string;
@@ -55,7 +54,7 @@ interface Filters {
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './phones.component.html',
-  styleUrls: ['./phones.component.css']
+  styleUrls: ['./phones.component.css'],
 })
 export class PhonesComponent implements OnInit {
   Math = Math;
@@ -72,7 +71,7 @@ export class PhonesComponent implements OnInit {
   filters: Filters = {
     priceRange: { min: 5000, max: 200000 },
     brands: [],
-    features: { has5G: false, has128GB: false, has8GBRAM: false }
+    features: { has5G: false, has128GB: false, has8GBRAM: false },
   };
 
   errorMessage: string | null = null;
@@ -89,12 +88,12 @@ export class PhonesComponent implements OnInit {
     private apiService: ApiService,
     private cartService: CartService,
     private productService: ProductService,
-    @Inject(PLATFORM_ID) private platformId: any
-  ) { }
+    @Inject(PLATFORM_ID) private platformId: any,
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to cart state
-    this.cartSubscription = this.cartService.cartState$.subscribe(state => {
+    this.cartSubscription = this.cartService.cartState$.subscribe((state) => {
       this.cartCount = state.item_count;
     });
 
@@ -120,24 +119,23 @@ export class PhonesComponent implements OnInit {
     this.cartService.addToCart(product.product_id, 1).subscribe({
       next: (response) => {
         this.addingToCart = false;
-        const message = response.message === 'Cart item quantity updated'
-          ? `${product.title} quantity updated in cart!`
-          : `${product.title} added to cart!`;
+        const message =
+          response.message === 'Cart item quantity updated'
+            ? `${product.title} quantity updated in cart!`
+            : `${product.title} added to cart!`;
         alert(message);
       },
       error: (err) => {
         this.addingToCart = false;
         const errorMessage = err.error?.message || 'Failed to add item to cart';
         alert(errorMessage);
-      }
+      },
     });
   }
 
   goToCart(): void {
     this.router.navigate(['/cart']);
   }
-
-
 
   // Rest of your existing methods remain the same...
   private loadProducts(): void {
@@ -151,20 +149,25 @@ export class PhonesComponent implements OnInit {
         this.extractAvailableBrands();
 
         // Create image requests for all products with individual error handling
-        const imageRequests = products.map(product =>
-          this.apiService.serveProductImagesSafe(product.product_id.toString()).pipe(
-            map(imagesResponse => ({
-              ...product,
-              images: this.processImages(imagesResponse)
-            })),
-            catchError(error => {
-              console.warn(`Failed to load images for product ${product.product_id}:`, error);
-              return of({
+        const imageRequests = products.map((product) =>
+          this.apiService
+            .serveProductImagesSafe(product.product_id.toString())
+            .pipe(
+              map((imagesResponse) => ({
                 ...product,
-                images: []
-              });
-            })
-          )
+                images: this.processImages(imagesResponse),
+              })),
+              catchError((error) => {
+                console.warn(
+                  `Failed to load images for product ${product.product_id}:`,
+                  error,
+                );
+                return of({
+                  ...product,
+                  images: [],
+                });
+              }),
+            ),
         );
 
         // Wait for all image requests (or their fallbacks)
@@ -178,10 +181,10 @@ export class PhonesComponent implements OnInit {
             error: (err) => {
               // This should rarely happen due to individual catchError above
               console.error('Unexpected error in image loading:', err);
-              this.allProducts = products.map(p => ({ ...p, images: [] }));
+              this.allProducts = products.map((p) => ({ ...p, images: [] }));
               this.applyFilters();
               this.loading = false;
-            }
+            },
           });
         } else {
           // No products, just finish loading
@@ -193,7 +196,7 @@ export class PhonesComponent implements OnInit {
         console.error('Error loading products:', err);
         this.errorMessage = 'Failed to load products. Please try again later.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -211,14 +214,14 @@ export class PhonesComponent implements OnInit {
       return [];
     }
 
-    return images.map(img => {
+    return images.map((img) => {
       // Use full_url if available, otherwise construct from image_url
       const imageUrl = img.full_url || img.image_url;
 
       return {
         image_url: this.ensureAbsoluteUrl(imageUrl),
         alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
+        is_primary: img.is_primary || false,
       };
     });
   }
@@ -239,12 +242,15 @@ export class PhonesComponent implements OnInit {
     return `${apiBaseUrl}/${cleanUrl}`;
   }
 
-  getProductImage(product: Product): string | null {
+  getProductImage(product: Product): string {
     if (!product.images || product.images.length === 0) {
-      return null;
+      return this.getFallbackImage();
     }
-    const image = product.images.find(img => img.is_primary) || product.images[0];
-    return image ? this.ensureAbsoluteUrl(image.image_url) : null;
+    const image =
+      product.images.find((img) => img.is_primary) || product.images[0];
+    return image
+      ? this.ensureAbsoluteUrl(image.image_url)
+      : this.getFallbackImage();
   }
 
   private getFallbackImage(): string {
@@ -258,8 +264,8 @@ export class PhonesComponent implements OnInit {
   private extractAvailableBrands(): void {
     const brands = new Set(
       this.allProducts
-        .map(product => product.specs.brand)
-        .filter(brand => brand)
+        .map((product) => product.specs.brand)
+        .filter((brand) => brand),
     );
     this.availableBrands = Array.from(brands).sort() as string[];
   }
@@ -286,15 +292,21 @@ export class PhonesComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.allProducts.filter(product => {
+    this.filteredProducts = this.allProducts.filter((product) => {
       const price = product.sale_price || product.price;
 
-      if (price < this.filters.priceRange.min || price > this.filters.priceRange.max) {
+      if (
+        price < this.filters.priceRange.min ||
+        price > this.filters.priceRange.max
+      ) {
         return false;
       }
 
-      if (this.filters.brands.length > 0 &&
-        (!product.specs.brand || !this.filters.brands.includes(product.specs.brand))) {
+      if (
+        this.filters.brands.length > 0 &&
+        (!product.specs.brand ||
+          !this.filters.brands.includes(product.specs.brand))
+      ) {
         return false;
       }
 
@@ -302,11 +314,17 @@ export class PhonesComponent implements OnInit {
         return false;
       }
 
-      if (this.filters.features.has128GB && (!product.specs.storage || product.specs.storage < 128)) {
+      if (
+        this.filters.features.has128GB &&
+        (!product.specs.storage || product.specs.storage < 128)
+      ) {
         return false;
       }
 
-      if (this.filters.features.has8GBRAM && (!product.specs.ram || product.specs.ram < 8)) {
+      if (
+        this.filters.features.has8GBRAM &&
+        (!product.specs.ram || product.specs.ram < 8)
+      ) {
         return false;
       }
 
@@ -322,7 +340,7 @@ export class PhonesComponent implements OnInit {
     this.filters = {
       priceRange: { min: 5000, max: 200000 },
       brands: [],
-      features: { has5G: false, has128GB: false, has8GBRAM: false }
+      features: { has5G: false, has128GB: false, has8GBRAM: false },
     };
     this.applyFilters();
   }
@@ -335,12 +353,14 @@ export class PhonesComponent implements OnInit {
   private sortProducts(): void {
     switch (this.sortBy) {
       case 'price-low':
-        this.filteredProducts.sort((a, b) =>
-          (a.sale_price || a.price) - (b.sale_price || b.price));
+        this.filteredProducts.sort(
+          (a, b) => (a.sale_price || a.price) - (b.sale_price || b.price),
+        );
         break;
       case 'price-high':
-        this.filteredProducts.sort((a, b) =>
-          (b.sale_price || b.price) - (a.sale_price || a.price));
+        this.filteredProducts.sort(
+          (a, b) => (b.sale_price || b.price) - (a.sale_price || a.price),
+        );
         break;
       case 'rating':
         this.filteredProducts.sort((a, b) => b.rating - a.rating);
@@ -356,7 +376,9 @@ export class PhonesComponent implements OnInit {
   }
 
   private updatePagination(): void {
-    this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+    this.totalPages = Math.ceil(
+      this.filteredProducts.length / this.itemsPerPage,
+    );
     this.updatePaginatedProducts();
   }
 
@@ -426,11 +448,13 @@ export class PhonesComponent implements OnInit {
   }
 
   /**
- * Navigate to product details page
- * @param product - The product to view
- */
+   * Navigate to product details page
+   * @param product - The product to view
+   */
   viewProductDetails(product: Product): void {
     this.productService.setSelectedProduct(product);
-    this.router.navigate(['/product', product.product_id], { queryParams: { returnUrl: this.router.url } });
+    this.router.navigate(['/product', product.product_id], {
+      queryParams: { returnUrl: this.router.url },
+    });
   }
 }

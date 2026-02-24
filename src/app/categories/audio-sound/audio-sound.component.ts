@@ -3,7 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, Subscription, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  Subscription,
+  catchError,
+  forkJoin,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -42,7 +50,7 @@ interface ProductImage {
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './audio-sound.component.html',
-  styleUrls: ['./audio-sound.component.css']
+  styleUrls: ['./audio-sound.component.css'],
 })
 export class AudioSoundComponent implements OnInit {
   // Products data
@@ -55,7 +63,14 @@ export class AudioSoundComponent implements OnInit {
   priceRange = { min: 1000, max: 100000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
-  features: string[] = ['Wireless', 'Noise Cancelling', 'Water Resistant', 'Bluetooth 5.0+', 'True Wireless', 'Surround Sound'];
+  features: string[] = [
+    'Wireless',
+    'Noise Cancelling',
+    'Water Resistant',
+    'Bluetooth 5.0+',
+    'True Wireless',
+    'Surround Sound',
+  ];
   selectedFeatures: string[] = [];
 
   // Sorting
@@ -64,7 +79,7 @@ export class AudioSoundComponent implements OnInit {
     { value: 'price-low', label: 'Price: Low to High' },
     { value: 'price-high', label: 'Price: High to Low' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest First' }
+    { value: 'newest', label: 'Newest First' },
   ];
   selectedSort = 'popularity';
 
@@ -76,12 +91,12 @@ export class AudioSoundComponent implements OnInit {
     private router: Router,
     private apiService: ApiService,
     private cartService: CartService,
-    private productService: ProductService
-  ) { }
+    private productService: ProductService,
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to cart state
-    this.cartSubscription = this.cartService.cartState$.subscribe(state => {
+    this.cartSubscription = this.cartService.cartState$.subscribe((state) => {
       this.cartCount = state.item_count;
     });
 
@@ -107,16 +122,17 @@ export class AudioSoundComponent implements OnInit {
     this.cartService.addToCart(product.product_id, 1).subscribe({
       next: (response) => {
         this.addingToCart = false;
-        const message = response.message === 'Cart item quantity updated'
-          ? `${product.title} quantity updated in cart!`
-          : `${product.title} added to cart!`;
+        const message =
+          response.message === 'Cart item quantity updated'
+            ? `${product.title} quantity updated in cart!`
+            : `${product.title} added to cart!`;
         alert(message);
       },
       error: (err) => {
         this.addingToCart = false;
         const errorMessage = err.error?.message || 'Failed to add item to cart';
         alert(errorMessage);
-      }
+      },
     });
   }
 
@@ -135,20 +151,25 @@ export class AudioSoundComponent implements OnInit {
         this.extractBrands();
 
         // Create image requests for all products with individual error handling
-        const imageRequests = products.map(product =>
-          this.apiService.serveProductImagesSafe(product.product_id.toString()).pipe(
-            map(imagesResponse => ({
-              ...product,
-              images: this.processImages(imagesResponse)
-            })),
-            catchError(error => {
-              console.warn(`Failed to load images for product ${product.product_id}:`, error);
-              return of({
+        const imageRequests = products.map((product) =>
+          this.apiService
+            .serveProductImagesSafe(product.product_id.toString())
+            .pipe(
+              map((imagesResponse) => ({
                 ...product,
-                images: []
-              });
-            })
-          )
+                images: this.processImages(imagesResponse),
+              })),
+              catchError((error) => {
+                console.warn(
+                  `Failed to load images for product ${product.product_id}:`,
+                  error,
+                );
+                return of({
+                  ...product,
+                  images: [],
+                });
+              }),
+            ),
         );
 
         // Wait for all image requests (or their fallbacks)
@@ -162,10 +183,10 @@ export class AudioSoundComponent implements OnInit {
             error: (err) => {
               // This should rarely happen due to individual catchError above
               console.error('Unexpected error in image loading:', err);
-              this.allProducts = products.map(p => ({ ...p, images: [] }));
+              this.allProducts = products.map((p) => ({ ...p, images: [] }));
               this.applyFilters();
               this.loading = false;
-            }
+            },
           });
         } else {
           // No products, just finish loading
@@ -177,14 +198,14 @@ export class AudioSoundComponent implements OnInit {
         console.error('Error loading products:', err);
         this.errorMessage = 'Failed to load products. Please try again later.';
         this.loading = false;
-      }
+      },
     });
   }
 
   private processImages(imagesResponse: any): ProductImage[] {
     // Handle different response formats
     let images: any[] = [];
-    
+
     if (Array.isArray(imagesResponse)) {
       images = imagesResponse;
     } else if (imagesResponse?.images && Array.isArray(imagesResponse.images)) {
@@ -195,29 +216,29 @@ export class AudioSoundComponent implements OnInit {
       return [];
     }
 
-    return images.map(img => {
+    return images.map((img) => {
       // Use full_url if available, otherwise construct from image_url
       const imageUrl = img.full_url || img.image_url;
-      
+
       return {
         image_url: this.ensureAbsoluteUrl(imageUrl),
         alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
+        is_primary: img.is_primary || false,
       };
     });
   }
 
   private ensureAbsoluteUrl(url: string): string {
     if (!url) return this.getFallbackImage();
-    
+
     // If already absolute, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
-    
+
     // Remove leading slash if present
     const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-    
+
     // Construct absolute URL
     const apiBaseUrl = this.apiService.getApiBaseUrl();
     return `${apiBaseUrl}/${cleanUrl}`;
@@ -226,12 +247,12 @@ export class AudioSoundComponent implements OnInit {
   private extractBrands(): void {
     const brands = new Set(
       this.allProducts
-        .map(product => {
+        .map((product) => {
           // Try to get brand from specs first, then from title
           if (product.specs.brand) return product.specs.brand;
           return product.title.split(' ')[0]; // Get first word as brand
         })
-        .filter(brand => brand)
+        .filter((brand) => brand),
     );
     this.brands = Array.from(brands).sort() as string[];
   }
@@ -258,7 +279,7 @@ export class AudioSoundComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.allProducts.filter(product => {
+    this.filteredProducts = this.allProducts.filter((product) => {
       const price = product.sale_price || product.price;
 
       // Price filter - only filter by price if the range is valid
@@ -279,8 +300,8 @@ export class AudioSoundComponent implements OnInit {
       // Feature filter - only apply if features are selected
       if (this.selectedFeatures.length > 0) {
         const productFeatures = product.specs.features || '';
-        const hasMatchingFeature = this.selectedFeatures.some(feature =>
-          productFeatures.toLowerCase().includes(feature.toLowerCase())
+        const hasMatchingFeature = this.selectedFeatures.some((feature) =>
+          productFeatures.toLowerCase().includes(feature.toLowerCase()),
         );
         if (!hasMatchingFeature) return false;
       }
@@ -302,10 +323,14 @@ export class AudioSoundComponent implements OnInit {
   private sortProducts(): void {
     switch (this.selectedSort) {
       case 'price-low':
-        this.filteredProducts.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+        this.filteredProducts.sort(
+          (a, b) => (a.sale_price || a.price) - (b.sale_price || b.price),
+        );
         break;
       case 'price-high':
-        this.filteredProducts.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+        this.filteredProducts.sort(
+          (a, b) => (b.sale_price || b.price) - (a.sale_price || a.price),
+        );
         break;
       case 'rating':
         this.filteredProducts.sort((a, b) => b.rating - a.rating);
@@ -321,12 +346,15 @@ export class AudioSoundComponent implements OnInit {
   }
 
   // Product display methods
-  getProductImage(product: Product): string | null {
+  getProductImage(product: Product): string {
     if (!product.images || product.images.length === 0) {
-      return null;
+      return this.getFallbackImage();
     }
-    const image = product.images.find(img => img.is_primary) || product.images[0];
-    return image ? this.ensureAbsoluteUrl(image.image_url) : null;
+    const image =
+      product.images.find((img) => img.is_primary) || product.images[0];
+    return image
+      ? this.ensureAbsoluteUrl(image.image_url)
+      : this.getFallbackImage();
   }
 
   private getFallbackImage(): string {
@@ -348,7 +376,9 @@ export class AudioSoundComponent implements OnInit {
 
   // Navigation methods
   onCategoryClick(category: string): void {
-    this.router.navigate([`/categories/${category.toLowerCase().replace(' ', '-')}`]);
+    this.router.navigate([
+      `/categories/${category.toLowerCase().replace(' ', '-')}`,
+    ]);
   }
 
   onSearch(): void {
@@ -356,6 +386,8 @@ export class AudioSoundComponent implements OnInit {
   }
   viewProductDetails(product: Product): void {
     this.productService.setSelectedProduct(product);
-    this.router.navigate(['/product', product.product_id], { queryParams: { returnUrl: this.router.url } });
+    this.router.navigate(['/product', product.product_id], {
+      queryParams: { returnUrl: this.router.url },
+    });
   }
 }

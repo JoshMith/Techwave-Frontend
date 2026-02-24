@@ -2,7 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, Subscription, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  Subscription,
+  catchError,
+  forkJoin,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -38,10 +46,9 @@ interface ProductImage {
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './accessories.component.html',
-  styleUrls: ['./accessories.component.css']
+  styleUrls: ['./accessories.component.css'],
 })
 export class AccessoriesComponent implements OnInit, OnDestroy {
-
   // Products data
   allProducts: Product[] = [];
   filteredProducts: Product[] = [];
@@ -52,7 +59,13 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   priceRange = { min: 500, max: 50000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
-  accessoryTypes = ['Cases', 'Chargers', 'Headphones', 'Screen Protectors', 'Stands'];
+  accessoryTypes = [
+    'Cases',
+    'Chargers',
+    'Headphones',
+    'Screen Protectors',
+    'Stands',
+  ];
   selectedTypes: string[] = [];
 
   // Sorting
@@ -61,7 +74,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
     { value: 'price-low', label: 'Price: Low to High' },
     { value: 'price-high', label: 'Price: High to Low' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest First' }
+    { value: 'newest', label: 'Newest First' },
   ];
   selectedSort = 'popularity';
 
@@ -72,19 +85,18 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   mobileMenuOpen = false;
   activeDropdown: string | null = null;
 
-
   private cartSubscription?: Subscription;
 
   constructor(
     private router: Router,
     private apiService: ApiService,
     private cartService: CartService,
-    private productService: ProductService
-  ) { }
+    private productService: ProductService,
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to cart state
-    this.cartSubscription = this.cartService.cartState$.subscribe(state => {
+    this.cartSubscription = this.cartService.cartState$.subscribe((state) => {
       this.cartCount = state.item_count;
     });
 
@@ -110,16 +122,17 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
     this.cartService.addToCart(product.product_id, 1).subscribe({
       next: (response) => {
         this.addingToCart = false;
-        const message = response.message === 'Cart item quantity updated'
-          ? `${product.title} quantity updated in cart!`
-          : `${product.title} added to cart!`;
+        const message =
+          response.message === 'Cart item quantity updated'
+            ? `${product.title} quantity updated in cart!`
+            : `${product.title} added to cart!`;
         alert(message);
       },
       error: (err) => {
         this.addingToCart = false;
         const errorMessage = err.error?.message || 'Failed to add item to cart';
         alert(errorMessage);
-      }
+      },
     });
   }
 
@@ -138,20 +151,25 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
         this.extractBrands();
 
         // Create image requests for all products with individual error handling
-        const imageRequests = products.map(product =>
-          this.apiService.serveProductImagesSafe(product.product_id.toString()).pipe(
-            map(imagesResponse => ({
-              ...product,
-              images: this.processImages(imagesResponse)
-            })),
-            catchError(error => {
-              console.warn(`Failed to load images for product ${product.product_id}:`, error);
-              return of({
+        const imageRequests = products.map((product) =>
+          this.apiService
+            .serveProductImagesSafe(product.product_id.toString())
+            .pipe(
+              map((imagesResponse) => ({
                 ...product,
-                images: []
-              });
-            })
-          )
+                images: this.processImages(imagesResponse),
+              })),
+              catchError((error) => {
+                console.warn(
+                  `Failed to load images for product ${product.product_id}:`,
+                  error,
+                );
+                return of({
+                  ...product,
+                  images: [],
+                });
+              }),
+            ),
         );
 
         // Wait for all image requests (or their fallbacks)
@@ -165,10 +183,10 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
             error: (err) => {
               // This should rarely happen due to individual catchError above
               console.error('Unexpected error in image loading:', err);
-              this.allProducts = products.map(p => ({ ...p, images: [] }));
+              this.allProducts = products.map((p) => ({ ...p, images: [] }));
               this.applyFilters();
               this.loading = false;
-            }
+            },
           });
         } else {
           // No products, just finish loading
@@ -180,7 +198,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
         console.error('Error loading products:', err);
         this.errorMessage = 'Failed to load products. Please try again later.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -198,14 +216,14 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    return images.map(img => {
+    return images.map((img) => {
       // Use full_url if available, otherwise construct from image_url
       const imageUrl = img.full_url || img.image_url;
 
       return {
         image_url: this.ensureAbsoluteUrl(imageUrl),
         alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
+        is_primary: img.is_primary || false,
       };
     });
   }
@@ -229,8 +247,8 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   private extractBrands(): void {
     const brands = new Set(
       this.allProducts
-        .map(product => product.specs.brand)
-        .filter(brand => brand)
+        .map((product) => product.specs.brand)
+        .filter((brand) => brand),
     );
     this.brands = Array.from(brands).sort() as string[];
   }
@@ -257,7 +275,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.allProducts.filter(product => {
+    this.filteredProducts = this.allProducts.filter((product) => {
       const price = product.sale_price || product.price;
 
       // Price filter
@@ -266,8 +284,11 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
       }
 
       // Brand filter
-      if (this.selectedBrands.length > 0 &&
-        (!product.specs.brand || !this.selectedBrands.includes(product.specs.brand))) {
+      if (
+        this.selectedBrands.length > 0 &&
+        (!product.specs.brand ||
+          !this.selectedBrands.includes(product.specs.brand))
+      ) {
         return false;
       }
 
@@ -292,14 +313,17 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-
   private sortProducts(): void {
     switch (this.selectedSort) {
       case 'price-low':
-        this.filteredProducts.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+        this.filteredProducts.sort(
+          (a, b) => (a.sale_price || a.price) - (b.sale_price || b.price),
+        );
         break;
       case 'price-high':
-        this.filteredProducts.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+        this.filteredProducts.sort(
+          (a, b) => (b.sale_price || b.price) - (a.sale_price || a.price),
+        );
         break;
       case 'rating':
         this.filteredProducts.sort((a, b) => b.rating - a.rating);
@@ -315,12 +339,15 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   }
 
   // Product display methods
-  getProductImage(product: Product): string | null {
+  getProductImage(product: Product): string {
     if (!product.images || product.images.length === 0) {
-      return null;
+      return this.getFallbackImage();
     }
-    const image = product.images.find(img => img.is_primary) || product.images[0];
-    return image ? this.ensureAbsoluteUrl(image.image_url) : null;
+    const image =
+      product.images.find((img) => img.is_primary) || product.images[0];
+    return image
+      ? this.ensureAbsoluteUrl(image.image_url)
+      : this.getFallbackImage();
   }
 
   private getFallbackImage(): string {
@@ -359,14 +386,18 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
     return parts.join(' • ');
   }
 
-  getDiscountedPrice(price: number, salePrice: number | null | undefined): number {
+  getDiscountedPrice(
+    price: number,
+    salePrice: number | null | undefined,
+  ): number {
     return salePrice !== null && salePrice !== undefined ? salePrice : price;
   }
 
-
   // Navigation methods
   onCategoryClick(category: string): void {
-    this.router.navigate([`/categories/${category.toLowerCase().replace(' ', '-')}`]);
+    this.router.navigate([
+      `/categories/${category.toLowerCase().replace(' ', '-')}`,
+    ]);
   }
 
   onSearch(): void {
@@ -374,7 +405,9 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   }
   viewProductDetails(product: Product): void {
     this.productService.setSelectedProduct(product);
-    this.router.navigate(['/product', product.product_id], { queryParams: { returnUrl: this.router.url } });
+    this.router.navigate(['/product', product.product_id], {
+      queryParams: { returnUrl: this.router.url },
+    });
   }
 
   /**
@@ -382,7 +415,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
    */
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
-    
+
     // Prevent body scroll when menu is open
     if (this.mobileMenuOpen) {
       document.body.classList.add('mobile-menu-active');
@@ -425,12 +458,12 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    
+
     // Don't close if clicking inside nav or on hamburger
     if (target.closest('.nav-items') || target.closest('.hamburger-menu')) {
       return;
     }
-    
+
     // Close mobile menu if open
     if (this.mobileMenuOpen && window.innerWidth <= 768) {
       this.closeMobileMenu();
@@ -463,5 +496,4 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   isMobile(): boolean {
     return window.innerWidth <= 768;
   }
-  
 }

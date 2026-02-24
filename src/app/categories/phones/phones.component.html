@@ -98,7 +98,7 @@
                     <div class="product-card" *ngFor="let product of paginatedProducts">
                         <div class="product-image">
                             <img [src]="getProductImage(product)" [alt]="product.title" (error)="onImageError($event)"
-                                loading="lazy" *ngIf="product.images; else imageLoading">
+                                loading="lazy" *ngIf="product.images?.length && getProductImage(product); else imageLoading">
                             <ng-template #imageLoading>
                                 <div class="image-placeholder"></div>
                             </ng-template>
