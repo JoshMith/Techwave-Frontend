@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Title, Meta } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 
@@ -10,7 +11,7 @@ export interface PageSeoConfig {
   ogImage?: string;
 }
 
-const BASE_URL = 'h';
+const BASE_URL = 'https://techwaveelectronics.co.ke';
 const DEFAULT_IMAGE = `${BASE_URL}/images/og-image.jpg`;
 
 @Injectable({ providedIn: 'root' })
@@ -19,21 +20,19 @@ export class SeoService {
     private titleService: Title,
     private metaService: Meta,
     private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
 
   setPage(config: PageSeoConfig): void {
     const canonical = `${BASE_URL}${config.canonicalPath ?? this.router.url}`;
     const image = config.ogImage ?? DEFAULT_IMAGE;
 
-    // Title
     this.titleService.setTitle(config.title);
 
-    // Core meta
     this.update('description', config.description);
     if (config.keywords) this.update('keywords', config.keywords);
     this.update('robots', 'index, follow');
 
-    // Open Graph
     this.updateProp('og:title', config.title);
     this.updateProp('og:description', config.description);
     this.updateProp('og:url', canonical);
@@ -42,14 +41,15 @@ export class SeoService {
     this.updateProp('og:locale', 'en_KE');
     this.updateProp('og:site_name', 'TechWave Kenya');
 
-    // Twitter
     this.update('twitter:title', config.title);
     this.update('twitter:description', config.description);
     this.update('twitter:image', image);
     this.update('twitter:card', 'summary_large_image');
 
-    // Canonical link tag
-    this.setCanonical(canonical);
+    // Only touch DOM in browser — not during SSR/prerendering
+    if (isPlatformBrowser(this.platformId)) {
+      this.setCanonical(canonical);
+    }
   }
 
   private update(name: string, content: string): void {
@@ -61,9 +61,15 @@ export class SeoService {
   }
 
   private setCanonical(url: string): void {
-    // Remove any existing canonical, then add fresh one
     const existing = document.querySelector('link[rel="canonical"]');
-    if (existing) existing.setAttribute('href', url);
+    if (existing) {
+      existing.setAttribute('href', url);
+    } else {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      link.setAttribute('href', url);
+      document.head.appendChild(link);
+    }
   }
 }
 
@@ -96,7 +102,7 @@ export const PAGE_SEO: Record<string, PageSeoConfig> = {
   laptops: {
     title: 'Buy Laptops in Kenya | TechWave Kenya',
     description: 'Shop laptops for work, school and gaming in Kenya. HP, Dell, Lenovo, MacBook and more. Best prices with M-Pesa payment.',
-    keywords: 'buy laptop Kenya, laptops Nairobi, HP laptop Kenya, Dell laptop Kenya, MacBook Kenya, student laptop Nairobi',
+    keywords: 'buy laptop Kenya, laptops Nairobi, HP laptop Kenya, Dell laptop Kenya, MacBook Kenya',
     canonicalPath: '/categories/Laptops',
   },
   accessories: {
@@ -108,19 +114,19 @@ export const PAGE_SEO: Record<string, PageSeoConfig> = {
   gaming: {
     title: 'Gaming Accessories & Consoles in Kenya | TechWave Kenya',
     description: 'Shop gaming consoles, controllers, headsets and accessories in Kenya. PlayStation, Xbox, PC gaming gear.',
-    keywords: 'gaming Kenya, PlayStation Kenya, Xbox Kenya, gaming accessories Nairobi, gaming headset Kenya',
+    keywords: 'gaming Kenya, PlayStation Kenya, Xbox Kenya, gaming accessories Nairobi',
     canonicalPath: '/categories/Gaming',
   },
   homeAppliances: {
     title: 'Home Appliances & Electronics in Kenya | TechWave Kenya',
     description: 'Shop home appliances and electronics in Kenya. Microwaves, blenders, smart home devices and more.',
-    keywords: 'home appliances Kenya, electronics home Nairobi, smart home Kenya, kitchen electronics',
+    keywords: 'home appliances Kenya, electronics home Nairobi, smart home Kenya',
     canonicalPath: '/categories/Home Appliances',
   },
   audioSound: {
     title: 'Speakers, Headphones & Audio in Kenya | TechWave Kenya',
     description: 'Shop speakers, earphones, headphones and audio equipment in Kenya. JBL, Sony, Samsung and more.',
-    keywords: 'speakers Kenya, headphones Nairobi, JBL Kenya, earphones Kenya, audio equipment Kenya',
+    keywords: 'speakers Kenya, headphones Nairobi, JBL Kenya, earphones Kenya',
     canonicalPath: '/categories/Audio & Sound',
   },
 };
