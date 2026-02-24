@@ -1,44 +1,124 @@
 <head>
   <meta charset="utf-8">
-  <title>TechWave Kenya | Electronics & Gadgets</title>
+  <title>TechWave Kenya | Electronics & Gadgets — Phones, Laptops, Accessories</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Canonical -->
+  <link rel="canonical" href="https://techwaveelectronics.co.ke/">
+
   <!-- SEO -->
   <meta name="description"
-    content="Shop the latest phones, laptops, accessories and more at TechWave Kenya. Fast delivery in Nairobi & Meru. M-Pesa accepted.">
-  <meta name="keywords" content="TechWave, techwave electronics, electronics Kenya, phones Nairobi, laptops Kenya, M-Pesa electronics">
+    content="Shop the latest phones, laptops, accessories and more at TechWave Kenya. Best prices in Nairobi & across Kenya. M-Pesa accepted. Fast delivery countrywide.">
+  <meta name="keywords"
+    content="TechWave Kenya, techwave electronics, buy phone Nairobi, buy laptop Kenya, electronics Kenya, M-Pesa electronics, smartphones Kenya, accessories Nairobi">
+  <meta name="author" content="TechWave Electronics Kenya">
+  <meta name="robots" content="index, follow">
+  <meta name="geo.region" content="KE">
+  <meta name="geo.placename" content="Nairobi, Kenya">
 
   <!-- Open Graph (WhatsApp, Facebook previews) -->
-  <meta property="og:title" content="TechWave Kenya">
-  <meta property="og:description" content="Latest electronics with M-Pesa payment. Fast delivery in Kenya.">
+  <meta property="og:title" content="TechWave Kenya | Electronics & Gadgets">
+  <meta property="og:description"
+    content="Latest phones, laptops & accessories with M-Pesa payment. Fast delivery across Kenya.">
   <meta property="og:image" content="https://techwaveelectronics.co.ke/images/og-image.jpg">
   <meta property="og:url" content="https://techwaveelectronics.co.ke">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_KE">
+  <meta property="og:site_name" content="TechWave Kenya">
 
   <!-- Twitter/X card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="TechWave Kenya">
-  <meta name="twitter:description" content="Latest electronics with M-Pesa payment.">
+  <meta name="twitter:title" content="TechWave Kenya | Electronics & Gadgets">
+  <meta name="twitter:description"
+    content="Latest phones, laptops & accessories with M-Pesa payment. Fast delivery across Kenya.">
+  <meta name="twitter:image" content="https://techwaveelectronics.co.ke/images/og-image.jpg">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
+  <!-- ── Structured Data: Organization ─────────────────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "TechWave Electronics Kenya",
+    "alternateName": "TechWave Kenya",
+    "url": "https://techwaveelectronics.co.ke",
+    "logo": "https://techwaveelectronics.co.ke/images/logo.png",
+    "description": "Kenya's trusted electronics store. Shop phones, laptops, accessories and more with M-Pesa payment and fast delivery.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Nairobi",
+      "addressCountry": "KE"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": ["English", "Swahili"]
+    },
+    "sameAs": []
+  }
+  </script>
+
+  <!-- ── Structured Data: WebSite (enables Google Sitelinks Search Box) ────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TechWave Kenya",
+    "url": "https://techwaveelectronics.co.ke",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://techwaveelectronics.co.ke/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- ── Structured Data: Store (Local Business) ───────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "TechWave Electronics Kenya",
+    "url": "https://techwaveelectronics.co.ke",
+    "image": "https://techwaveelectronics.co.ke/images/og-image.jpg",
+    "description": "Shop phones, laptops, accessories and electronics in Kenya with M-Pesa payment.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Nairobi",
+      "addressRegion": "Nairobi County",
+      "addressCountry": "KE"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -1.286389,
+      "longitude": 36.817223
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Kenya"
+    },
+    "paymentAccepted": "M-Pesa, Cash",
+    "currenciesAccepted": "KES",
+    "priceRange": "KSh",
+    "hasMap": "https://maps.google.com/?q=Nairobi,Kenya"
+  }
+  </script>
+
   <!-- ── Google Analytics 4 ── -->
-  <!-- Replace G-XXXXXXXXXX with your actual Measurement ID from GA4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-KKP7M47KMR"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
-    // Initial config — page_view is NOT fired here automatically because
-    // Angular SSR + client-side routing means we track page views manually
-    // via the AnalyticsService on every NavigationEnd event.
     gtag('config', 'G-KKP7M47KMR', {
-      send_page_view: false  // We send page_view manually for SSR compatibility
+      send_page_view: false
     });
   </script>
-  <!-- ── End Google Analytics ── -->
 </head>
 
 <body>

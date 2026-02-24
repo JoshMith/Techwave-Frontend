@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /shop
+Allow: /deals
+Allow: /categories/
+Allow: /product/
+Allow: /search
+Allow: /termsofservice
+Allow: /privacypolicy
+
+Disallow: /admin
+Disallow: /seller-dashboard
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-pwd
+
+Sitemap: https://techwaveelectronics.co.ke/sitemap.xml

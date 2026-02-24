@@ -7,6 +7,7 @@ import { CartService } from '../services/cart.service';
 import { finalize } from 'rxjs/operators';
 import { HeaderComponent } from '../shared/header/header.component';
 import { FooterComponent } from '../shared/footer/footer.component';
+import { PAGE_SEO, SeoService } from '../services/seo.service';
 
 interface Category {
   category_id: number;
@@ -25,7 +26,7 @@ interface Category {
   selector: 'app-homepage',
   imports: [CommonModule, HeaderComponent, FooterComponent],
   templateUrl: './homepage.component.html',
-  styleUrl: './homepage.component.css'
+  styleUrl: './homepage.component.css',
 })
 export class HomepageComponent implements OnInit {
   isBrowser: boolean;
@@ -33,7 +34,8 @@ export class HomepageComponent implements OnInit {
   constructor(
     private router: Router,
     private apiService: ApiService,
-    @Inject(PLATFORM_ID) private platformId: any
+    private seoService: SeoService,
+    @Inject(PLATFORM_ID) private platformId: any,
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
@@ -43,25 +45,27 @@ export class HomepageComponent implements OnInit {
   error: string | null = null;
   isAdmin = false;
 
-
   heroImages: string[] = [
     'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&h=500&fit=crop',
     'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&h=500&fit=crop',
     'https://images.unsplash.com/photo-1511385348-a52b4a160dc2?w=500&h=500&fit=crop',
     'https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?w=500&h=500&fit=crop',
     'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1468436139062-f60a71c5c892?w=500&h=500&fit=crop'
+    'https://images.unsplash.com/photo-1468436139062-f60a71c5c892?w=500&h=500&fit=crop',
   ];
 
   currentHeroImage: string = '';
   private heroImageInterval: any;
 
   ngOnInit(): void {
+    // Set page-specific SEO meta tags
+    this.seoService.setPage(PAGE_SEO['home']);
+    
     this.loadCategories();
     if (this.isBrowser) {
       this.startHeroImageRotation();
     }
-    this.checkIfAdmin()
+    this.checkIfAdmin();
   }
 
   ngOnDestroy(): void {
@@ -94,11 +98,11 @@ export class HomepageComponent implements OnInit {
 
     this.apiService.getCategories().subscribe({
       next: (categories: Category[]) => {
-        this.featuredCategories = categories.map(category => ({
+        this.featuredCategories = categories.map((category) => ({
           ...category,
           icon: this.getCategoryIcon(category.name),
           key: this.createCategoryKey(category.name),
-          count: 0 // Initialize with 0, will be updated
+          count: 0, // Initialize with 0, will be updated
         }));
 
         // Fetch product counts for each category
@@ -109,7 +113,7 @@ export class HomepageComponent implements OnInit {
         this.error = 'Failed to load categories. Please try again later.';
         this.isLoading = false;
         this.featuredCategories = this.getDefaultCategories();
-      }
+      },
     });
   }
 
@@ -117,15 +121,17 @@ export class HomepageComponent implements OnInit {
    * Load product counts for all categories
    */
   private loadProductCounts(): void {
-    const countRequests = this.featuredCategories.map(category =>
-      this.apiService.getProductCountByCategory(category.category_id.toString()).pipe(
-        finalize(() => {
-          // When all requests complete, set loading to false
-          if (this.featuredCategories.every(c => c.count !== undefined)) {
-            this.isLoading = false;
-          }
-        })
-      )
+    const countRequests = this.featuredCategories.map((category) =>
+      this.apiService
+        .getProductCountByCategory(category.category_id.toString())
+        .pipe(
+          finalize(() => {
+            // When all requests complete, set loading to false
+            if (this.featuredCategories.every((c) => c.count !== undefined)) {
+              this.isLoading = false;
+            }
+          }),
+        ),
     );
 
     countRequests.forEach((request, index) => {
@@ -134,10 +140,13 @@ export class HomepageComponent implements OnInit {
           this.featuredCategories[index].count = response.data.product_count;
         },
         error: (err) => {
-          console.error(`Failed to load product count for category ${this.featuredCategories[index].name}:`, err);
+          console.error(
+            `Failed to load product count for category ${this.featuredCategories[index].name}:`,
+            err,
+          );
           // Fallback to random count if API fails
           this.featuredCategories[index].count = this.getRandomProductCount();
-        }
+        },
       });
     });
   }
@@ -161,15 +170,15 @@ export class HomepageComponent implements OnInit {
    */
   private getCategoryIcon(name: string): string {
     const iconMap: { [key: string]: string } = {
-      'Phones': '📱',
-      'Laptops': '💻',
-      'Accessories': '🎧',
+      Phones: '📱',
+      Laptops: '💻',
+      Accessories: '🎧',
       'Home Appliances': '🏠',
-      'Gaming': '🎮',
+      Gaming: '🎮',
       'Audio & Sound': '🔊',
-      'Computers': '🖥️',
-      'Tablets': '📱',
-      'Cameras': '📷'
+      Computers: '🖥️',
+      Tablets: '📱',
+      Cameras: '📷',
     };
 
     return iconMap[name] || '🛍️';
@@ -187,12 +196,72 @@ export class HomepageComponent implements OnInit {
    */
   private getDefaultCategories(): Category[] {
     return [
-      { name: 'Phones', icon: '📱', count: 24, key: 'Phones', category_id: 1, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Laptops', icon: '💻', count: 17, key: 'Laptops', category_id: 2, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Accessories', icon: '🎧', count: 42, key: 'Accessories', category_id: 3, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Home Appliances', icon: '🏠', count: 15, key: 'Home Appliances', category_id: 4, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Gaming', icon: '🎮', count: 32, key: 'Gaming', category_id: 5, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Audio & Sound', icon: '🔊', count: 13, key: 'Audio & Sound', category_id: 6, description: '', featured: true, icon_path: '', created_at: '' },
+      {
+        name: 'Phones',
+        icon: '📱',
+        count: 24,
+        key: 'Phones',
+        category_id: 1,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
+      {
+        name: 'Laptops',
+        icon: '💻',
+        count: 17,
+        key: 'Laptops',
+        category_id: 2,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
+      {
+        name: 'Accessories',
+        icon: '🎧',
+        count: 42,
+        key: 'Accessories',
+        category_id: 3,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
+      {
+        name: 'Home Appliances',
+        icon: '🏠',
+        count: 15,
+        key: 'Home Appliances',
+        category_id: 4,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
+      {
+        name: 'Gaming',
+        icon: '🎮',
+        count: 32,
+        key: 'Gaming',
+        category_id: 5,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
+      {
+        name: 'Audio & Sound',
+        icon: '🔊',
+        count: 13,
+        key: 'Audio & Sound',
+        category_id: 6,
+        description: '',
+        featured: true,
+        icon_path: '',
+        created_at: '',
+      },
     ];
   }
 
@@ -217,16 +286,14 @@ export class HomepageComponent implements OnInit {
   adminPortal(): void {
     if (!this.isAdmin) {
       alert('Access denied. Only admins can access the admin portal.');
-    }
-    else {
+    } else {
       this.router.navigate(['/admin']);
     }
   }
 
-
   /**
- * Start rotating hero images
- */
+   * Start rotating hero images
+   */
   startHeroImageRotation(): void {
     // Set initial image
     this.currentHeroImage = this.getRandomHeroImage();
@@ -267,7 +334,8 @@ export class HomepageComponent implements OnInit {
    */
   previousHeroImage(): void {
     const currentIndex = this.heroImages.indexOf(this.currentHeroImage);
-    const prevIndex = (currentIndex - 1 + this.heroImages.length) % this.heroImages.length;
+    const prevIndex =
+      (currentIndex - 1 + this.heroImages.length) % this.heroImages.length;
     this.currentHeroImage = this.heroImages[prevIndex];
 
     // Reset the interval
@@ -295,8 +363,8 @@ export class HomepageComponent implements OnInit {
   }
 
   /**
- * Handle image load
- */
+   * Handle image load
+   */
   onImageLoad(): void {
     console.log('Hero image loaded successfully');
   }
