@@ -43,7 +43,7 @@
 
 ### Prerequisites
 - Node.js v18+
-- MySQL 8+
+- PostgreSQL 17.9+
 - Angular CLI (`npm install -g @angular/cli`)
 - A Safaricom Daraja API account (for M-PESA)
 
