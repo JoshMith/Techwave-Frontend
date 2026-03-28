@@ -1,0 +1,185 @@
+/* src/app/agent-portal/agent-portal.component.css
+   Imports the seller-dashboard design system.
+   The seller-dashboard.component.css already defines all shared classes
+   (.header, .nav-container, .main-content, .stat-card, .card, etc.)
+   This file adds agent-portal-specific overrides only.
+*/
+
+/* Agent badge colour — teal instead of blue */
+.seller-badge {
+  background: rgba(16, 185, 129, 0.25);
+  color: #d1fae5;
+}
+
+/* Commission amount highlight */
+.commission-amount {
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* Rate badge */
+.rate-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.rate-badge.accessories {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.rate-badge.standard {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Referral link card */
+.referral-card {
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+  border-radius: 14px;
+  padding: 1.75rem;
+  color: white;
+  margin-bottom: 1.5rem;
+}
+
+.referral-card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.referral-link-display {
+  font-size: 0.93rem;
+  font-family: 'Courier New', monospace;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  word-break: break-all;
+  margin-bottom: 1rem;
+}
+
+.referral-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-copy, .btn-download-qr {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.btn-copy {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.btn-copy:hover, .btn-download-qr:hover { opacity: 0.85; }
+
+.btn-download-qr {
+  background: #10b981;
+  color: white;
+}
+
+.copy-success {
+  font-size: 0.82rem;
+  color: #a7f3d0;
+  margin-top: 0.4rem;
+}
+
+/* QR code container */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.qr-container canvas {
+  border-radius: 4px;
+}
+
+/* Commission breakdown accordion */
+.commission-breakdown {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.83rem;
+  padding: 0.25rem 0;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.breakdown-row:last-child { border-bottom: none; }
+
+.breakdown-toggle {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  font-weight: 500;
+}
+
+/* Stat grid for agent overview */
+.agent-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* Month vs all-time toggle */
+.period-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.period-tab {
+  padding: 0.45rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 0.87rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.period-tab.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}

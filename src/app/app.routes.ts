@@ -1,11 +1,16 @@
 import { Routes } from '@angular/router';
-import { sellerDashboardRoutes } from './seller-dashboard/seller-dashboard.routes';
+import { agentPortalRoutes } from './agent-portal/agent-portal.routes';
+import { adminRoutes } from './admin/admin-routes';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
 
-  // ── Spread the seller-dashboard child routes ─────────────────────────────
-  ...sellerDashboardRoutes,
+  // ── Agent portal (/agent/login + /agent/*) ─────────────────────────────────
+  ...agentPortalRoutes,
+
+   // ── Admin portal (/admin/*) ──────────────
+  ...adminRoutes,
+ 
 
   // ── Public pages ─────────────────────────────────────────────────────────
   {
@@ -149,15 +154,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./legal/privacypolicy/privacypolicy.component').then(
         (m) => m.PrivacypolicyComponent,
-      ),
-  },
-
-  // ── Admin ─────────────────────────────────────────────────────────────────
-  {
-    path: 'admin',
-    loadComponent: () =>
-      import('./admin-dashboard/admin-dashboard.component').then(
-        (m) => m.AdminDashboardComponent,
       ),
   },
 

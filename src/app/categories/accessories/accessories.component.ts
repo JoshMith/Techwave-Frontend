@@ -24,8 +24,12 @@ interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
+  condition?: 'new' | 'ex_uk';
   specs: {
     brand: string;
+    type: string;
+    color?: string;
+    compatibility?: string;
     [key: string]: any;
   };
   rating: number;
@@ -294,10 +298,14 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
 
       // Type filter
       if (this.selectedTypes.length > 0) {
-        const productType = product.specs || '';
-        // if (!this.selectedTypes.some(type => productType.toLowerCase().includes(type.toLowerCase()))) {
-        return false;
+        const productType: string = product.specs?.type || '';
+        if (!this.selectedTypes.some(
+          type => productType.toLowerCase().includes(type.toLowerCase())
+        )) {
+          return false;
+        }
       }
+ 
 
       return true;
     });

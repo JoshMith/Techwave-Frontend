@@ -104,6 +104,11 @@ export class PaymentComponent implements OnInit {
     this.loadCurrentUser();
   }
 
+  private getReferralCode(): string | null {
+    if (!this.isBrowser) return null;
+    return sessionStorage.getItem('referral_code');
+  }
+
   loadCurrentUser(): void {
     const userStr = this.apiService.getCurrentUser().subscribe(user => {
       if (!user) {
@@ -221,13 +226,16 @@ export class PaymentComponent implements OnInit {
     console.log('🔄 Creating order...');
     this.currentStep = 'creating_order';
 
-    const orderData = {
+    const referralCode = this.getReferralCode();
+
+    const orderData: any = {
       user_id: this.currentUser.user_id,
       cart_id: this.paymentInfo.cartId,
       address_id: this.paymentInfo.addressId,
       total_amount: this.paymentInfo.finalTotal,
       status: 'pending',
-      notes: `Payment method: ${this.selectedPaymentMethod}`
+      notes: `Payment method: ${this.selectedPaymentMethod}`,
+      ...(referralCode && { referral_code: referralCode })
     };
 
     console.log('📦 Sending order data:', orderData);

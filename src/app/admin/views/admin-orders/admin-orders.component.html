@@ -1,0 +1,69 @@
+<!-- src/app/admin/views/orders/admin-orders.component.html -->
+
+<div class="page-header">
+  <h1 class="page-title">Orders</h1>
+</div>
+
+<div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+<div *ngIf="errorMsg"   class="alert alert-error">{{ errorMsg }}</div>
+
+<div class="filters-container">
+  <div class="filter-group">
+    <label>Search</label>
+    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" class="form-input" placeholder="Order ID, customer, agent code">
+  </div>
+  <div class="filter-group">
+    <label>Status</label>
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" class="form-select">
+      <option value="all">All Statuses</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+    </select>
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="card" *ngIf="!isLoading">
+  <div class="table-container">
+    <div *ngIf="!filteredOrders.length" class="empty-state"><p>No orders found</p></div>
+    <table class="orders-table" *ngIf="filteredOrders.length">
+      <thead>
+        <tr>
+          <th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th>
+          <th>Agent</th><th>Status</th><th>Date</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let o of filteredOrders">
+          <td>
+            <span class="order-id" (click)="viewDetail(o.order_id)" style="cursor:pointer;">#{{ o.order_id }}</span>
+          </td>
+          <td>{{ o.customer_name ?? '—' }}</td>
+          <td>{{ fmt(o.total_amount) }}</td>
+          <td style="font-size:0.82rem;">
+            {{ o.payment_method === 'cash_on_delivery' ? 'COD' : o.payment_method === 'mpesa' ? 'M-Pesa' : (o.payment_method ?? '—') }}
+          </td>
+          <td>
+            <span class="agent-badge" [class.direct]="!o.agent_code">{{ o.agent_code ?? 'Direct' }}</span>
+          </td>
+          <td>
+            <select class="status-select" [(ngModel)]="o.status" (ngModelChange)="updateStatus(o, $event)">
+              <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+            </select>
+          </td>
+          <td style="font-size:0.82rem;">{{ fmtDate(o.created_at) }}</td>
+          <td>
+            <div class="action-col">
+              <button class="btn btn-small btn-primary" (click)="viewDetail(o.order_id)">View</button>
+              <button *ngIf="isCodPending(o)" class="btn-confirm-cod" (click)="confirmCod(o)">
+                ✓ COD Paid
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

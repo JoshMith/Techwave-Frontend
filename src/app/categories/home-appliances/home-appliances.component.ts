@@ -30,6 +30,7 @@ interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
+  condition?: 'new' | 'ex_uk';
   specs: {
     os?: string;
     screen?: string;

@@ -1,0 +1,302 @@
+<!-- src/app/admin/views/products/admin-products.component.html -->
+
+<div class="page-header">
+  <h1 class="page-title">Products</h1>
+  <button class="btn btn-primary" (click)="openAdd()">+ Add Product</button>
+</div>
+
+<div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+<div *ngIf="errorMsg"   class="alert alert-error">{{ errorMsg }}</div>
+
+<!-- Filters -->
+<div class="filters-container">
+  <div class="filter-group">
+    <label>Search</label>
+    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" class="form-input" placeholder="Title or description">
+  </div>
+  <div class="filter-group">
+    <label>Category</label>
+    <select [(ngModel)]="filterCategory" (ngModelChange)="applyFilters()" class="form-select">
+      <option value="">All Categories</option>
+      <option *ngFor="let c of categories" [value]="c.category_id">{{ c.name }}</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Condition</label>
+    <select [(ngModel)]="filterCondition" (ngModelChange)="applyFilters()" class="form-select">
+      <option value="">All</option>
+      <option value="new">New</option>
+      <option value="ex_uk">Ex-UK</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Status</label>
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" class="form-select">
+      <option value="">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+  <div class="filter-group" style="justify-content:flex-end;">
+    <button class="btn btn-secondary btn-small" (click)="clearFilters()" style="margin-top:1.4rem;">Clear</button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- Table -->
+<div class="card" *ngIf="!isLoading">
+  <div class="table-container">
+    <div *ngIf="!filteredProducts.length" class="empty-state">
+      <p>No products found</p>
+      <button class="btn btn-primary" (click)="openAdd()" style="margin-top:1rem;">Add First Product</button>
+    </div>
+
+    <table class="products-table" *ngIf="filteredProducts.length">
+      <thead>
+        <tr><th>Product</th><th>Category</th><th>Condition</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filteredProducts">
+          <td>
+            <div class="product-info">
+              <div class="product-name">{{ p.title }}</div>
+              <div class="product-description">{{ p.description | slice:0:55 }}…</div>
+            </div>
+          </td>
+          <td>{{ getCategoryName(p.category_id) }}</td>
+          <td>
+            <span class="condition-badge" [class.new]="p.condition === 'new'" [class.ex-uk]="p.condition === 'ex_uk'">
+              {{ p.condition === 'ex_uk' ? 'Ex-UK' : 'New' }}
+            </span>
+          </td>
+          <td>
+            <div *ngIf="p.sale_price; else noSale">
+              <span style="font-weight:600;color:#10b981;">{{ fmt(p.sale_price) }}</span>
+              <small style="text-decoration:line-through;color:#ef4444;display:block;">{{ fmt(p.price) }}</small>
+            </div>
+            <ng-template #noSale>{{ fmt(p.price) }}</ng-template>
+          </td>
+          <td><span [ngClass]="p.stock <= 5 ? 'stock-low' : 'stock-good'">{{ p.stock }}</span></td>
+          <td>
+            <span class="status-badge" [ngClass]="(p.status ?? 'active') === 'active' ? 'delivered' : 'cancelled'">
+              {{ p.status ?? 'active' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-col">
+              <button class="btn-icon" (click)="openEdit(p)" title="Edit">✏️</button>
+              <button class="btn-icon" (click)="deleteProduct(p)" title="Delete">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── ADD PRODUCT MODAL ─────────────────────────────────────────────────── -->
+<div *ngIf="showAddModal" class="modal-overlay" (click)="closeAdd()">
+  <div class="modal modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add New Product</h3>
+      <button class="modal-close" (click)="closeAdd()">×</button>
+    </div>
+    <div class="modal-content">
+      <div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+      <form class="product-form">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" [(ngModel)]="newProduct.title" name="title" class="form-input" placeholder="Product title">
+        </div>
+
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea [(ngModel)]="newProduct.description" name="desc" class="form-textarea" rows="3" placeholder="Product description"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category *</label>
+            <select [(ngModel)]="newProduct.category_id" name="cat" class="form-select">
+              <option value="">Select category</option>
+              <option *ngFor="let c of categories" [value]="c.category_id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Condition *</label>
+            <select [(ngModel)]="newProduct.condition" name="condition" class="form-select">
+              <option value="new">New</option>
+              <option value="ex_uk">Ex-UK / Grade B</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Regular Price (KSh) *</label>
+            <input type="number" [(ngModel)]="newProduct.price" name="price" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label>Sale Price (KSh)</label>
+            <input type="number" [(ngModel)]="newProduct.sale_price" name="salePrice" class="form-input" min="0">
+            <span class="help-text">Leave empty if no sale</span>
+          </div>
+          <div class="form-group">
+            <label>Stock *</label>
+            <input type="number" [(ngModel)]="newProduct.stock" name="stock" class="form-input" min="0">
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div class="form-section">
+          <h3 class="section-title">Product Images</h3>
+          <div class="image-upload-area" (click)="addFileInput.click()"
+               (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onNewDrop($event)">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click to upload or drag & drop</div>
+            <div class="upload-subtext">PNG, JPG up to 5MB · First image = primary</div>
+            <input #addFileInput type="file" class="file-input" multiple accept="image/*" (change)="onNewFileSelected($event)">
+          </div>
+          <div class="image-preview" *ngIf="newImages.length">
+            <div *ngFor="let img of newImages; let i = index" class="image-preview-item">
+              <img [src]="img.url" [alt]="img.name" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeNewImage(i)">×</button>
+              <span *ngIf="i === 0" class="primary-badge">Primary</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specs -->
+        <div class="form-section">
+          <h3 class="section-title">Specifications</h3>
+          <div class="specs-container">
+            <div *ngFor="let s of newSpecs; let i = index" class="spec-row">
+              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}" placeholder="e.g. RAM">
+              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}" placeholder="e.g. 8GB">
+              <button type="button" class="remove-spec-btn" (click)="removeSpec(i)">×</button>
+            </div>
+            <button type="button" class="add-spec-btn" (click)="addSpec()">+ Add Spec</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeAdd()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="submitAdd()" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Adding…' : 'Add Product' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT PRODUCT MODAL ────────────────────────────────────────────────── -->
+<div *ngIf="editingProduct" class="modal-overlay" (click)="closeEdit()">
+  <div class="modal modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Product</h3>
+      <button class="modal-close" (click)="closeEdit()">×</button>
+    </div>
+    <div class="modal-content">
+      <div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+      <form class="product-form">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" [(ngModel)]="editingProduct.title" name="editTitle" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea [(ngModel)]="editingProduct.description" name="editDesc" class="form-textarea" rows="3"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category *</label>
+            <select [(ngModel)]="editingProduct.category_id" name="editCat" class="form-select">
+              <option value="">Select category</option>
+              <option *ngFor="let c of categories" [value]="c.category_id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Condition *</label>
+            <select [(ngModel)]="editingProduct.condition" name="editCondition" class="form-select">
+              <option value="new">New</option>
+              <option value="ex_uk">Ex-UK / Grade B</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Regular Price (KSh) *</label>
+            <input type="number" [(ngModel)]="editingProduct.price" name="editPrice" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label>Sale Price (KSh)</label>
+            <input type="number" [(ngModel)]="editingProduct.sale_price" name="editSalePrice" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label>Stock *</label>
+            <input type="number" [(ngModel)]="editingProduct.stock" name="editStock" class="form-input" min="0">
+          </div>
+        </div>
+
+        <!-- Existing images -->
+        <div class="form-section" *ngIf="editExistingImages.length">
+          <h3 class="section-title">Current Images</h3>
+          <div class="image-preview">
+            <div *ngFor="let img of editExistingImages" class="image-preview-item">
+              <img [src]="img.image_url" [alt]="img.alt_text" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeEditExistingImage(img)">×</button>
+              <span *ngIf="img.is_primary" class="primary-badge">Primary</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New images -->
+        <div class="form-section">
+          <h3 class="section-title">Add Images</h3>
+          <div class="image-upload-area" (click)="editFileInput.click()">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click to upload</div>
+            <input #editFileInput type="file" class="file-input" multiple accept="image/*" (change)="onEditFileSelected($event)">
+          </div>
+          <div class="image-preview" *ngIf="editNewImages.length">
+            <div *ngFor="let img of editNewImages; let i = index" class="image-preview-item">
+              <img [src]="img.url" [alt]="img.name" class="preview-image">
+              <button type="button" class="remove-image" (click)="removeEditNewImage(i)">×</button>
+              <span class="new-badge">New</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specs -->
+        <div class="form-section">
+          <h3 class="section-title">Specifications</h3>
+          <div class="specs-container">
+            <div *ngFor="let s of editSpecs; let i = index" class="spec-row">
+              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}" placeholder="Key">
+              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}" placeholder="Value">
+              <button type="button" class="remove-spec-btn" (click)="removeEditSpec(i)">×</button>
+            </div>
+            <button type="button" class="add-spec-btn" (click)="addEditSpec()">+ Add Spec</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeEdit()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="submitEdit()" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Saving…' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

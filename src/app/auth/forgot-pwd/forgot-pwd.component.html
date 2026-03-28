@@ -1,181 +1,64 @@
-<!-- Header -->
-<header class="header">
-  <nav class="nav-container">
-    <a routerLink="/" class="logo">
-      <img routerLink="/" src="favicon.ico" width="50px" alt="Logo">
-    </a>
-    <h2>TechWave Kenya</h2>
-  </nav>
-</header>
+<!-- src/app/auth/forgot-pwd/forgot-pwd.component.html -->
+<app-header></app-header>
 
-<!-- Main Content -->
-<main class="main-content">
-  <div class="forgot-password-container">
-    <!-- Step 1: Email Input -->
-    <div id="step1" class="step-content" *ngIf="currentStep === 1">
-      <div class="forgot-password-header">
-        <div class="forgot-password-icon">🔒</div>
-        <h1 class="forgot-password-title">Forgot Password?</h1>
-        <p class="forgot-password-subtitle">
-          Don't worry! Enter your email address and we'll send you a verification code to reset your password.
-        </p>
+<div class="auth-container">
+  <div class="auth-card">
+
+    <!-- Step 1: Enter email -->
+    <ng-container *ngIf="step === 'email'">
+      <div class="auth-header">
+        <div class="auth-icon">🔑</div>
+        <h1>Forgot Password</h1>
+        <p>Enter the email address linked to your account and we'll send you a reset link.</p>
       </div>
 
-      <div class="step-indicator">
-        <div class="step active">1</div>
-        <div class="step-connector"></div>
-        <div class="step inactive">2</div>
-        <div class="step-connector"></div>
-        <div class="step inactive">3</div>
-      </div>
+      <div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
 
-      <form [formGroup]="emailForm" (ngSubmit)="onEmailSubmit()">
+      <form (ngSubmit)="submit()" class="auth-form">
         <div class="form-group">
-          <label for="email" class="form-label">Email Address</label>
-          <input type="email" id="email" formControlName="email" class="form-input"
-            placeholder="Enter your registered email">
+          <label for="email">Email Address</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            class="form-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required>
         </div>
 
-        <button type="submit" class="reset-btn" [disabled]="emailForm.invalid || isSubmitting">
-          {{ isSubmitting ? 'Sending...' : 'Send Verification Code' }}
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="spinner-sm"></span>
+          {{ isLoading ? 'Sending…' : 'Send Reset Link' }}
         </button>
       </form>
 
-      <div class="help-section">
-        <div class="help-title">Having trouble?</div>
-        <ul class="help-list">
-          <li>Make sure you're using the email you signed up with</li>
-          <li>Check your spam/junk folder for the verification email</li>
-          <li>Contact our support team if you still can't access your account</li>
-        </ul>
-      </div>
-    </div>
+      <p class="auth-link">
+        Remember your password? <a routerLink="/login">Back to Login</a>
+      </p>
+    </ng-container>
 
-    <!-- Step 2: Verification Code -->
-    <div id="step2" class="step-content" *ngIf="currentStep === 2">
-      <div class="forgot-password-header">
-        <div class="forgot-password-icon">📧</div>
-        <h1 class="forgot-password-title">Check Your Email</h1>
-        <p class="forgot-password-subtitle">
-          We've sent a 6-digit verification code to <strong>{{ emailForm.get('email')?.value }}</strong>
+    <!-- Step 2: Email sent confirmation -->
+    <ng-container *ngIf="step === 'sent'">
+      <div class="auth-header">
+        <div class="auth-icon success-icon">✉️</div>
+        <h1>Check Your Inbox</h1>
+        <p>
+          If <strong>{{ email }}</strong> is linked to a TechWave account,
+          a password reset link has been sent. Check your spam folder if you don't see it.
         </p>
       </div>
 
-      <div class="step-indicator">
-        <div class="step completed">✓</div>
-        <div class="step-connector active"></div>
-        <div class="step active">2</div>
-        <div class="step-connector"></div>
-        <div class="step inactive">3</div>
-      </div>
+      <button class="btn-primary" (click)="backToLogin()">Back to Login</button>
 
-      <form (ngSubmit)="onVerificationSubmit()">
-        <div class="form-group">
-          <label class="form-label">Enter Verification Code</label>
-          <div class="verification-inputs">
-            <input *ngFor="let code of verificationCode; let i = index" type="text" class="verification-input"
-              maxlength="1" [attr.data-index]="i" [(ngModel)]="verificationCode[i]"
-              [ngModelOptions]="{standalone: true}" (input)="onVerificationInput(i, $event)"
-              (keydown)="onVerificationKeydown(i, $event)">
-          </div>
-        </div>
+      <p class="auth-link resend-hint">
+        Didn't receive it?
+        <button class="link-btn" (click)="step = 'email'">Try again</button>
+      </p>
+    </ng-container>
 
-        <div class="resend-timer">
-          <span id="timerText" [class.hidden]="timeLeft <= 0">
-            Resend code in <span id="countdown">{{ timeLeft }}</span> seconds
-          </span>
-          <button type="button" class="resend-btn" [class.hidden]="timeLeft > 0" (click)="resendCode()"
-            [disabled]="timeLeft > 0">
-            Resend Code
-          </button>
-        </div>
-
-        <button type="submit" class="reset-btn" [disabled]="verificationCode.join('').length !== 6 || isSubmitting">
-          {{ isSubmitting ? 'Verifying...' : 'Verify Code' }}
-        </button>
-      </form>
-    </div>
-
-    <!-- Step 3: New Password -->
-    <div id="step3" class="step-content" *ngIf="currentStep === 3">
-      <div class="forgot-password-header">
-        <div class="forgot-password-icon">✅</div>
-        <h1 class="forgot-password-title">Reset Your Password</h1>
-        <p class="forgot-password-subtitle">
-          Create a new strong password for your TechWave account
-        </p>
-      </div>
-
-      <div class="step-indicator">
-        <div class="step completed">✓</div>
-        <div class="step-connector active"></div>
-        <div class="step completed">✓</div>
-        <div class="step-connector active"></div>
-        <div class="step active">3</div>
-      </div>
-
-      <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()">
-        <div class="form-group">
-          <label for="newPassword" class="form-label">New Password</label>
-          <div class="password-container">
-            <input [type]="showPassword ? 'text' : 'password'" id="newPassword" formControlName="newPassword"
-              class="form-input" placeholder="Enter new password"
-              (input)="checkPasswordStrength(passwordForm.get('newPassword')?.value)">
-            <button type="button" class="password-toggle" (click)="togglePassword('newPassword')">
-              {{ showPassword ? '🙈' : '👁️' }}
-            </button>
-          </div>
-          <div class="password-strength" [class.strength-weak]="passwordStrength === 'weak'"
-            [class.strength-medium]="passwordStrength === 'medium'"
-            [class.strength-strong]="passwordStrength === 'strong'">
-            <span *ngIf="passwordStrength === 'weak'">Weak - Use at least 8 characters with mixed case, numbers, and
-              symbols</span>
-            <span *ngIf="passwordStrength === 'medium'">Medium - Consider adding more variety</span>
-            <span *ngIf="passwordStrength === 'strong'">Strong - Great password!</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
-          <div class="password-container">
-            <input [type]="showConfirmPassword ? 'text' : 'password'" id="confirmNewPassword"
-              formControlName="confirmNewPassword" class="form-input" placeholder="Confirm new password"
-              [style.borderColor]="passwordForm.hasError('mismatch') ? '#ef4444' : '#e5e7eb'">
-            <button type="button" class="password-toggle" (click)="togglePassword('confirmNewPassword')">
-              {{ showConfirmPassword ? '🙈' : '👁️' }}
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" class="reset-btn"
-          [disabled]="passwordForm.invalid || passwordStrength !== 'strong' || isSubmitting">
-          {{ isSubmitting ? 'Resetting Password...' : 'Reset Password' }}
-        </button>
-      </form>
-    </div>
-
-    <!-- Success Step -->
-    <div id="successStep" class="step-content" *ngIf="currentStep === 4">
-      <div class="success-message">
-        <div class="success-icon">🎉</div>
-        <h2>Password Reset Successful!</h2>
-        <p>Your password has been successfully updated. You can now sign in with your new password.</p>
-      </div>
-
-      <button class="reset-btn" (click)="goToLogin()">
-        Sign In Now
-      </button>
-    </div>
-
-    <div class="back-to-login">
-      <a routerLink="#" (click)="goToLogin()">
-        ← Back to Sign In
-      </a>
-    </div>
   </div>
-</main>
+</div>
 
-<!-- Footer -->
-<footer class="footer">
-  <p>&copy; 2025 TechWave Kenya. All rights reserved.</p>
-</footer>
+<app-footer></app-footer>

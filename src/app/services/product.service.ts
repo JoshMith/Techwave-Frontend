@@ -10,6 +10,7 @@ export interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
+  condition?: 'new' | 'ex_uk';
   specs: {
     brand?: string;
     processor?: string;

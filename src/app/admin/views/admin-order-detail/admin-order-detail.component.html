@@ -1,0 +1,151 @@
+<!-- src/app/admin/views/orders/admin-order-detail.component.html -->
+
+<div class="page-header">
+  <button class="back-btn" (click)="router.navigate(['/admin/orders'])">← Orders</button>
+  <h1 class="page-title">Order Detail</h1>
+</div>
+
+<div *ngIf="isLoading" class="loading-container"><div class="loading-spinner"></div></div>
+
+<div *ngIf="error && !isLoading" class="error-container">
+  <div class="error-message">
+    <span class="error-icon">⚠️</span><p>{{ error }}</p>
+    <button class="btn btn-secondary" (click)="router.navigate(['/admin/orders'])">← Back</button>
+  </div>
+</div>
+
+<div *ngIf="!isLoading && !error && order" style="display:flex;flex-direction:column;gap:1.5rem;">
+
+  <div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+
+  <!-- Order summary -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Order #{{ order.order_id }}</h2>
+      <span class="status-badge" [ngClass]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;padding:1rem 0;">
+      <div>
+        <div class="profile-label">Date</div>
+        <div class="profile-value">{{ fmtDT(order.created_at) }}</div>
+      </div>
+      <div>
+        <div class="profile-label">Total Amount</div>
+        <div class="profile-value" style="color:#10b981;font-weight:700;font-size:1.2rem;">{{ fmt(order.total_amount) }}</div>
+      </div>
+      <div>
+        <div class="profile-label">Payment Method</div>
+        <div class="profile-value">
+          {{ order.payment_method === 'cash_on_delivery' ? 'Cash on Delivery'
+           : order.payment_method === 'mpesa' ? 'M-Pesa'
+           : (order.payment_method ?? '—') }}
+        </div>
+      </div>
+      <div>
+        <div class="profile-label">Agent Referral</div>
+        <div class="profile-value">
+          <span class="agent-badge" [class.direct]="!order.agent_code">
+            {{ order.agent_code ?? 'Direct Order' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer info -->
+  <div class="card" *ngIf="order.customer">
+    <div class="card-header"><h3 class="card-title">Customer</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;padding:0.5rem 0;">
+      <div><div class="profile-label">Name</div><div class="profile-value">{{ order.customer.name }}</div></div>
+      <div><div class="profile-label">Email</div><div class="profile-value">{{ order.customer.email }}</div></div>
+      <div><div class="profile-label">Phone</div><div class="profile-value">{{ order.customer.phone ?? '—' }}</div></div>
+    </div>
+  </div>
+
+  <!-- Delivery address -->
+  <div class="card" *ngIf="order.address">
+    <div class="card-header"><h3 class="card-title">Delivery Address</h3></div>
+    <div style="padding:0.5rem 0;line-height:1.8;color:#475569;">
+      <div><strong>{{ order.address.full_name }}</strong></div>
+      <div>{{ order.address.phone }}</div>
+      <div>{{ order.address.street }}<span *ngIf="order.address.building">, {{ order.address.building }}</span></div>
+      <div>{{ order.address.city }}, {{ order.address.county }} {{ order.address.postal_code }}</div>
+      <div>{{ order.address.country }}</div>
+    </div>
+  </div>
+
+  <!-- Order items -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Items</h3></div>
+    <div class="table-container">
+      <table class="orders-table">
+        <thead>
+          <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of (order.items ?? order.order_items ?? [])">
+            <td>{{ item.product_title ?? item.title ?? item.product_id }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ fmt(item.unit_price) }}</td>
+            <td>{{ item.discount ? fmt(item.discount) : '—' }}</td>
+            <td style="font-weight:600;">{{ fmt((item.unit_price * item.quantity) - (item.discount ?? 0)) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:700;border-top:2px solid #e2e8f0;">
+            <td colspan="4" style="text-align:right;padding:0.75rem 1rem;">Total</td>
+            <td style="color:#10b981;padding:0.75rem 1rem;">{{ fmt(order.total_amount) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Payment info -->
+  <div class="card" *ngIf="order.payment">
+    <div class="card-header"><h3 class="card-title">Payment</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;padding:0.5rem 0;">
+      <div><div class="profile-label">Method</div><div class="profile-value">{{ order.payment.method }}</div></div>
+      <div><div class="profile-label">Status</div>
+        <div class="profile-value">
+          <span class="status-badge" [ngClass]="order.payment.confirmed ? 'delivered' : 'pending'">
+            {{ order.payment.confirmed ? 'Confirmed' : 'Pending' }}
+          </span>
+        </div>
+      </div>
+      <div *ngIf="order.payment.transaction_reference">
+        <div class="profile-label">Transaction ID</div>
+        <div class="profile-value">{{ order.payment.transaction_reference }}</div>
+      </div>
+      <div><div class="profile-label">Amount</div><div class="profile-value" style="color:#10b981;font-weight:600;">{{ fmt(order.payment.amount) }}</div></div>
+    </div>
+  </div>
+
+  <!-- Commission info (if agent-referred) -->
+  <div class="card" *ngIf="order.agent_code">
+    <div class="card-header"><h3 class="card-title">Commission</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;padding:0.5rem 0;">
+      <div><div class="profile-label">Agent Code</div><div class="profile-value">{{ order.agent_code }}</div></div>
+      <div><div class="profile-label">Commission Total</div>
+        <div class="profile-value" style="color:#10b981;font-weight:700;">{{ fmt(order.commission_total) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update status + COD confirm -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Update Order Status</h3></div>
+    <div style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;padding:0.5rem 0;">
+      <div class="form-group" style="min-width:200px;margin:0;">
+        <label>Status</label>
+        <select [(ngModel)]="order.status" (ngModelChange)="updateStatus($event)" class="form-select">
+          <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+        </select>
+      </div>
+      <button *ngIf="isCodPending" class="btn-confirm-cod" (click)="confirmCod()" style="margin-bottom:0.1rem;">
+        ✓ Confirm COD Payment Received
+      </button>
+    </div>
+  </div>
+
+</div>

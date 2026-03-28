@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, map, switchMap, Subscription, catchError, of } from 'rxjs';
@@ -16,6 +16,7 @@ interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
+  condition?: 'new' | 'ex_uk';
   specs: {
     brand: string;
     storage?: number;
@@ -56,7 +57,7 @@ interface Filters {
   templateUrl: './phones.component.html',
   styleUrls: ['./phones.component.css'],
 })
-export class PhonesComponent implements OnInit {
+export class PhonesComponent implements OnInit, OnDestroy {
   Math = Math;
 
   allProducts: Product[] = [];

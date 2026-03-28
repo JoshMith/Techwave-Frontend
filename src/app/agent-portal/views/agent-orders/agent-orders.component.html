@@ -1,0 +1,116 @@
+<p>agent-orders works!</p>
+<!-- src/app/agent-portal/views/agent-orders/agent-orders.component.html -->
+
+<div class="page-header">
+    <button class="back-btn" (click)="router.navigate(['/agent/dashboard'])">← Back to Dashboard</button>
+    <h1 class="page-title">My Orders & Commissions</h1>
+</div>
+
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;">
+    <div class="loading-spinner"></div>
+</div>
+
+<div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-message">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="load(1)">Retry</button>
+    </div>
+</div>
+
+<div *ngIf="!isLoading && !error">
+
+    <!-- Empty state -->
+    <div *ngIf="orders.length === 0" class="card">
+        <div class="empty-state" style="padding:3rem;">
+            <p>No orders yet</p>
+            <small>Orders placed via your referral link will appear here once customers complete checkout.</small>
+        </div>
+    </div>
+
+    <!-- Orders list -->
+    <div *ngIf="orders.length > 0" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <div *ngFor="let order of orders" class="card" style="padding:0;">
+
+            <!-- Order header row -->
+            <div
+                style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f1f5f9;">
+                <div>
+                    <div style="font-weight:700;color:#1e293b;margin-bottom:0.2rem;">
+                        Order #{{ order.order_id }}
+                    </div>
+                    <div style="font-size:0.85rem;color:#64748b;">
+                        {{ formatDate(order.created_at) }} · {{ order.customer_name }} · {{
+                        getPaymentLabel(order.payment_method) }}
+                    </div>
+                </div>
+                <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                    {{ getStatusLabel(order.status) }}
+                </span>
+            </div>
+
+            <!-- Order amounts -->
+            <div style="display:flex;gap:2rem;flex-wrap:wrap;padding:1rem 1.5rem;background:#f8fafc;">
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#94a3b8;">Order
+                        Value</div>
+                    <div style="font-weight:600;color:#334155;">{{ formatAmount(order.total_amount) }}</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#94a3b8;">
+                        Commission Earned</div>
+                    <div class="commission-amount" style="font-size:1.05rem;">{{ formatAmount(order.commission_total) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commission breakdown toggle -->
+            <div style="padding:0.75rem 1.5rem;">
+                <button class="breakdown-toggle" (click)="toggleExpand(order)">
+                    {{ order.expanded ? '▲ Hide breakdown' : '▼ Show commission breakdown' }}
+                </button>
+
+                <div *ngIf="order.expanded && order.commission_breakdown && order.commission_breakdown.length > 0"
+                    class="commission-breakdown">
+                    <div class="breakdown-row" *ngFor="let line of order.commission_breakdown">
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="rate-badge"
+                                [ngClass]="isAccessories(line.category) ? 'accessories' : 'standard'">
+                                {{ isAccessories(line.category) ? '8%' : '2.5%' }}
+                            </span>
+                            <span>{{ line.category }}</span>
+                            <span style="color:#94a3b8;font-size:0.78rem;">· {{ formatAmount(line.item_subtotal)
+                                }}</span>
+                        </div>
+                        <span class="commission-amount">+{{ formatAmount(line.amount_earned) }}</span>
+                    </div>
+                </div>
+
+                <div *ngIf="order.expanded && (!order.commission_breakdown || order.commission_breakdown.length === 0)"
+                    class="commission-breakdown">
+                    <p style="font-size:0.83rem;color:#94a3b8;">No commission breakdown available for this order.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="pagination.totalPages > 1"
+        style="display:flex;justify-content:center;align-items:center;gap:1rem;margin-top:1.5rem;">
+        <button class="btn btn-secondary btn-small" (click)="prevPage()" [disabled]="pagination.page <= 1">
+            ← Previous
+        </button>
+        <span style="font-size:0.875rem;color:#64748b;">
+            Page {{ pagination.page }} of {{ pagination.totalPages }}
+            ({{ pagination.total }} orders)
+        </span>
+        <button class="btn btn-secondary btn-small" (click)="nextPage()"
+            [disabled]="pagination.page >= pagination.totalPages">
+            Next →
+        </button>
+    </div>
+
+</div>

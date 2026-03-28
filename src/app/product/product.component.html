@@ -47,6 +47,17 @@
       <!-- Product Details -->
       <div class="product-details">
         <h1 class="product-title">{{ product.title }}</h1>
+        
+        <div *ngIf="product.condition" class="product-detail-condition">
+          <span class="condition-badge"
+                [class.new]="product.condition === 'new'"
+                [class.ex-uk]="product.condition === 'ex_uk'">
+            {{ product.condition === 'new' ? 'New' : 'Ex-UK / Grade B' }}
+          </span>
+          <span *ngIf="product.condition === 'ex_uk'" class="condition-note">
+            Pre-owned import — inspected &amp; tested
+          </span>
+        </div>
         <div class="product-brand" *ngIf="product.specs?.brand">Brand: {{ product.specs.brand }}</div>
 
         <div class="rating-section">

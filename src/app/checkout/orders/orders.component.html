@@ -1,1 +1,143 @@
-<p>orders works!</p>
+<div class="orders-page">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="state-container">
+    <div class="spinner"></div>
+    <p>Loading your order...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="state-container error-state">
+    <div class="state-icon">⚠️</div>
+    <h2>Couldn't load order</h2>
+    <p>{{ error }}</p>
+    <button (click)="continueShopping()" class="btn-primary">Back to Shop</button>
+  </div>
+
+  <!-- Order content -->
+  <div *ngIf="!isLoading && !error && order" class="order-content">
+
+    <!-- Success banner — shown only when arriving from checkout -->
+    <div *ngIf="isNewOrder" class="success-banner">
+      <div class="success-banner-inner">
+        <span class="success-icon">🎉</span>
+        <div>
+          <h2>Order placed successfully!</h2>
+          <p>Thank you for shopping with TechWave. We'll keep you updated as your order progresses.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order header -->
+    <div class="order-header-card">
+      <div class="order-header-top">
+        <div>
+          <h1 class="order-title">Order #{{ order.order_id }}</h1>
+          <p class="order-date">Placed on {{ formatDate(order.created_at) }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass()">
+          {{ getStatusLabel() }}
+        </span>
+      </div>
+
+      <div class="order-meta-row">
+        <div class="meta-item">
+          <span class="meta-label">Payment</span>
+          <span class="meta-value">{{ getPaymentMethodLabel() }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Order Total</span>
+          <span class="meta-value highlight">{{ formatAmount(order.total_amount) }}</span>
+        </div>
+        <div class="meta-item" *ngIf="order.delivery_city || order.address">
+          <span class="meta-label">Delivery To</span>
+          <span class="meta-value">{{ order.delivery_city || order.address?.city || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status tracker — not shown for cancelled orders -->
+    <div *ngIf="!isCancelled()" class="tracker-card">
+      <h2 class="section-title">Order Status</h2>
+
+      <div class="tracker">
+        <div *ngFor="let step of statusSteps; let i = index; let last = last"
+             class="tracker-step"
+             [class.completed]="isStepCompleted(step)"
+             [class.active]="isStepActive(step)">
+
+          <!-- Connector line (not on last step) -->
+          <div *ngIf="!last" class="connector" [class.filled]="isStepCompleted(step)"></div>
+
+          <!-- Circle -->
+          <div class="step-circle">
+            <span *ngIf="isStepCompleted(step)" class="check">✓</span>
+            <span *ngIf="!isStepCompleted(step)">{{ step.icon }}</span>
+          </div>
+
+          <!-- Label -->
+          <div class="step-label">
+            <span class="step-name">{{ step.label }}</span>
+            <span *ngIf="isStepActive(step)" class="step-desc">{{ step.description }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancelled state -->
+    <div *ngIf="isCancelled()" class="cancelled-card">
+      <div class="cancelled-icon">✕</div>
+      <h2>Order Cancelled</h2>
+      <p>This order has been cancelled. If you believe this is an error, please contact support.</p>
+    </div>
+
+    <!-- Order items -->
+    <div *ngIf="order.order_items && order.order_items.length > 0" class="items-card">
+      <h2 class="section-title">Items Ordered ({{ order.order_items.length }})</h2>
+
+      <div class="items-list">
+        <div *ngFor="let item of order.order_items" class="item-row">
+          <div class="item-info">
+            <p class="item-title">{{ item.product_title || item.title }}</p>
+            <p class="item-qty">Qty: {{ item.quantity }} × {{ formatAmount(item.unit_price) }}</p>
+            <p *ngIf="item.discount > 0" class="item-discount">Discount: −{{ formatAmount(item.discount) }}</p>
+          </div>
+          <div class="item-total">{{ formatAmount(getItemTotal(item)) }}</div>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals">
+        <div class="totals-row" *ngIf="order.delivery_cost > 0">
+          <span>Delivery</span>
+          <span>{{ formatAmount(order.delivery_cost) }}</span>
+        </div>
+        <div class="totals-row" *ngIf="order.delivery_cost === 0">
+          <span>Delivery</span>
+          <span class="free">FREE</span>
+        </div>
+        <div class="totals-row grand-total">
+          <span>Total</span>
+          <span>{{ formatAmount(order.total_amount) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery address -->
+    <div *ngIf="order.address" class="address-card">
+      <h2 class="section-title">Delivery Address</h2>
+      <p>{{ order.address.full_name }}</p>
+      <p>{{ order.address.street }}<span *ngIf="order.address.building">, {{ order.address.building }}</span></p>
+      <p>{{ order.address.city }}, {{ order.address.county }}</p>
+      <p>{{ order.address.country }}</p>
+      <p *ngIf="order.address.phone">{{ order.address.phone }}</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-row">
+      <button (click)="viewAllOrders()" class="btn-secondary">View All Orders</button>
+      <button (click)="continueShopping()" class="btn-primary">Continue Shopping</button>
+    </div>
+
+  </div>
+</div>

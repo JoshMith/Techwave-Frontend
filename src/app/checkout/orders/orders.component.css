@@ -1,55 +1,411 @@
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.orders-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 1rem;
+}
 
+.order-content {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
-/* Additional utility classes */
-.text-center {
+/* ── Loading / Error states ──────────────────────────────────────────────── */
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.state-icon {
+  font-size: 3rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Success banner ──────────────────────────────────────────────────────── */
+.success-banner {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border: 1px solid #10b981;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.success-banner-inner {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.success-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.success-banner h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  color: #065f46;
+}
+
+.success-banner p {
+  margin: 0;
+  color: #047857;
+  font-size: 0.95rem;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.order-header-card,
+.tracker-card,
+.items-card,
+.address-card,
+.cancelled-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* ── Order header ────────────────────────────────────────────────────────── */
+.order-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.order-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem;
+}
+
+.order-date {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.order-meta-row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.meta-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.meta-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.meta-value.highlight {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* ── Status badge ────────────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-pending    { background: #fef9c3; color: #854d0e; }
+.status-paid       { background: #dcfce7; color: #166534; }
+.status-processing { background: #dbeafe; color: #1e40af; }
+.status-shipped    { background: #f3e8ff; color: #6b21a8; }
+.status-delivered  { background: #d1fae5; color: #065f46; }
+.status-cancelled  { background: #fee2e2; color: #991b1b; }
+
+/* ── Status tracker ──────────────────────────────────────────────────────── */
+.tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tracker-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+  padding-bottom: 1.5rem;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.tracker-step.completed,
+.tracker-step.active {
+  opacity: 1;
+}
+
+.connector {
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  width: 2px;
+  height: calc(100% - 16px);
+  background: #e2e8f0;
+}
+
+.connector.filled {
+  background: #2563eb;
+}
+
+.step-circle {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  z-index: 1;
+}
+
+.tracker-step.completed .step-circle {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.tracker-step.active .step-circle {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px #dbeafe;
+}
+
+.check {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.step-label {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.6rem;
+}
+
+.step-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.step-desc {
+  font-size: 0.83rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* ── Cancelled card ──────────────────────────────────────────────────────── */
+.cancelled-card {
   text-align: center;
+  padding: 2.5rem;
+  border-color: #fca5a5;
+  background: #fff5f5;
 }
 
-.mt-1 {
-  margin-top: 0.5rem;
+.cancelled-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
 }
 
-.mt-2 {
+.cancelled-card h2 { color: #dc2626; margin: 0 0 0.5rem; }
+.cancelled-card p  { color: #64748b; margin: 0; }
+
+/* ── Items list ──────────────────────────────────────────────────────────── */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.item-row:last-child {
+  border-bottom: none;
+}
+
+.item-title {
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.item-qty {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 0.15rem;
+}
+
+.item-discount {
+  font-size: 0.83rem;
+  color: #16a34a;
+  margin: 0;
+}
+
+.item-total {
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+/* ── Totals ──────────────────────────────────────────────────────────────── */
+.totals {
   margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
 }
 
-.mb-1 {
-  margin-bottom: 0.5rem;
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #475569;
+  padding: 0.3rem 0;
 }
 
-.mb-2 {
-  margin-bottom: 1rem;
+.totals-row .free {
+  color: #16a34a;
+  font-weight: 600;
 }
 
-/* Smooth transitions */
-* {
-  transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease;
+.totals-row.grand-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid #e2e8f0;
 }
 
-/* Focus styles for accessibility */
-button:focus,
-input:focus,
-a:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* ── Address card ────────────────────────────────────────────────────────── */
+.address-card p {
+  margin: 0.2rem 0;
+  color: #475569;
+  font-size: 0.93rem;
 }
 
-/* Print styles */
-@media print {
-  .header,
-  .sidebar,
-  .footer,
-  .nav-item,
-  button {
-    display: none !important;
-  }
+/* ── Actions ─────────────────────────────────────────────────────────────── */
+.actions-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
 
-  .profile-content {
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover { background: #e2e8f0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .order-header-top {
     flex-direction: column;
   }
 
-  .dashboard {
+  .order-meta-row {
+    gap: 1rem;
+  }
+
+  .actions-row {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
     width: 100%;
+    text-align: center;
   }
 }

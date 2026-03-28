@@ -1,159 +1,87 @@
+// src/app/auth/forgot-pwd/forgot-pwd.component.ts
+//
+// Phase 4.2 — Forgot password flow.
+//
+// ⚠️  BACKEND TODO (James Kiarie):
+//   The backend has no /auth/forgot-password or /auth/reset-password endpoint yet.
+//   This component calls POST /auth/forgot-password with { email }.
+//   The backend must:
+//     1. Validate the email exists in the users table.
+//     2. Generate a time-limited token (e.g. UUID, 1 hour TTL) stored in a
+//        password_reset_tokens table (or Redis).
+//     3. Email the user a reset link: https://techwaveelectronics.co.ke/reset-password?token=<token>
+//     4. Expose POST /auth/reset-password { token, newPassword } to complete the flow.
+//   Until that endpoint exists the submit button shows a server-error message.
+
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ApiService } from '../../services/api.service';
+import { HeaderComponent } from '../../shared/header/header.component';
+import { FooterComponent } from '../../shared/footer/footer.component';
+
+type Step = 'email' | 'sent';
 
 @Component({
   selector: 'app-forgot-pwd',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent, FooterComponent],
   templateUrl: './forgot-pwd.component.html',
-  styleUrls: ['./forgot-pwd.component.css']
+  styleUrls: ['./forgot-pwd.component.css'],
 })
-export class ForgotPwdComponent {
-  currentStep = 1;
-  timeLeft = 60;
-  countdownTimer: any;
-  showPassword = false;
-  showConfirmPassword = false;
-  isSubmitting = false;
-  verificationCode = ['', '', '', '', '', ''];
-  passwordStrength = '';
+export class ForgotPwdComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
 
-  // Separate forms for each step
-  emailForm: FormGroup;
-  verificationForm: FormGroup;
-  passwordForm: FormGroup;
+  step: Step = 'email';
+  email      = '';
+  isLoading  = false;
+  errorMsg: string | null  = null;
+  successMsg: string | null = null;
 
-  constructor(private fb: FormBuilder) {
-    this.emailForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
-    });
+  constructor(private apiService: ApiService, private router: Router) {}
 
-    this.verificationForm = this.fb.group({
-      code0: [''],
-      code1: [''],
-      code2: [''],
-      code3: [''],
-      code4: [''],
-      code5: ['']
-    });
-
-    this.passwordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmNewPassword: ['', Validators.required]
-    }, { validator: this.passwordMatchValidator });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  passwordMatchValidator(form: FormGroup) {
-    return form.get('newPassword')?.value === form.get('confirmNewPassword')?.value
-      ? null : { mismatch: true };
-  }
-
-  showStep(step: number): void {
-    this.currentStep = step;
-  }
-
-  goToLogin(): void {
-    alert('Redirecting to login page...');
-  }
-
-  togglePassword(field: 'newPassword' | 'confirmNewPassword'): void {
-    if (field === 'newPassword') {
-      this.showPassword = !this.showPassword;
-    } else {
-      this.showConfirmPassword = !this.showConfirmPassword;
+  submit(): void {
+    const trimmed = this.email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@')) {
+      this.errorMsg = 'Please enter a valid email address.';
+      return;
     }
+
+    this.isLoading = true;
+    this.errorMsg  = null;
+
+    // POST /auth/forgot-password — backend endpoint not yet implemented.
+    // When James adds the endpoint this call will work automatically.
+    this.apiService.forgotPassword(trimmed)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.step = 'sent';
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          // 404 means endpoint doesn't exist yet — surface a friendly message
+          if (err?.status === 404 || err?.status === 0) {
+            this.errorMsg = 'Password reset is not yet available. Please contact support.';
+          } else {
+            // Any other error (e.g. email not found) — still show the generic message
+            // to avoid leaking whether an email exists in our system.
+            this.step = 'sent';
+          }
+        },
+      });
   }
 
-  startCountdown(): void {
-    this.timeLeft = 60;
-    clearInterval(this.countdownTimer);
-
-    this.countdownTimer = setInterval(() => {
-      this.timeLeft--;
-      if (this.timeLeft <= 0) {
-        clearInterval(this.countdownTimer);
-      }
-    }, 1000);
-  }
-
-  checkPasswordStrength(password: string): void {
-    let score = 0;
-
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-
-    if (score < 3) {
-      this.passwordStrength = 'weak';
-    } else if (score < 4) {
-      this.passwordStrength = 'medium';
-    } else {
-      this.passwordStrength = 'strong';
-    }
-  }
-
-  onEmailSubmit(): void {
-    if (this.emailForm.valid) {
-      this.isSubmitting = true;
-
-      setTimeout(() => {
-        this.showStep(2);
-        this.startCountdown();
-        this.isSubmitting = false;
-      }, 2000);
-    }
-  }
-
-  onVerificationSubmit(): void {
-    const code = this.verificationCode.join('');
-
-    if (code.length === 6) {
-      this.isSubmitting = true;
-
-      setTimeout(() => {
-        if (code === '123456') { // Demo code
-          this.showStep(3);
-        } else {
-          alert('Invalid verification code. Try: 123456');
-        }
-        this.isSubmitting = false;
-      }, 1500);
-    }
-  }
-
-  onPasswordSubmit(): void {
-    if (this.passwordForm.valid && this.passwordStrength === 'strong') {
-      this.isSubmitting = true;
-
-      setTimeout(() => {
-        this.showStep(4);
-        this.isSubmitting = false;
-      }, 2000);
-    }
-  }
-
-  resendCode(): void {
-    alert('Verification code resent!');
-    this.startCountdown();
-  }
-
-  onVerificationInput(index: number, event: any): void {
-    const value = event.target.value;
-    this.verificationCode[index] = value;
-    if (value && index < 5) {
-      const nextInput = document.querySelector(`.verification-input[data-index="${index + 1}"]`) as HTMLInputElement;
-      if (nextInput) nextInput.focus();
-    }
-  }
-
-  onVerificationKeydown(index: number, event: KeyboardEvent): void {
-    if (event.key === 'Backspace' && !this.verificationCode[index] && index > 0) {
-      const prevInput = document.querySelector(`.verification-input[data-index="${index - 1}"]`) as HTMLInputElement;
-      if (prevInput) prevInput.focus();
-    }
+  backToLogin(): void {
+    this.router.navigate(['/login']);
   }
 }

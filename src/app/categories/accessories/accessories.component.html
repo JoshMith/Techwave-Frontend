@@ -90,6 +90,10 @@
               </ng-template>
             </div>
             <div class="product-info">
+              <span *ngIf="product.condition" class="condition-badge" [class.new]="product.condition === 'new'"
+                [class.ex-uk]="product.condition === 'ex_uk'">
+                {{ product.condition === 'new' ? 'New' : 'Ex-UK' }}
+              </span>
               <h3 class="product-name">{{ product.title }}</h3>
               <p class="product-specs">{{ formatSpecs(product.specs) }}</p>
               <div class="product-rating">

@@ -409,7 +409,7 @@ export class CartService {
         next: (summary) => {
           const newState = {
             cart_id: this.currentCart!.cart_id,
-            item_count: summary.totalItems || 0,
+            item_count: summary.total_items ?? summary.totalItems ?? 0,
             total_amount: summary.subtotal || 0,
             isGuest: !this.currentCart!.user_id
           };
@@ -455,7 +455,7 @@ export class CartService {
       next: (summary) => {
         const newState = {
           cart_id: this.currentCart!.cart_id,
-          item_count: summary.total_items || 0,
+          item_count: summary.total_items ?? summary.totalItems ?? 0,
           total_amount: summary.subtotal || 0,
           isGuest: !this.currentCart!.user_id
         };

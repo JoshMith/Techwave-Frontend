@@ -1,0 +1,156 @@
+<!-- src/app/agent-portal/views/agent-overview/agent-overview.component.html -->
+
+<div *ngIf="isLoading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Loading your dashboard...</p>
+</div>
+
+<div *ngIf="error && !isLoading" class="error-container">
+  <div class="error-message">
+    <span class="error-icon">⚠️</span>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="load()">Retry</button>
+  </div>
+</div>
+
+<div *ngIf="!isLoading && !error && data">
+
+  <!-- Page header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Welcome, {{ data.agent.full_name }}!</h1>
+    <p class="dashboard-subtitle">{{ data.agent.agent_code }} · Your sales performance at a glance</p>
+    <button class="refresh-btn" (click)="load()">🔄 Refresh</button>
+  </div>
+
+  <!-- ── Referral link card ── -->
+  <div class="referral-card">
+    <h2>Your Referral Link</h2>
+    <div class="referral-link-display">{{ data.agent.referral_link }}</div>
+    <div class="referral-actions">
+      <button class="btn-copy" (click)="copyLink()">
+        📋 {{ copySuccess ? 'Copied!' : 'Copy Link' }}
+      </button>
+      <button class="btn-download-qr" (click)="downloadQR()" *ngIf="qrReady">
+        ⬇ Download QR
+      </button>
+    </div>
+    <p *ngIf="copySuccess" class="copy-success">✓ Link copied to clipboard</p>
+  </div>
+
+  <!-- ── QR code ── -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h2 class="card-title">QR Code for In-Person Sharing</h2>
+    </div>
+    <div class="qr-container">
+      <canvas #qrCanvas></canvas>
+      <p *ngIf="!qrReady" style="color:#94a3b8;font-size:0.85rem;">
+        Generating QR code...
+      </p>
+      <p style="font-size:0.82rem;color:#64748b;text-align:center;max-width:240px;">
+        Show or print this QR code. Customers scan it to shop — you earn commission automatically.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Period toggle ── -->
+  <div class="period-tabs">
+    <button class="period-tab" [class.active]="activePeriod === 'this_month'"
+      (click)="activePeriod = 'this_month'">This Month</button>
+    <button class="period-tab" [class.active]="activePeriod === 'all_time'"
+      (click)="activePeriod = 'all_time'">All Time</button>
+  </div>
+
+  <!-- ── Stats grid ── -->
+  <div class="agent-stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Orders Referred</div>
+          <div class="stat-value">{{ currentPeriod?.total_orders ?? 0 }}</div>
+          <div class="stat-change positive" *ngIf="activePeriod === 'this_month'">
+            All time: {{ data.all_time.total_orders }}
+          </div>
+        </div>
+        <div class="stat-icon orders">📦</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Revenue Generated</div>
+          <div class="stat-value" style="font-size:1.6rem;">
+            {{ formatAmount(currentPeriod?.total_revenue) }}
+          </div>
+          <div class="stat-change positive" *ngIf="activePeriod === 'this_month'">
+            All time: {{ formatAmount(data.all_time.total_revenue) }}
+          </div>
+        </div>
+        <div class="stat-icon revenue">💰</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Commission Earned</div>
+          <div class="stat-value commission-amount" style="font-size:1.6rem;">
+            {{ formatAmount(currentPeriod?.total_commission) }}
+          </div>
+          <div class="stat-change positive" *ngIf="activePeriod === 'this_month'">
+            All time: {{ formatAmount(data.all_time.total_commission) }}
+          </div>
+        </div>
+        <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);color:white;">🏆</div>
+      </div>
+    </div>
+
+    <div class="stat-card" *ngIf="activePeriod === 'all_time'">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Unique Customers</div>
+          <div class="stat-value">{{ data.all_time.unique_customers }}</div>
+          <div class="stat-change positive">Referred via your link</div>
+        </div>
+        <div class="stat-icon customers">👥</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Commission rates info ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Commission Rates</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;padding:0.25rem 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#fef3c7;border-radius:8px;">
+        <div>
+          <strong style="color:#92400e;">Accessories</strong>
+          <p style="font-size:0.82rem;color:#78350f;margin:0.1rem 0 0;">Phone cases, chargers, cables, headphones…</p>
+        </div>
+        <span class="rate-badge accessories">8% commission</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#dbeafe;border-radius:8px;">
+        <div>
+          <strong style="color:#1e40af;">All Other Categories</strong>
+          <p style="font-size:0.82rem;color:#1e3a8a;margin:0.1rem 0 0;">Phones, Laptops, Home Appliances, Gaming, Audio</p>
+        </div>
+        <span class="rate-badge standard">2.5% commission</span>
+      </div>
+      <p style="font-size:0.8rem;color:#94a3b8;margin-top:0.25rem;">
+        Commission is calculated per item in each order. An order with multiple items earns commission separately per item based on its category.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Quick action ── -->
+  <div style="margin-top:1.5rem;">
+    <button class="btn btn-primary" (click)="router.navigate(['/agent/orders'])">
+      📋 View My Orders & Commissions
+    </button>
+  </div>
+
+</div>

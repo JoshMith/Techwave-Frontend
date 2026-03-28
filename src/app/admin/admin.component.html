@@ -1,0 +1,77 @@
+<!-- src/app/admin/admin.component.html -->
+
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo-section">
+      <a routerLink="/" class="logo">
+        <img src="favicon.ico" width="50px" alt="TechWave">
+      </a>
+      <span class="seller-badge">Admin</span>
+    </div>
+
+    <button class="menu-toggle" [class.active]="isMobileMenuOpen"
+      (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-items">
+      <a class="nav-link" routerLink="/admin/overview"   routerLinkActive="active">Overview</a>
+      <a class="nav-link" routerLink="/admin/products"   routerLinkActive="active">Products</a>
+      <a class="nav-link" routerLink="/admin/orders"     routerLinkActive="active">Orders</a>
+      <a class="nav-link" routerLink="/admin/agents"     routerLinkActive="active">Agents</a>
+      <a class="nav-link" routerLink="/admin/customers"  routerLinkActive="active">Customers</a>
+      <a class="nav-link" routerLink="/admin/settings"   routerLinkActive="active">Settings</a>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-avatar" title="{{ userName }}">
+        {{ userName.charAt(0).toUpperCase() }}
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div class="mobile-overlay" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+<div class="mobile-nav" [class.active]="isMobileMenuOpen">
+  <button class="mobile-close-btn" (click)="closeMobileMenu()" aria-label="Close">&times;</button>
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-link" routerLink="/admin/overview"  routerLinkActive="active" (click)="closeMobileMenu()">Overview</a>
+    <a class="mobile-nav-link" routerLink="/admin/products"  routerLinkActive="active" (click)="closeMobileMenu()">Products</a>
+    <a class="mobile-nav-link" routerLink="/admin/orders"    routerLinkActive="active" (click)="closeMobileMenu()">Orders</a>
+    <a class="mobile-nav-link" routerLink="/admin/agents"    routerLinkActive="active" (click)="closeMobileMenu()">Agents</a>
+    <a class="mobile-nav-link" routerLink="/admin/customers" routerLinkActive="active" (click)="closeMobileMenu()">Customers</a>
+    <a class="mobile-nav-link" routerLink="/admin/settings"  routerLinkActive="active" (click)="closeMobileMenu()">Settings</a>
+  </div>
+</div>
+
+<main class="main-content">
+
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading admin portal...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !isAuthorized && !error" class="unauthorized-container">
+    <div class="unauthorized-message">
+      <span class="unauthorized-icon">🚫</span>
+      <h2>Access Denied</h2>
+      <p>This area is for TechWave administrators only.</p>
+      <div class="unauthorized-actions">
+        <a routerLink="/login" class="btn btn-primary">Log In</a>
+        <a routerLink="/"     class="btn btn-secondary">Go to Store</a>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-message">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <a routerLink="/login" class="btn btn-primary">Log In Again</a>
+    </div>
+  </div>
+
+  <router-outlet *ngIf="!isLoading && !error && isAuthorized"></router-outlet>
+
+</main>

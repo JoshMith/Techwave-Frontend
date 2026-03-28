@@ -1,0 +1,135 @@
+/* src/app/admin/admin.component.css
+   Admin portal overrides. Base design system comes from
+   seller-dashboard.component.css via ViewEncapsulation.None on child views. */
+
+/* Admin badge — red accent to distinguish from agent/seller portals */
+.seller-badge {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fecaca;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Additional status badges for admin orders */
+.status-badge.paid    { background: #d1fae5; color: #065f46; }
+.status-badge.shipped { background: #ede9fe; color: #5b21b6; }
+.status-badge.failed  { background: #fee2e2; color: #991b1b; }
+
+/* Agent attribution badge */
+.agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1e40af;
+  white-space: nowrap;
+}
+
+.agent-badge.direct {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Condition badges (product condition: new / ex-uk) */
+.condition-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.condition-badge.new   { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.condition-badge.ex-uk { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+/* COD confirm button */
+.btn-confirm-cod {
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-confirm-cod:hover { background: #059669; }
+
+/* Danger button */
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+.btn-danger:hover { background: #dc2626; }
+
+/* Stats grid — 4 columns for admin overview */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* Two-column dashboard layout */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .admin-grid { grid-template-columns: 1fr; }
+}
+
+/* Revenue bar chart */
+.revenue-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 200px;
+  width: 100%;
+}
+
+.revenue-chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.revenue-chart-fill {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+}
+
+.revenue-chart-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+/* Table action column — keep tight */
+.action-col { white-space: nowrap; display: flex; gap: 0.4rem; align-items: center; }
+
+/* Password strength indicator */
+.pw-strength {
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 0.4rem;
+  transition: width 0.2s, background 0.2s;
+}

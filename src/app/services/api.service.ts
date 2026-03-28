@@ -63,6 +63,14 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/auth/logout`, {}, this.httpOptions);
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/auth/forgot-password`,
+      { email },
+      this.httpOptions
+    );
+  }
+
   verifyEmail(token: string): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/auth/verifyEmail?token=${token}`,
@@ -668,101 +676,87 @@ export class ApiService {
     return this.http.delete(`${this.apiUrl}/payments/${id}`, this.httpOptions);
   }
 
-  // ========== NEW: Seller-Specific Dashboard APIs ==========
+
+
+  // ========== Agent Routes (Agent self-service) ==========
 
   /**
-   * Get seller dashboard statistics
+   * GET /agents/me/dashboard
+   * Returns: { agent, all_time, this_month }
    */
-  getSellerDashboardStats(sellerId: string): Observable<any> {
+  getAgentDashboard(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/agents/me/dashboard`, this.httpOptions);
+  }
+
+  /**
+   * GET /agents/me/orders?page=1&limit=20
+   * Returns: { orders, pagination }
+   */
+  getAgentOrders(page: number = 1, limit: number = 20): Observable<any> {
     return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/dashboard-stats`,
+      `${this.apiUrl}/agents/me/orders?page=${page}&limit=${limit}`,
       this.httpOptions,
     );
   }
 
+  // ========== Agent Routes (Admin management) ==========
+
   /**
-   * Get seller-specific orders
+   * GET /agents
+   * Returns array of all agents with performance stats
    */
-  getSellerOrders(sellerId: string): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/orders/seller/${sellerId}`,
-      this.httpOptions,
-    );
+  getAgents(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/agents`, this.httpOptions);
   }
 
   /**
-   * Get seller-specific products
+   * GET /agents/:id
    */
-  getSellerProducts(sellerId: string): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/products/seller/${sellerId}`,
-      this.httpOptions,
-    );
+  getAgentById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/agents/${id}`, this.httpOptions);
   }
 
   /**
-   * Get sales trend analytics
+   * POST /agents
+   * Required: { full_name, phone, id_number, email, password }
    */
-  getSellerSalesTrend(
-    sellerId: string,
-    period: string = '6months',
-  ): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/analytics/sales-trend?period=${period}`,
-      this.httpOptions,
-    );
+  createAgent(agentData: {
+    full_name: string;
+    phone: string;
+    id_number: string;
+    email: string;
+    password: string;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/agents`, agentData, this.httpOptions);
   }
 
   /**
-   * Get top selling products
+   * PUT /agents/:id
+   * Updateable: { full_name, phone, id_number }
    */
-  getSellerTopProducts(sellerId: string, limit: number = 5): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/analytics/top-products?limit=${limit}`,
-      this.httpOptions,
-    );
+  updateAgent(id: string, agentData: Partial<{ full_name: string; phone: string; id_number: string }>): Observable<any> {
+    return this.http.put(`${this.apiUrl}/agents/${id}`, agentData, this.httpOptions);
   }
 
   /**
-   * Get revenue by month
+   * PATCH /agents/:id/deactivate
+   * Disables login + kills referral link. Historical data retained.
    */
-  getSellerRevenueByMonth(
-    sellerId: string,
-    period: string = '6months',
-  ): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/analytics/revenue-by-month?period=${period}`,
-      this.httpOptions,
-    );
+  deactivateAgent(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/agents/${id}/deactivate`, {}, this.httpOptions);
   }
 
   /**
-   * Get performance metrics
+   * GET /agents/commissions/report?from=&to=&agent_id=
+   * Returns: { success, data: [...] }
    */
-  getSellerMetrics(sellerId: string): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/metrics`,
-      this.httpOptions,
-    );
+  getCommissionReport(filters: { from?: string; to?: string; agent_id?: string } = {}): Observable<any> {
+    const params = new URLSearchParams();
+    if (filters.from) params.set('from', filters.from);
+    if (filters.to) params.set('to', filters.to);
+    if (filters.agent_id) params.set('agent_id', filters.agent_id);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.http.get(`${this.apiUrl}/agents/commissions/report${query}`, this.httpOptions);
   }
 
-  /**
-   * Get customer statistics
-   */
-  getSellerCustomerStats(sellerId: string): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/analytics/customer-stats`,
-      this.httpOptions,
-    );
-  }
-
-  /**
-   * Get recent activities
-   */
-  getSellerActivities(sellerId: string, limit: number = 5): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/sellers/${sellerId}/activities?limit=${limit}`,
-      this.httpOptions,
-    );
-  }
 }

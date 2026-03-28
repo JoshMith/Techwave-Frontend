@@ -1,0 +1,101 @@
+<!-- src/app/admin/views/customers/admin-customers.component.html -->
+
+<div class="page-header">
+  <h1 class="page-title">Customers</h1>
+</div>
+
+<div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+<div class="filters-container">
+  <div class="filter-group">
+    <label>Search</label>
+    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()" class="form-input"
+      placeholder="Name, email or phone">
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-container" style="min-height:200px;"><div class="loading-spinner"></div></div>
+
+<div class="card" *ngIf="!isLoading">
+  <div class="table-container">
+    <div *ngIf="!filteredUsers.length" class="empty-state"><p>No customers found</p></div>
+
+    <table class="orders-table" *ngIf="filteredUsers.length">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of filteredUsers">
+          <td style="font-weight:600;">{{ u.name }}</td>
+          <td style="font-size:0.85rem;">{{ u.email }}</td>
+          <td style="font-size:0.85rem;">{{ u.phone ?? '—' }}</td>
+          <td style="font-size:0.82rem;">{{ fmtDate(u.created_at) }}</td>
+          <td>
+            <button class="btn btn-small btn-primary" (click)="selectCustomer(u)">View</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Customer detail modal -->
+<div *ngIf="selectedCustomer" class="modal-overlay" (click)="closeDetail()">
+  <div class="modal modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ selectedCustomer.name }}</h3>
+      <button class="modal-close" (click)="closeDetail()">×</button>
+    </div>
+    <div class="modal-content">
+
+      <!-- Profile info -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div><div class="profile-label">Email</div><div class="profile-value">{{ selectedCustomer.email }}</div></div>
+        <div><div class="profile-label">Phone</div><div class="profile-value">{{ selectedCustomer.phone ?? '—' }}</div></div>
+        <div><div class="profile-label">Joined</div><div class="profile-value">{{ fmtDate(selectedCustomer.created_at) }}</div></div>
+        <div><div class="profile-label">Total Spend</div>
+          <div class="profile-value" style="color:#10b981;font-weight:700;">{{ fmt(totalSpend) }}</div>
+        </div>
+        <div><div class="profile-label">Total Orders</div>
+          <div class="profile-value" style="font-size:1.4rem;font-weight:700;">{{ customerOrders.length }}</div>
+        </div>
+      </div>
+
+      <!-- Orders -->
+      <h3 class="section-title">Order History</h3>
+
+      <div *ngIf="isLoadingOrders" style="text-align:center;padding:1rem;color:#94a3b8;">Loading orders…</div>
+
+      <div *ngIf="!isLoadingOrders && !customerOrders.length" class="empty-state" style="padding:1.5rem;">
+        <p>No orders yet</p>
+      </div>
+
+      <div class="table-container" *ngIf="!isLoadingOrders && customerOrders.length">
+        <table class="orders-table">
+          <thead>
+            <tr><th>Order ID</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of customerOrders">
+              <td><span class="order-id">#{{ o.order_id }}</span></td>
+              <td>{{ fmt(o.total_amount) }}</td>
+              <td style="font-size:0.82rem;">
+                {{ o.payment_method === 'cash_on_delivery' ? 'COD'
+                 : o.payment_method === 'mpesa' ? 'M-Pesa'
+                 : (o.payment_method ?? '—') }}
+              </td>
+              <td>
+                <span class="status-badge"
+                  [ngClass]="{'pending':o.status==='pending','delivered':o.status==='delivered'||o.status==='paid','processing':o.status==='processing'||o.status==='shipped','cancelled':o.status==='cancelled'}">
+                  {{ o.status }}
+                </span>
+              </td>
+              <td style="font-size:0.82rem;">{{ fmtDate(o.created_at) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>

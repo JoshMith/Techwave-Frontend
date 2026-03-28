@@ -1,0 +1,205 @@
+<!-- src/app/admin/views/overview/admin-overview.component.html -->
+
+<div *ngIf="isLoading" class="loading-container">
+  <div class="loading-spinner"></div><p>Loading dashboard...</p>
+</div>
+
+<div *ngIf="error && !isLoading" class="error-container">
+  <div class="error-message">
+    <span class="error-icon">⚠️</span><p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="load()">Retry</button>
+  </div>
+</div>
+
+<div *ngIf="!isLoading && !error">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard Overview</h1>
+    <p class="dashboard-subtitle">TechWave Electronics Kenya · Admin Portal</p>
+    <button class="refresh-btn" (click)="load()">🔄 Refresh</button>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="admin-stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Total Revenue</div>
+          <div class="stat-value">{{ fmt(stats?.revenue?.total) }}</div>
+          <div class="stat-change positive">Last 30 days: {{ fmt(stats?.revenue?.last30Days) }}</div>
+        </div>
+        <div class="stat-icon revenue">💰</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Total Orders</div>
+          <div class="stat-value">{{ stats?.orders?.total ?? '…' }}</div>
+          <div class="stat-change positive">
+            {{ stats?.orders?.pending ?? 0 }} pending · {{ stats?.orders?.delivered ?? 0 }} delivered
+          </div>
+        </div>
+        <div class="stat-icon orders">📦</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Total Customers</div>
+          <div class="stat-value">{{ stats?.users?.total ?? '…' }}</div>
+          <div class="stat-change positive">{{ stats?.users?.newLast30Days ?? 0 }} new this month</div>
+        </div>
+        <div class="stat-icon customers">👥</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div>
+          <div class="stat-title">Products</div>
+          <div class="stat-value">{{ stats?.products?.total ?? '…' }}</div>
+          <div class="stat-change" [ngClass]="(stats?.products?.outOfStock ?? 0) > 0 ? 'negative' : 'positive'">
+            {{ stats?.products?.outOfStock ?? 0 }} out of stock
+          </div>
+        </div>
+        <div class="stat-icon products">📱</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="admin-grid">
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+      <!-- Revenue chart -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Monthly Revenue</h2>
+          <button class="view-all-btn" (click)="goTo('/admin/orders')">View Orders</button>
+        </div>
+        <div *ngIf="revenueTrend.length > 0" class="revenue-chart">
+          <div *ngFor="let d of revenueTrend" class="revenue-chart-bar">
+            <span style="font-size:0.68rem;font-weight:600;color:#374151;">{{ fmt(d.revenue) }}</span>
+            <div class="revenue-chart-fill" [style.height.px]="barHeight(d.revenue)"></div>
+            <span class="revenue-chart-label">{{ d.month }}</span>
+          </div>
+        </div>
+        <div *ngIf="!revenueTrend.length" class="empty-state" style="min-height:160px;">
+          <p>No revenue data yet</p>
+        </div>
+      </div>
+
+      <!-- Recent orders -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Orders</h2>
+          <button class="view-all-btn" (click)="goTo('/admin/orders')">View All</button>
+        </div>
+        <div class="table-container">
+          <div *ngIf="!recentOrders.length" class="empty-state"><p>No orders yet</p></div>
+          <table class="orders-table" *ngIf="recentOrders.length">
+            <thead>
+              <tr><th>ID</th><th>Customer</th><th>Amount</th><th>Agent</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let o of recentOrders" (click)="goTo('/admin/orders/' + o.order_id)" style="cursor:pointer">
+                <td><span class="order-id">#{{ o.order_id }}</span></td>
+                <td>{{ o.customer_name ?? '—' }}</td>
+                <td>{{ fmt(o.total_amount) }}</td>
+                <td>
+                  <span class="agent-badge" [class.direct]="!o.agent_code">
+                    {{ o.agent_code ?? 'Direct' }}
+                  </span>
+                </td>
+                <td><span class="status-badge" [ngClass]="statusClass(o.status)">{{ statusLabel(o.status) }}</span></td>
+                <td>{{ fmtDate(o.created_at) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Quick Actions</h3></div>
+        <div class="quick-actions">
+          <button class="quick-action-btn" (click)="goTo('/admin/products')">
+            <div class="action-icon">📱</div><span class="action-text">Products</span>
+          </button>
+          <button class="quick-action-btn" (click)="goTo('/admin/orders')">
+            <div class="action-icon">📦</div><span class="action-text">Orders</span>
+          </button>
+          <button class="quick-action-btn" (click)="goTo('/admin/agents')">
+            <div class="action-icon">🤝</div><span class="action-text">Agents</span>
+          </button>
+          <button class="quick-action-btn" (click)="goTo('/admin/customers')">
+            <div class="action-icon">👥</div><span class="action-text">Customers</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top agents leaderboard -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Top Agents</h3>
+          <button class="view-all-btn" (click)="goTo('/admin/agents')">View All</button>
+        </div>
+        <div *ngIf="!topAgents.length" class="empty-state"><p>No agent data yet</p></div>
+        <div *ngFor="let a of topAgents; let i = index"
+             style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #f1f5f9;">
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <span class="rank-badge" [class.top-rank]="i < 3">{{ i + 1 }}</span>
+            <div>
+              <div style="font-weight:600;font-size:0.88rem;color:#1e293b;">{{ a.full_name }}</div>
+              <div style="font-size:0.75rem;color:#94a3b8;">{{ a.agent_code }}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;color:#10b981;font-size:0.88rem;">{{ fmt(a.total_commission) }}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;">{{ a.total_orders }} orders</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low stock -->
+      <div class="card" *ngIf="lowStock.length > 0">
+        <div class="card-header">
+          <h3 class="card-title">⚠ Low Stock</h3>
+          <button class="view-all-btn" (click)="goTo('/admin/products')">View All</button>
+        </div>
+        <div *ngFor="let p of lowStock"
+             style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;">
+          <span style="color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">{{ p.title }}</span>
+          <span class="stock-low">{{ p.stock }} left</span>
+        </div>
+      </div>
+
+      <!-- Top products -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Top Products</h3>
+          <button class="view-all-btn" (click)="goTo('/admin/products')">View All</button>
+        </div>
+        <div *ngIf="!topProducts.length" class="empty-state"><p>No data yet</p></div>
+        <div *ngFor="let p of topProducts; let i = index"
+             style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;">
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <span class="rank-badge" [class.top-rank]="i < 3">{{ i + 1 }}</span>
+            <span style="color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">{{ p.title }}</span>
+          </div>
+          <span style="color:#64748b;">{{ p.unitsSold ?? p.units_sold ?? 0 }} sold</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

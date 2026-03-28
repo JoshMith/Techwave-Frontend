@@ -1,6 +1,6 @@
 // audio-sound.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -25,6 +25,7 @@ interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
+  condition?: 'new' | 'ex_uk';
   specs: {
     type?: string;
     brand?: string;
@@ -52,7 +53,7 @@ interface ProductImage {
   templateUrl: './audio-sound.component.html',
   styleUrls: ['./audio-sound.component.css'],
 })
-export class AudioSoundComponent implements OnInit {
+export class AudioSoundComponent implements OnInit, OnDestroy {
   // Products data
   allProducts: Product[] = [];
   filteredProducts: Product[] = [];

@@ -1,0 +1,81 @@
+<!-- src/app/agent-portal/agent-portal.component.html -->
+<!-- Shell: header nav + router-outlet only. Child views render inside main. -->
+
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo-section">
+      <a routerLink="/" class="logo">
+        <img src="favicon.ico" width="50px" alt="TechWave">
+      </a>
+      <span class="seller-badge">Agent Portal</span>
+    </div>
+
+    <!-- Hamburger -->
+    <button class="menu-toggle" [class.active]="isMobileMenuOpen"
+      (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- Desktop nav -->
+    <div class="nav-items">
+      <a class="nav-link" routerLink="/agent/dashboard" routerLinkActive="active">Dashboard</a>
+      <a class="nav-link" routerLink="/agent/orders"    routerLinkActive="active">My Orders</a>
+      <a class="nav-link" routerLink="/profile">Profile</a>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-avatar" title="Profile" (click)="onProfileClick()">
+        {{ userName.charAt(0).toUpperCase() }}
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- Mobile overlay -->
+<div class="mobile-overlay" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+<!-- Mobile sidebar -->
+<div class="mobile-nav" [class.active]="isMobileMenuOpen">
+  <button class="mobile-close-btn" (click)="closeMobileMenu()" aria-label="Close">&times;</button>
+  <div class="mobile-nav-items">
+    <a class="mobile-nav-link" routerLink="/agent/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a>
+    <a class="mobile-nav-link" routerLink="/agent/orders"    routerLinkActive="active" (click)="closeMobileMenu()">My Orders</a>
+    <a class="mobile-nav-link" routerLink="/profile"                                  (click)="closeMobileMenu()">Profile</a>
+  </div>
+</div>
+
+<main class="main-content">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading agent portal...</p>
+  </div>
+
+  <!-- Unauthorised -->
+  <div *ngIf="!isLoading && !isAuthorized && !error" class="unauthorized-container">
+    <div class="unauthorized-message">
+      <span class="unauthorized-icon">🚫</span>
+      <h2>Access Denied</h2>
+      <p>This portal is for TechWave sales agents only.</p>
+      <p>Redirecting to agent login...</p>
+      <div class="unauthorized-actions">
+        <a routerLink="/agent/login" class="btn btn-primary">Agent Login</a>
+        <a routerLink="/"            class="btn btn-secondary">Go to Store</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-message">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <a routerLink="/agent/login" class="btn btn-primary">Log In Again</a>
+    </div>
+  </div>
+
+  <!-- Child views -->
+  <router-outlet *ngIf="!isLoading && !error && isAuthorized"></router-outlet>
+
+</main>

@@ -1,0 +1,180 @@
+<!-- src/app/admin/views/agents/admin-agents.component.html -->
+
+<div class="page-header">
+  <h1 class="page-title">Agents</h1>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <button class="btn" [ngClass]="activeTab==='list' ? 'btn-primary' : 'btn-secondary'" (click)="activeTab='list'">Agent List</button>
+    <button class="btn" [ngClass]="activeTab==='create' ? 'btn-primary' : 'btn-secondary'" (click)="activeTab='create'">+ Create Agent</button>
+    <button class="btn" [ngClass]="activeTab==='report' ? 'btn-primary' : 'btn-secondary'" (click)="activeTab='report';loadReport()">Commission Report</button>
+  </div>
+</div>
+
+<div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+<div *ngIf="errorMsg"   class="alert alert-error">{{ errorMsg }}</div>
+
+<!-- ── AGENT LIST ─────────────────────────────────────────────────────────── -->
+<ng-container *ngIf="activeTab === 'list'">
+  <div *ngIf="isLoading" class="loading-container" style="min-height:200px;"><div class="loading-spinner"></div></div>
+
+  <div class="card" *ngIf="!isLoading">
+    <div class="table-container">
+      <div *ngIf="!agents.length" class="empty-state">
+        <p>No agents yet</p>
+        <button class="btn btn-primary" (click)="activeTab='create'" style="margin-top:1rem;">Create First Agent</button>
+      </div>
+
+      <table class="orders-table" *ngIf="agents.length" style="min-width:700px;">
+        <thead>
+          <tr><th>Code</th><th>Name</th><th>Email</th><th>Orders</th><th>Revenue</th><th>Commission</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of agents">
+            <td><span class="order-id">{{ a.agent_code }}</span></td>
+            <td>{{ a.full_name }}</td>
+            <td style="font-size:0.82rem;">{{ a.email }}</td>
+            <td>{{ a.total_orders ?? 0 }}</td>
+            <td>{{ fmt(a.total_revenue) }}</td>
+            <td style="color:#10b981;font-weight:600;">{{ fmt(a.total_commission) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="a.is_active ? 'delivered' : 'cancelled'">
+                {{ a.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-col">
+                <button class="btn btn-small btn-secondary" (click)="copyLink(a.referral_link)" title="Copy referral link">🔗 Copy</button>
+                <button *ngIf="a.is_active" class="btn btn-small btn-danger" (click)="deactivate(a)">Deactivate</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ng-container>
+
+<!-- ── CREATE AGENT ───────────────────────────────────────────────────────── -->
+<ng-container *ngIf="activeTab === 'create'">
+  <div class="card" style="max-width:640px;">
+    <div class="card-header"><h2 class="card-title">Create New Agent Account</h2></div>
+
+    <div style="padding:0.5rem 0 1rem;font-size:0.88rem;color:#64748b;">
+      The system will automatically generate a unique agent code (e.g. AGT004) and referral link.
+      The agent can log in immediately using the email and password you set here.
+    </div>
+
+    <form class="product-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" [(ngModel)]="newAgent.full_name" name="fullName" class="form-input" placeholder="e.g. Jane Wanjiku">
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" [(ngModel)]="newAgent.phone" name="phone" class="form-input" placeholder="+254712345678">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>National ID Number *</label>
+          <input type="text" [(ngModel)]="newAgent.id_number" name="idNumber" class="form-input" placeholder="ID number">
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" [(ngModel)]="newAgent.email" name="email" class="form-input" placeholder="jane@example.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password *</label>
+        <div style="position:relative;">
+          <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="newAgent.password" name="password"
+            class="form-input" placeholder="Min 8 characters" style="padding-right:3rem;">
+          <button type="button" (click)="showPassword=!showPassword"
+            style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <span class="help-text">Share this password securely with the agent. They can change it later.</span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="activeTab='list'">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="submitCreate()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Creating…' : 'Create Agent' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-container>
+
+<!-- ── COMMISSION REPORT ──────────────────────────────────────────────────── -->
+<ng-container *ngIf="activeTab === 'report'">
+
+  <!-- Filters -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header"><h3 class="card-title">Filter Report</h3></div>
+    <div class="filters-container" style="margin-bottom:0;">
+      <div class="filter-group">
+        <label>From Date</label>
+        <input type="date" [(ngModel)]="reportFilters.from" class="form-input">
+      </div>
+      <div class="filter-group">
+        <label>To Date</label>
+        <input type="date" [(ngModel)]="reportFilters.to" class="form-input">
+      </div>
+      <div class="filter-group">
+        <label>Agent</label>
+        <select [(ngModel)]="reportFilters.agent_id" class="form-select">
+          <option value="">All Agents</option>
+          <option *ngFor="let a of agents" [value]="a.agent_id">{{ a.full_name }} ({{ a.agent_code }})</option>
+        </select>
+      </div>
+      <div class="filter-group" style="justify-content:flex-end;">
+        <button class="btn btn-primary" (click)="loadReport()" style="margin-top:1.4rem;" [disabled]="isLoadingReport">
+          {{ isLoadingReport ? 'Loading…' : 'Run Report' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report table -->
+  <div *ngIf="isLoadingReport" class="loading-container" style="min-height:120px;"><div class="loading-spinner"></div></div>
+
+  <div class="card" *ngIf="!isLoadingReport">
+    <div *ngIf="!reportData.length" class="empty-state">
+      <p>No commission data</p><small>Adjust filters and run the report</small>
+    </div>
+
+    <div *ngIf="reportData.length">
+      <div class="table-container">
+        <table class="orders-table" style="min-width:700px;">
+          <thead>
+            <tr><th>Agent</th><th>Orders</th><th>Electronics Revenue</th><th>Electronics Comm (2.5%)</th><th>Accessories Revenue</th><th>Accessories Comm (8%)</th><th>Total Commission</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of reportData">
+              <td>
+                <div style="font-weight:600;">{{ r.full_name }}</div>
+                <div style="font-size:0.75rem;color:#94a3b8;">{{ r.agent_code }}</div>
+              </td>
+              <td>{{ r.total_orders }}</td>
+              <td>{{ fmt(r.electronics_revenue) }}</td>
+              <td style="color:#3b82f6;font-weight:600;">{{ fmt(r.electronics_commission) }}</td>
+              <td>{{ fmt(r.accessories_revenue) }}</td>
+              <td style="color:#f59e0b;font-weight:600;">{{ fmt(r.accessories_commission) }}</td>
+              <td style="color:#10b981;font-weight:700;font-size:1rem;">{{ fmt(r.total_commission) }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background:#f8fafc;font-weight:700;">
+              <td colspan="6" style="text-align:right;padding:0.75rem 1rem;">Total Commissions Payable</td>
+              <td style="color:#10b981;font-size:1.1rem;padding:0.75rem 1rem;">{{ fmt(totalCommissionAllAgents) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</ng-container>

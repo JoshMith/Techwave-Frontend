@@ -1,921 +1,318 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { ApiService } from '../services/api.service';
-import { CartService } from '../services/cart.service';
+// src/app/profile/profile.component.ts
+// Phase 4.1 — seller role references removed.
+// Roles in v2: customer | agent | admin  (no seller)
+
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ApiService } from '../services/api.service';
 import { HeaderComponent } from '../shared/header/header.component';
 import { FooterComponent } from '../shared/footer/footer.component';
 
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  phone?: string;
-  created_at: string;
-  role?: string;
-}
-
-interface Address {
-  address_id: number;
-  user_id: any;
-  full_name: string;
-  email: string,
-  phone: string;
-  street: string;
-  building?: string;
-  city: string;
-  state: string;
-  county: string;
-  postal_code: string;
-  country: string;
-  is_default: boolean;
-}
-
-interface Order {
-  order_id: number;
-  user_id: number;
-  total_amount: number;
-  status: string;
-  notes?: string;
-  created_at: string;
-  order_items?: OrderItem[];
-  name?: string;
-  email?: string;
-  phone?: string;
-  isExpanded?: boolean
-}
-
-interface OrderItem {
-  order_item_id: number;
-  order_id: number;
-  product_id: number;
-  quantity: number;
-  unit_price: number;
-  discount: number;
-  product_title?: string;
-  product_description?: string;
-}
-
-interface Payment {
-  payment_id: number;
-  order_id: number;
-  method: string;
-  amount: number;
-  mpesa_code?: string;
-  mpesa_phone?: string;
-  transaction_reference?: string;
-  is_confirmed: boolean;
-  confirmed_at?: string;
-  total_amount?: number;
-  status?: string;
-  created_at: string;
-}
-
-interface Seller {
-  seller_id: number;
-  user_id: number;
-  business_name: string;
-  business_license: string;
-  tax_id: string;
-  total_sales?: number;
-  created_at?: string;
-}
-
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent, RouterLink],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent, FooterComponent],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrls: ['./profile.component.css'],
 })
-export class ProfileComponent implements OnInit {
-  // User data
-  user: User | null = null;
-  isLoading = true;
+export class ProfileComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
+  // ── Loading / error state ──────────────────────────────────────────────────
+  isLoading  = true;
   error: string | null = null;
 
-  // Seller data
-  sellerProfile: Seller | null = null;
-  isEditingSeller = false;
-  editSellerData: Partial<Seller> = {};
-  sellerError: string | null = null;
-  sellerSuccess: string | null = null;
-  isLoadingSeller = false;
+  // ── Data ───────────────────────────────────────────────────────────────────
+  user: any     = null;
+  orders: any[] = [];
+  addresses: any[] = [];
+  payments: any[] = [];
 
-  // Edit modes
+  // ── Section navigation ─────────────────────────────────────────────────────
+  activeSection: 'overview' | 'orders' | 'addresses' | 'payments' | 'settings' = 'overview';
+
+  // ── Profile edit ───────────────────────────────────────────────────────────
   isEditingProfile = false;
-  isEditingAddress = false;
-  editingAddressId: number | null = null;
+  editUserData = { name: '', email: '', phone: '' };
+
+  // ── Address management ─────────────────────────────────────────────────────
   showAddAddressForm = false;
-  isAddingAddress = false;
-
-  // Form data
-  editUserData: Partial<User> = {};
-  editAddressData: Partial<Address> = {};
-  newAddress: Partial<Address> = {
-    country: 'Kenya',
-    full_name: '',
-    user_id: '',
-    phone: '',
-    street: '',
-    building: '',
-    city: '',
-    county: '',
-    state: '',
-    postal_code: ''
-  };
-
-  // Account stats
-  stats = {
-    orders: 0,
-    wishlist: 0,
-    points: 0
-  };
-
-  // Data arrays
-  orders: Order[] = [];
-  addresses: Address[] = [];
-  payments: Payment[] = [];
-  recommendedProducts: any[] = [];
-
-  // Cart
-  cartCount = 0;
-
-  // Active section
-  activeSection: 'overview' | 'orders' | 'addresses' | 'payments' | 'settings' | 'seller' = 'overview';
-
-  // Success/Error messages for addresses
+  isAddingAddress    = false;
+  editingAddressId: number | null = null;
   addressSuccess: string | null = null;
-  addressError: string | null = null;
+  addressError: string | null   = null;
+
+  newAddress = this.emptyAddress();
+  editAddressData: any = {};
+
+  readonly isBrowser: boolean;
 
   constructor(
-    private router: Router,
     private apiService: ApiService,
-    private cartService: CartService
-  ) { }
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.loadUserData();
-    this.loadCartCount();
   }
 
-  /**
-   * Load current user and their data
-   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ── Load all data ──────────────────────────────────────────────────────────
   loadUserData(): void {
     this.isLoading = true;
     this.error = null;
 
-    this.apiService.getCurrentUser().subscribe({
-      next: (response) => {
-        if (response && response.user) {
-          this.user = response.user;
-          this.editUserData = { ...this.user };
-
-          // Initialize newAddress with user data
-          this.newAddress = {
-            country: 'Kenya',
-            user_id: this.user?.user_id,
-            full_name: this.user?.name,
-            phone: this.user?.phone || '',
-            street: '',
-            building: '',
-            city: '',
-            county: '',
-            state: '',
-            postal_code: ''
-          };
-
-          // Load user-specific data
-          this.loadOrders();
-          this.loadAddresses();
-          this.loadPayments();
-          this.loadRecommendedProducts();
-          
-          // Load seller profile ONLY if user role is 'seller'
-          if (this.user?.role === 'seller') {
-            this.loadSellerProfile();
-          }
-
-          this.isLoading = false;
-        } else {
-          this.error = 'User not found. Please login.';
-          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-        }
-      },
-      error: (err) => {
-        console.error('Failed to load user data:', err);
-        this.error = 'Failed to load user data. Please login.';
+    this.apiService.getCurrentUser().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        this.user = res?.user ?? res;
+        this.loadOrders();
+        this.loadAddresses();
+        this.loadPayments();
         this.isLoading = false;
-        this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      }
-    });
-  }
-
-  /**
-   * Toggle add address form visibility
-   */
-  toggleAddAddressForm(): void {
-    this.showAddAddressForm = !this.showAddAddressForm;
-    if (this.showAddAddressForm) {
-      // Reset form when opening
-      this.newAddress = {
-        country: 'Kenya',
-        full_name: this.user?.name || '',
-        user_id: this.user?.user_id || '',
-        phone: this.user?.phone || '',
-        street: '',
-        building: '',
-        city: '',
-        county: '',
-        state: '',
-        postal_code: ''
-      };
-      this.addressError = null;
-      this.addressSuccess = null;
-    }
-  }
-
-  /**
-   * Load seller profile
-   */
-  loadSellerProfile(): void {
-    if (!this.user) return;
-
-    this.isLoadingSeller = true;
-    this.sellerError = null;
-
-    this.apiService.getSellers().subscribe({
-      next: (response) => {
-        const sellers = Array.isArray(response) ? response : [response];
-        const sellerData = sellers.find((s: Seller) => s.user_id === this.user!.user_id);
-        
-        if (sellerData) {
-          this.sellerProfile = sellerData;
-          this.editSellerData = { ...sellerData };
-        }
-        
-        this.isLoadingSeller = false;
       },
-      error: (err) => {
-        console.error('Failed to load seller profile:', err);
-        this.sellerError = 'Failed to load seller profile.';
-        this.isLoadingSeller = false;
-      }
-    });
-  }
-
-  /**
-   * Toggle edit seller mode
-   */
-  toggleEditSeller(): void {
-    this.isEditingSeller = !this.isEditingSeller;
-    if (this.isEditingSeller) {
-      if (this.sellerProfile) {
-        this.editSellerData = { ...this.sellerProfile };
-      } else {
-        this.editSellerData = {
-          user_id: this.user?.user_id,
-          business_name: '',
-          business_license: '',
-          tax_id: ''
-        };
-      }
-    }
-    this.sellerError = null;
-    this.sellerSuccess = null;
-  }
-
-  /**
-   * Save seller profile
-   */
-  saveSeller(): void {
-    if (!this.user || !this.editSellerData) return;
-
-    if (!this.editSellerData.business_name || !this.editSellerData.business_license || !this.editSellerData.tax_id) {
-      this.sellerError = 'Please fill in all required fields.';
-      return;
-    }
-
-    this.isLoadingSeller = true;
-    this.sellerError = null;
-    this.sellerSuccess = null;
-
-    const sellerData = {
-      user_id: this.user.user_id,
-      business_name: this.editSellerData.business_name,
-      business_license: this.editSellerData.business_license,
-      tax_id: this.editSellerData.tax_id
-    };
-
-    if (this.sellerProfile) {
-      this.apiService.updateSeller(this.sellerProfile.seller_id.toString(), sellerData).subscribe({
-        next: (response) => {
-          this.sellerProfile = response.seller || response;
-          this.isEditingSeller = false;
-          this.sellerSuccess = 'Seller profile updated successfully!';
-          this.isLoadingSeller = false;
-          
-          setTimeout(() => {
-            this.sellerSuccess = null;
-          }, 3000);
-        },
-        error: (err) => {
-          console.error('Failed to update seller profile:', err);
-          this.sellerError = err.error?.message || 'Failed to update seller profile. Please try again.';
-          this.isLoadingSeller = false;
-        }
-      });
-    } else {
-      this.apiService.createSeller(sellerData).subscribe({
-        next: (response) => {
-          this.sellerProfile = response.seller || response;
-          this.isEditingSeller = false;
-          this.sellerSuccess = 'Seller profile created successfully!';
-          this.isLoadingSeller = false;
-          
-          setTimeout(() => {
-            this.sellerSuccess = null;
-          }, 3000);
-        },
-        error: (err) => {
-          console.error('Failed to create seller profile:', err);
-          this.sellerError = err.error?.message || 'Failed to create seller profile. Please try again.';
-          this.isLoadingSeller = false;
-        }
-      });
-    }
-  }
-
-  /**
-   * Cancel seller edit
-   */
-  cancelEditSeller(): void {
-    this.isEditingSeller = false;
-    if (this.sellerProfile) {
-      this.editSellerData = { ...this.sellerProfile };
-    } else {
-      this.editSellerData = {};
-    }
-    this.sellerError = null;
-    this.sellerSuccess = null;
-  }
-
-  /**
-   * Check if user is a seller
-   */
-  isSeller(): boolean {
-    return this.user?.role === 'seller';
-  }
-
-  /**
-   * Load user orders
-   */
-  loadOrders(): void {
-    if (!this.user) return;
-
-    this.apiService.getOrdersByUserId().subscribe({
-      next: (response) => {
-        this.orders = this.transformOrdersResponse(response);
-        this.stats.orders = this.orders.filter(o =>
-          o.status === 'pending' || o.status === 'processing'
-        ).length;
+      error: () => {
+        this.error = 'Failed to load profile. Please try again.';
+        this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Failed to load orders:', err);
-        this.orders = [];
-      }
     });
   }
 
-  /**
-   * Get count of active orders
-   */
+  private loadOrders(): void {
+    this.apiService.getOrders().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (orders: any[]) => { this.orders = orders ?? []; },
+      error: () => { this.orders = []; },
+    });
+  }
+
+  private loadAddresses(): void {
+    this.apiService.getAddresses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (addresses: any[]) => { this.addresses = addresses ?? []; },
+      error: () => { this.addresses = []; },
+    });
+  }
+
+  private loadPayments(): void {
+    this.apiService.getPayments().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (payments: any[]) => { this.payments = payments ?? []; },
+      error: () => { this.payments = []; },
+    });
+  }
+
+  // ── Section nav ────────────────────────────────────────────────────────────
+  setActiveSection(section: typeof this.activeSection): void {
+    this.activeSection = section;
+  }
+
+  // ── Display helpers ────────────────────────────────────────────────────────
+  getUserInitials(): string {
+    if (!this.user?.name) return '?';
+    return this.user.name
+      .split(' ')
+      .map((w: string) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
+  getMemberSince(): string {
+    if (!this.user?.created_at) return '';
+    return new Date(this.user.created_at).toLocaleDateString('en-KE', {
+      year: 'numeric', month: 'long',
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-KE', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+  }
+
+  formatCurrency(amount: number): string {
+    return `KSh ${Number(amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+  }
+
   getActiveOrdersCount(): number {
-    if (!this.orders || this.orders.length === 0) return 0;
-    const activeStatuses = ['pending', 'processing', 'shipped', 'confirmed', 'accepted'];
-    return this.orders.filter(order =>
-      activeStatuses.includes(order.status?.toLowerCase())
+    return this.orders.filter(o =>
+      !['delivered', 'cancelled'].includes(o.status?.toLowerCase()),
     ).length;
   }
 
-  /**
-   * Transform orders API response
-   */
-  private transformOrdersResponse(apiResponse: any[]): Order[] {
-    const ordersMap = new Map<number, Order>();
+  getOrderStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      pending:    'status-pending',
+      paid:       'status-paid',
+      processing: 'status-processing',
+      shipped:    'status-shipped',
+      delivered:  'status-delivered',
+      cancelled:  'status-cancelled',
+    };
+    return map[status?.toLowerCase()] ?? '';
+  }
 
-    apiResponse.forEach((row: any) => {
-      if (!ordersMap.has(row.order_id)) {
-        ordersMap.set(row.order_id, {
-          order_id: row.order_id,
-          user_id: row.user_id,
-          total_amount: row.total_amount,
-          status: row.status,
-          notes: row.notes,
-          created_at: row.created_at,
-          name: row.name,
-          email: row.email,
-          phone: row.phone,
-          order_items: []
-        });
-      }
+  getPaymentStatusClass(payment: any): string {
+    if (payment?.confirmed) return 'status-delivered';
+    return payment?.status === 'failed' ? 'status-cancelled' : 'status-pending';
+  }
 
-      const order = ordersMap.get(row.order_id);
-      if (order && row.order_item_id) {
-        order.order_items!.push({
-          order_item_id: row.order_item_id,
-          order_id: row.order_id,
-          product_id: row.product_id,
-          quantity: row.quantity,
-          unit_price: row.unit_price,
-          discount: row.discount,
-          product_title: row.product_title,
-          product_description: row.product_description
-        });
-      }
-    });
+  getOrderItemTotal(item: any): number {
+    return (parseFloat(item.unit_price) * item.quantity) - (parseFloat(item.discount) || 0);
+  }
 
-    return Array.from(ordersMap.values()).sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  getOrderSubtotal(order: any): number {
+    return (order.order_items ?? []).reduce(
+      (sum: number, item: any) => sum + parseFloat(item.unit_price) * item.quantity,
+      0,
     );
   }
 
-  /**
-   * Load user addresses
-   */
-  loadAddresses(): void {
-    if (!this.user) return;
-
-    this.apiService.getAddressByUserId(this.user.user_id.toString()).subscribe({
-      next: (response) => {
-        if (!response) {
-          this.addresses = [];
-        } else if (Array.isArray(response)) {
-          this.addresses = response;
-        } else if (response.address) {
-          this.addresses = [response.address];
-        } else if (response.addresses) {
-          this.addresses = response.addresses;
-        } else {
-          this.addresses = [response];
-        }
-      },
-      error: (err) => {
-        console.error('Failed to load addresses:', err);
-        if (err.status !== 404) {
-          console.error('Error loading addresses:', err.message);
-        }
-        this.addresses = [];
-      }
-    });
-  }
-
-  /**
-   * Load user payments
-   */
-  loadPayments(): void {
-    if (!this.user) return;
-
-    this.apiService.getPaymentByUserId().subscribe({
-      next: (response) => {
-        this.payments = this.transformPaymentsResponse(response);
-      },
-      error: (err) => {
-        console.error('Failed to load payments:', err);
-        this.payments = [];
-      }
-    });
-  }
-
-  /**
-   * Transform payments API response
-   */
-  private transformPaymentsResponse(apiResponse: any[]): Payment[] {
-    return apiResponse.map((row: any) => ({
-      payment_id: row.payment_id,
-      order_id: row.order_id,
-      method: row.method,
-      amount: row.amount,
-      mpesa_code: row.mpesa_code,
-      mpesa_phone: row.mpesa_phone,
-      transaction_reference: row.transaction_reference,
-      is_confirmed: row.is_confirmed,
-      confirmed_at: row.confirmed_at,
-      total_amount: row.total_amount,
-      status: row.status,
-      created_at: row.created_at
-    })).sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  getOrderDiscountTotal(order: any): number {
+    return (order.order_items ?? []).reduce(
+      (sum: number, item: any) => sum + (parseFloat(item.discount) || 0),
+      0,
     );
   }
 
-  /**
-   * Load recommended products
-   */
-  loadRecommendedProducts(): void {
-    this.apiService.getProducts().subscribe({
-      next: (response) => {
-        const shuffled = response.sort(() => 0.5 - Math.random());
-        this.recommendedProducts = shuffled.slice(0, 4);
-      },
-      error: (err) => {
-        console.error('Failed to load products:', err);
-      }
-    });
+  viewOrderDetails(orderId: number): void {
+    this.router.navigate(['/orders', orderId]);
   }
 
-  /**
-   * Load cart count
-   */
-  loadCartCount(): void {
-    this.cartService.cartState$.subscribe(state => {
-      this.cartCount = state.item_count;
-    });
-  }
-
-  /**
-   * Toggle edit profile mode
-   */
+  // ── Profile edit ───────────────────────────────────────────────────────────
   toggleEditProfile(): void {
-    this.isEditingProfile = !this.isEditingProfile;
-    if (this.isEditingProfile) {
-      this.editUserData = { ...this.user };
-    }
+    this.editUserData = {
+      name:  this.user?.name  ?? '',
+      email: this.user?.email ?? '',
+      phone: this.user?.phone ?? '',
+    };
+    this.isEditingProfile = true;
   }
 
-  /**
-   * Save profile changes
-   */
-  saveProfile(): void {
-    if (!this.user || !this.editUserData) return;
-
-    this.apiService.updateUser(this.user.user_id.toString(), this.editUserData).subscribe({
-      next: (response) => {
-        const current = this.user as User;
-        const apiUser = (response && (response.user ?? response)) as Partial<User> | undefined;
-
-        this.user = {
-          user_id: apiUser?.user_id ?? current.user_id,
-          name: apiUser?.name ?? current.name,
-          email: apiUser?.email ?? current.email,
-          phone: apiUser?.phone ?? current.phone,
-          created_at: apiUser?.created_at ?? current.created_at,
-          role: apiUser?.role ?? current.role
-        };
-
-        this.isEditingProfile = false;
-        alert('Profile updated successfully!');
-      },
-      error: (err) => {
-        console.error('Failed to update profile:', err);
-        alert('Failed to update profile. Please try again.');
-      }
-    });
-  }
-
-  /**
-   * Cancel profile edit
-   */
   cancelEditProfile(): void {
     this.isEditingProfile = false;
-    this.editUserData = { ...this.user };
   }
 
-  /**
-   * Start editing address
-   */
-  startEditAddress(address: Address): void {
-    this.editingAddressId = address.address_id;
-    this.editAddressData = { ...address };
-    this.addressError = null;
+  saveProfile(): void {
+    if (!this.user?.user_id) return;
+
+    this.apiService.updateUser(String(this.user.user_id), this.editUserData)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.user = { ...this.user, ...this.editUserData };
+          this.isEditingProfile = false;
+        },
+        error: () => { /* leave form open, user retries */ },
+      });
+  }
+
+  // ── Addresses ──────────────────────────────────────────────────────────────
+  toggleAddAddressForm(): void {
+    this.showAddAddressForm = !this.showAddAddressForm;
+    if (this.showAddAddressForm) this.newAddress = this.emptyAddress();
+    this.addressError   = null;
     this.addressSuccess = null;
   }
 
-  /**
-   * Save address changes
-   */
-  saveAddress(addressId: number): void {
-    if (!this.editAddressData || Object.keys(this.editAddressData).length === 0) {
-      this.addressError = 'No changes to save.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
+  addNewAddress(): void {
+    this.isAddingAddress = true;
+    this.addressError    = null;
 
-    this.apiService.updateAddress(addressId.toString(), this.editAddressData).subscribe({
-      next: (response) => {
-        const updatedAddress = response.address || response;
-        
-        const index = this.addresses.findIndex(a => a.address_id === addressId);
-        if (index !== -1) {
-          this.addresses[index] = {
-            ...this.addresses[index],
-            ...updatedAddress
-          };
-        }
-        
-        this.editingAddressId = null;
-        this.editAddressData = {};
-        this.addressSuccess = 'Address updated successfully!';
-        setTimeout(() => this.addressSuccess = null, 3000);
+    this.apiService.createAddress(this.newAddress).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (addr: any) => {
+        this.addresses.push(addr?.address ?? addr);
+        this.showAddAddressForm = false;
+        this.isAddingAddress    = false;
+        this.addressSuccess     = 'Address added successfully.';
+        setTimeout(() => this.addressSuccess = null, 4000);
       },
-      error: (err) => {
-        console.error('Failed to update address:', err);
-        this.addressError = err.error?.message || 'Failed to update address. Please try again.';
-        setTimeout(() => this.addressError = null, 3000);
-      }
+      error: (e: any) => {
+        this.addressError    = e?.error?.message ?? 'Failed to add address.';
+        this.isAddingAddress = false;
+      },
     });
   }
 
-  /**
-   * Cancel address edit
-   */
+  startEditAddress(address: any): void {
+    this.editingAddressId = address.address_id;
+    this.editAddressData  = { ...address };
+  }
+
   cancelEditAddress(): void {
     this.editingAddressId = null;
-    this.editAddressData = {};
-    this.addressError = null;
-    this.addressSuccess = null;
+    this.editAddressData  = {};
   }
 
-  /**
-   * Add new address - Enhanced version
-   */
-  addNewAddress(): void {
-    if (!this.user) return;
+  saveAddress(addressId: number): void {
+    this.apiService.updateAddress(String(addressId), this.editAddressData)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          const idx = this.addresses.findIndex(a => a.address_id === addressId);
+          if (idx !== -1) this.addresses[idx] = { ...this.addresses[idx], ...this.editAddressData };
+          this.editingAddressId = null;
+          this.addressSuccess   = 'Address updated.';
+          setTimeout(() => this.addressSuccess = null, 3000);
+        },
+        error: (e: any) => { this.addressError = e?.error?.message ?? 'Failed to update address.'; },
+      });
+  }
 
-    // Validate required fields
-    if (!this.newAddress.full_name?.trim()) {
-      this.addressError = 'Full name is required.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
-
-    if (!this.newAddress.phone?.trim()) {
-      this.addressError = 'Phone number is required.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
-
-    if (!this.newAddress.street?.trim()) {
-      this.addressError = 'Street address is required.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
-
-    if (!this.newAddress.city?.trim()) {
-      this.addressError = 'City is required.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
-
-    if (!this.newAddress.postal_code?.trim()) {
-      this.addressError = 'Postal code is required.';
-      setTimeout(() => this.addressError = null, 3000);
-      return;
-    }
-
-    this.isAddingAddress = true;
-    this.addressError = null;
-
-    // Prepare address data
-    const addressData: any = {
-      user_id: this.user.user_id,
-      full_name: this.newAddress.full_name.trim(),
-      phone: this.newAddress.phone.trim(),
-      street: this.newAddress.street.trim(),
-      building: this.newAddress.building?.trim() || '',
-      city: this.newAddress.city.trim(),
-      state: this.newAddress.state?.trim() || this.newAddress.city.trim(),
-      county: this.newAddress.county?.trim() || this.newAddress.city.trim(),
-      postal_code: this.newAddress.postal_code.trim(),
-      country: this.newAddress.country || 'Kenya',
-      is_default: this.addresses.length === 0 // First address is default
-    };
-
-    this.apiService.createAddress(addressData).subscribe({
-      next: (response) => {
-        const newAddress = response.address || response;
-        this.addresses.push(newAddress);
-        
-        // Reset form
-        this.newAddress = { 
-          country: 'Kenya',
-          full_name: this.user?.name || '',
-          phone: this.user?.phone || '',
-          street: '',
-          building: '',
-          city: '',
-          county: '',
-          state: '',
-          postal_code: ''
-        };
-        
-        this.showAddAddressForm = false;
-        this.isAddingAddress = false;
-        this.addressSuccess = 'Address added successfully!';
+  setDefaultAddress(addressId: number): void {
+    this.apiService.updateAddress(String(addressId), { is_default: true }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.addresses = this.addresses.map(a => ({
+          ...a,
+          is_default: a.address_id === addressId,
+        }));
+        this.addressSuccess = 'Default address updated.';
         setTimeout(() => this.addressSuccess = null, 3000);
       },
-      error: (err) => {
-        console.error('Failed to add address:', err);
-        this.addressError = err.error?.message || 'Failed to add address. Please try again.';
-        this.isAddingAddress = false;
-        setTimeout(() => this.addressError = null, 3000);
-      }
+      error: (e: any) => { this.addressError = e?.error?.message ?? 'Failed to set default address.'; },
     });
   }
 
-  /**
-   * Delete address
-   */
   deleteAddress(addressId: number): void {
-    if (!confirm('Are you sure you want to delete this address?')) return;
+    if (!confirm('Delete this address?')) return;
 
-    this.apiService.deleteAddress(addressId.toString()).subscribe({
+    this.apiService.deleteAddress(String(addressId)).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.addresses = this.addresses.filter(a => a.address_id !== addressId);
-        this.addressSuccess = 'Address deleted successfully!';
+        this.addressSuccess = 'Address deleted.';
         setTimeout(() => this.addressSuccess = null, 3000);
       },
-      error: (err) => {
-        console.error('Failed to delete address:', err);
-        this.addressError = 'Failed to delete address. Please try again.';
-        setTimeout(() => this.addressError = null, 3000);
-      }
+      error: (e: any) => { this.addressError = e?.error?.message ?? 'Failed to delete address.'; },
     });
   }
 
-  /**
-   * Set default address
-   */
-  setDefaultAddress(addressId: number): void {
-    this.addresses.forEach(addr => {
-      if (addr.address_id === addressId) {
-        this.apiService.updateAddress(addr.address_id.toString(), { is_default: true }).subscribe({
-          next: () => {
-            addr.is_default = true;
-            this.addressSuccess = 'Default address updated successfully!';
-            setTimeout(() => this.addressSuccess = null, 3000);
-          }
-        });
-      } else if (addr.is_default) {
-        this.apiService.updateAddress(addr.address_id.toString(), { is_default: false }).subscribe({
-          next: () => {
-            addr.is_default = false;
-          }
-        });
-      }
-    });
-  }
-
-  /**
-   * View order details
-   */
-  viewOrderDetails(orderId: number): void {
-    this.orders = this.orders.map(order => {
-      if (order.order_id === orderId) {
-        return {
-          ...order,
-          isExpanded: !order.isExpanded
-        };
-      }
-      return {
-        ...order,
-        isExpanded: false
-      };
-    });
-  }
-
-  /**
-   * Get order item total
-   */
-  getOrderItemTotal(item: OrderItem): number {
-    return (item.unit_price * item.quantity) - (item.discount || 0);
-  }
-
-  /**
-   * Get order subtotal
-   */
-  getOrderSubtotal(order: Order): number {
-    if (!order.order_items) return 0;
-    return order.order_items.reduce((total, item) => total + this.getOrderItemTotal(item), 0);
-  }
-
-  /**
-   * Get order discount total
-   */
-  getOrderDiscountTotal(order: Order): number {
-    if (!order.order_items) return 0;
-    return order.order_items.reduce((total, item) => total + (item.discount || 0), 0);
-  }
-
-  /**
-   * Get order status class
-   */
-  getOrderStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'pending': 'status-pending',
-      'processing': 'status-processing',
-      'shipped': 'status-shipped',
-      'delivered': 'status-delivered',
-      'cancelled': 'status-cancelled'
-    };
-    return statusMap[status.toLowerCase()] || '';
-  }
-
-  /**
-   * Get payment status class
-   */
-  getPaymentStatusClass(payment: Payment): string {
-    if (payment.is_confirmed) {
-      return 'status-completed';
-    } else if (payment.method === 'mpesa' && !payment.is_confirmed) {
-      return 'status-pending';
-    } else {
-      return 'status-failed';
-    }
-  }
-
-  /**
-   * Format date
-   */
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
-  /**
-   * Format currency
-   */
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount).replace('KES', 'KSh');
-  }
-
-  /**
-   * Get user initials
-   */
-  getUserInitials(): string {
-    if (!this.user?.name) return '?';
-    const names = this.user.name.split(' ');
-    return names.map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  /**
-   * Get member since date
-   */
-  getMemberSince(): string {
-    if (!this.user?.created_at) return 'Unknown';
-    return this.formatDate(this.user.created_at);
-  }
-
-  /**
-   * Navigate to cart
-   */
-  goToCart(): void {
-    this.router.navigate(['/cart']);
-  }
-
-  /**
-   * Logout
-   */
+  // ── Auth ───────────────────────────────────────────────────────────────────
   logout(): void {
-    this.apiService.logout().subscribe({
+    this.apiService.logout().pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.cartService.logout();
-        localStorage.removeItem('currentUser');
-        sessionStorage.removeItem('sellerData');
-        this.router.navigate(['/login']);
+        if (this.isBrowser) localStorage.removeItem('currentUser');
+        this.router.navigate(['/home']);
       },
-      error: (err) => {
-        console.error('Logout failed:', err);
-        this.cartService.logout();
-        localStorage.removeItem('currentUser');
-        sessionStorage.removeItem('sellerData');
-        this.router.navigate(['/login']);
-      }
+      error: () => {
+        if (this.isBrowser) localStorage.removeItem('currentUser');
+        this.router.navigate(['/home']);
+      },
     });
   }
 
-  /**
-   * Switch active section
-   */
-  setActiveSection(section: 'overview' | 'orders' | 'addresses' | 'payments' | 'settings' | 'seller'): void {
-    this.activeSection = section;
-    
-    // Reset form states when switching sections
-    if (section === 'addresses') {
-      this.showAddAddressForm = false;
-      this.editingAddressId = null;
-      this.addressError = null;
-      this.addressSuccess = null;
-    }
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  private emptyAddress() {
+    return {
+      full_name: '', phone: '', street: '', building: '',
+      city: 'Nairobi', county: 'Nairobi County', state: '',
+      postal_code: '', country: 'Kenya',
+    };
   }
 }
