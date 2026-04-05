@@ -186,6 +186,22 @@ export class ApiService {
     return this.http.delete(`${this.apiUrl}/addresses/${id}`, this.httpOptions);
   }
 
+  addAddress(addressData: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/addresses`,
+      addressData,
+      this.httpOptions,
+    );
+  }
+ 
+  setDefaultAddress(id: string): Observable<any> {
+    return this.http.patch(
+      `${this.apiUrl}/addresses/${id}/default`,
+      {},
+      this.httpOptions,
+    );
+  }
+
   // ========== Category Routes ==========
   getCategories(): Observable<any> {
     return this.http.get(`${this.apiUrl}/categories`, this.httpOptions);
@@ -590,6 +606,13 @@ export class ApiService {
     );
   }
 
+  getUserOrders(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/orders/user/orderdetails`,
+      this.httpOptions,
+    );
+  }
+
   createOrder(orderData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/orders`, orderData, this.httpOptions);
   }
@@ -605,6 +628,7 @@ export class ApiService {
   deleteOrder(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/orders/${id}`, this.httpOptions);
   }
+  
 
   // ========== Order Item Routes ==========
   getOrderItems(): Observable<any> {
@@ -623,7 +647,6 @@ export class ApiService {
     );
   }
 
-  // Note: Your backend has PUT and DELETE for order-items also calling createOrderItem
   // You might want to fix this in your backend
   updateOrderItem(id: string, itemData: any): Observable<any> {
     return this.http.put(
@@ -676,7 +699,13 @@ export class ApiService {
     return this.http.delete(`${this.apiUrl}/payments/${id}`, this.httpOptions);
   }
 
-
+  getPaymentHistory(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/payments/user/payments`,
+      this.httpOptions,
+    );
+  }
+  
 
   // ========== Agent Routes (Agent self-service) ==========
 

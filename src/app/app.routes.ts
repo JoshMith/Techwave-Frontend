@@ -8,9 +8,9 @@ export const routes: Routes = [
   // ── Agent portal (/agent/login + /agent/*) ─────────────────────────────────
   ...agentPortalRoutes,
 
-   // ── Admin portal (/admin/*) ──────────────
+  // ── Admin portal (/admin/*) ──────────────
   ...adminRoutes,
- 
+
 
   // ── Public pages ─────────────────────────────────────────────────────────
   {
@@ -107,13 +107,13 @@ export const routes: Routes = [
         (m) => m.PaymentComponent,
       ),
   },
-  {
-    path: 'checkout/orders',
-    loadComponent: () =>
+  { 
+    path: 'orders/:id', 
+    loadComponent: () => 
       import('./checkout/orders/orders.component').then(
-        (m) => m.OrdersComponent,
-      ),
-  },
+        m => m.OrdersComponent
+      ), 
+    },
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   {

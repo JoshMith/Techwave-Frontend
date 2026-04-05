@@ -41,6 +41,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   // Loading
   isLoading = false;
   isSubmitting = false;
+  isLoadingCategories = false; // Add this
 
   // Messages
   successMsg: string | null = null;
@@ -70,21 +71,57 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadProducts();
-    this.adminApi.getCategories().pipe(takeUntil(this.destroy$)).subscribe(cats => this.categories = cats);
+    this.loadCategories(); // Separate method for categories
   }
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // ── Load Categories ────────────────────────────────────────────────────────
+  loadCategories(): void {
+    this.isLoadingCategories = true;
+    this.adminApi.getCategories().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (cats) => {
+        console.log('Categories loaded:', cats); // Debug log
+        this.categories = cats || [];
+        this.isLoadingCategories = false;
+        
+        // Optional: Show error if no categories
+        if (this.categories.length === 0) {
+          console.warn('No categories returned from API');
+          this.errorMsg = 'No categories found. Please add categories first.';
+          setTimeout(() => this.errorMsg = null, 5000);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load categories:', err);
+        this.errorMsg = 'Failed to load categories. Please check your connection.';
+        this.isLoadingCategories = false;
+        this.categories = [];
+        
+        // Clear error after 5 seconds
+        setTimeout(() => {
+          if (this.errorMsg === 'Failed to load categories. Please check your connection.') {
+            this.errorMsg = null;
+          }
+        }, 5000);
+      }
+    });
+  }
+
+  // ── Load Products ──────────────────────────────────────────────────────────
   loadProducts(): void {
     this.isLoading = true;
     this.adminApi.getProducts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (products) => {
-        this.allProducts = products;
+        this.allProducts = products || [];
         this.applyFilters();
         this.isLoading = false;
       },
-      error: () => { this.errorMsg = 'Failed to load products.'; this.isLoading = false; },
+      error: (err) => {
+        console.error('Failed to load products:', err);
+        this.errorMsg = 'Failed to load products.';
+        this.isLoading = false;
+      },
     });
   }
 
@@ -179,7 +216,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
           this.finishAdd();
         }
       },
-      error: (e) => { this.errorMsg = e?.error?.message ?? 'Failed to create product.'; this.isSubmitting = false; },
+      error: (e) => { 
+        this.errorMsg = e?.error?.message ?? 'Failed to create product.'; 
+        this.isSubmitting = false;
+      },
     });
   }
 
@@ -201,7 +241,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     // Parse specs from JSON string or object
     const rawSpecs = product.specs;
     if (typeof rawSpecs === 'object' && rawSpecs !== null) {
-      this.editSpecs = Object.entries(rawSpecs).map(([key, value]) => ({ key, value: String(value) }));
+      const specsEntries = Object.entries(rawSpecs);
+      this.editSpecs = specsEntries.length > 0 
+        ? specsEntries.map(([key, value]) => ({ key, value: String(value) }))
+        : [{ key: '', value: '' }];
     } else {
       this.editSpecs = [{ key: '', value: '' }];
     }
@@ -209,7 +252,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (product.product_id) {
       this.adminApi.getProductImages(String(product.product_id))
         .pipe(takeUntil(this.destroy$))
-        .subscribe(imgs => this.editExistingImages = imgs);
+        .subscribe({
+          next: (imgs) => this.editExistingImages = imgs || [],
+          error: (err) => console.error('Failed to load images:', err)
+        });
     }
   }
 
@@ -236,7 +282,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         this.editExistingImages = this.editExistingImages.filter(i =>
           (i.image_id ?? i.id ?? i.product_image_id) !== id);
       },
-      error: () => { this.errorMsg = 'Failed to delete image.'; },
+      error: (err) => { 
+        console.error('Failed to delete image:', err);
+        this.errorMsg = 'Failed to delete image.'; 
+      },
     });
   }
 
@@ -270,12 +319,21 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
             this.editNewImages.forEach(i => fd.append('images', i.file));
             fd.append('altText', this.editingProduct.title);
             this.adminApi.uploadProductImages(String(this.editingProduct.product_id), fd)
-              .pipe(takeUntil(this.destroy$)).subscribe({ next: () => this.finishEdit(), error: () => this.finishEdit('Saved but image upload failed.') });
+              .pipe(takeUntil(this.destroy$)).subscribe({ 
+                next: () => this.finishEdit(), 
+                error: (err) => {
+                  console.error('Image upload failed:', err);
+                  this.finishEdit('Saved but image upload failed.');
+                }
+              });
           } else {
             this.finishEdit();
           }
         },
-        error: (e) => { this.errorMsg = e?.error?.message ?? 'Failed to update product.'; this.isSubmitting = false; },
+        error: (e) => { 
+          this.errorMsg = e?.error?.message ?? 'Failed to update product.'; 
+          this.isSubmitting = false;
+        },
       });
   }
 
@@ -291,8 +349,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   deleteProduct(product: any): void {
     if (!confirm(`Delete "${product.title}"? This hides it from the store but preserves order history.`)) return;
     this.adminApi.deleteProduct(String(product.product_id)).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => { this.successMsg = 'Product deleted.'; this.loadProducts(); setTimeout(() => this.successMsg = null, 3000); },
-      error: (e) => { this.errorMsg = e?.error?.message ?? 'Failed to delete product.'; },
+      next: () => { 
+        this.successMsg = 'Product deleted.'; 
+        this.loadProducts(); 
+        setTimeout(() => this.successMsg = null, 3000); 
+      },
+      error: (e) => { 
+        this.errorMsg = e?.error?.message ?? 'Failed to delete product.'; 
+      },
     });
   }
 
@@ -312,7 +376,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   }
 
   getCategoryName(categoryId: any): string {
+    if (!this.categories || this.categories.length === 0) return '—';
     const cat = this.categories.find(c => String(c.category_id) === String(categoryId));
     return cat?.name ?? '—';
+  }
+
+  // Add a method to manually reload categories if needed
+  reloadCategories(): void {
+    this.loadCategories();
   }
 }

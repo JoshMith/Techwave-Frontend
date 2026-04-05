@@ -1,3 +1,5 @@
+<!-- src/app/checkout/payment/payment.component.html -->
+
 <div class="payment-container">
   <div class="checkout-header">
     <h1>Checkout - Payment</h1>
@@ -17,24 +19,27 @@
     </div>
   </div>
 
-  <div class="payment-content" *ngIf="!processingPayment && !orderCreated">
+  <!-- ── Main content (hidden while loading / polling) ───────────────────── -->
+  <div class="payment-content" *ngIf="!isLoading && !isPolling">
     <div class="main-section">
+
       <!-- Payment Methods -->
       <div class="section-card">
         <h2>Select Payment Method</h2>
-
         <div class="payment-methods">
+
           <!-- M-Pesa -->
-          <div class="payment-method" [class.selected]="selectedPaymentMethod === 'mpesa'"
-            (click)="selectPaymentMethod('mpesa')">
+          <div class="payment-method"
+               [class.selected]="selectedMethod === 'mpesa'"
+               (click)="selectMethod('mpesa')">
             <input type="radio" id="mpesa" name="paymentMethod" value="mpesa"
-              [checked]="selectedPaymentMethod === 'mpesa'">
+              [checked]="selectedMethod === 'mpesa'">
             <label for="mpesa" class="method-label">
               <div class="method-header">
                 <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-                  <rect width="48" height="48" rx="8" fill="#00A65E" />
-                  <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-size="14"
-                    font-weight="bold">M</text>
+                  <rect width="48" height="48" rx="8" fill="#00A65E"/>
+                  <text x="50%" y="50%" text-anchor="middle" dy=".3em"
+                    fill="white" font-size="14" font-weight="bold">M</text>
                 </svg>
                 <div>
                   <h3>M-Pesa</h3>
@@ -44,36 +49,18 @@
             </label>
           </div>
 
-          <!-- Card Payment -->
-          <div class="payment-method" [class.selected]="selectedPaymentMethod === 'card'"
-            (click)="selectPaymentMethod('card')">
-            <input type="radio" id="card" name="paymentMethod" value="card"
-              [checked]="selectedPaymentMethod === 'card'">
-            <label for="card" class="method-label">
-              <div class="method-header">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-                  <rect width="48" height="48" rx="8" fill="#3B82F6" />
-                  <rect x="8" y="16" width="32" height="20" rx="2" stroke="white" stroke-width="2" fill="none" />
-                  <line x1="8" y1="22" x2="40" y2="22" stroke="white" stroke-width="2" />
-                </svg>
-                <div>
-                  <h3>Credit/Debit Card</h3>
-                  <p>Visa, Mastercard accepted</p>
-                </div>
-              </div>
-            </label>
-          </div>
-
           <!-- Cash on Delivery -->
-          <div class="payment-method" [class.selected]="selectedPaymentMethod === 'cash_on_delivery'"
-            (click)="selectPaymentMethod('cash_on_delivery')">
-            <input type="radio" id="cod" name="paymentMethod" value="cash_on_delivery"
-              [checked]="selectedPaymentMethod === 'cash_on_delivery'">
+          <div class="payment-method"
+               [class.selected]="selectedMethod === 'cod'"
+               (click)="selectMethod('cod')">
+            <input type="radio" id="cod" name="paymentMethod" value="cod"
+              [checked]="selectedMethod === 'cod'">
             <label for="cod" class="method-label">
               <div class="method-header">
                 <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-                  <rect width="48" height="48" rx="8" fill="#10B981" />
-                  <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-size="20">KSh</text>
+                  <rect width="48" height="48" rx="8" fill="#10B981"/>
+                  <text x="50%" y="50%" text-anchor="middle" dy=".3em"
+                    fill="white" font-size="20">KSh</text>
                 </svg>
                 <div>
                   <h3>Cash on Delivery</h3>
@@ -82,143 +69,108 @@
               </div>
             </label>
           </div>
+
         </div>
       </div>
 
-      <!-- Payment Details Form -->
-      <div class="section-card" *ngIf="selectedPaymentMethod">
+      <!-- Payment details panel -->
+      <div class="section-card" *ngIf="selectedMethod">
         <h2>Payment Details</h2>
 
-        <form [formGroup]="paymentForm">
-          <!-- M-Pesa Form -->
-          <div *ngIf="selectedPaymentMethod === 'mpesa'" class="payment-form">
-            <div class="form-group">
-              <label for="mpesaPhone">M-Pesa Phone Number *</label>
-              <input type="tel" id="mpesaPhone" formControlName="mpesaPhone" class="form-control"
-                placeholder="+254712345678">
-              <span class="error"
-                *ngIf="paymentForm.get('mpesaPhone')?.touched && paymentForm.get('mpesaPhone')?.invalid">
-                Please enter a valid phone number (+254XXXXXXXXX)
-              </span>
-              <p class="help-text">You will receive an STK push to complete payment</p>
+        <!-- M-Pesa info -->
+        <div *ngIf="selectedMethod === 'mpesa'" class="payment-form">
+          <div class="info-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect width="24" height="24" rx="4" fill="#00A65E"/>
+              <text x="50%" y="50%" text-anchor="middle" dy=".35em"
+                fill="white" font-size="10" font-weight="bold">M</text>
+            </svg>
+            <div>
+              <h4>M-Pesa STK Push</h4>
+              <p>After clicking "Complete Order" you will receive an M-Pesa prompt on your phone. Enter your M-Pesa PIN to confirm payment.</p>
             </div>
           </div>
+        </div>
 
-          <!-- Card Form -->
-          <div *ngIf="selectedPaymentMethod === 'card'" class="payment-form">
-            <div class="form-group">
-              <label for="cardNumber">Card Number *</label>
-              <input type="text" id="cardNumber" formControlName="cardNumber" class="form-control"
-                placeholder="1234 5678 9012 3456" maxlength="19" (input)="formatCardNumber($event)">
-              <span class="error"
-                *ngIf="paymentForm.get('cardNumber')?.touched && paymentForm.get('cardNumber')?.invalid">
-                Please enter a valid 16-digit card number
-              </span>
-            </div>
-
-            <div class="form-group">
-              <label for="cardName">Cardholder Name *</label>
-              <input type="text" id="cardName" formControlName="cardName" class="form-control" placeholder="John Doe">
-              <span class="error" *ngIf="paymentForm.get('cardName')?.touched && paymentForm.get('cardName')?.invalid">
-                Cardholder name is required
-              </span>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="cardExpiry">Expiry Date *</label>
-                <input type="text" id="cardExpiry" formControlName="cardExpiry" class="form-control" placeholder="MM/YY"
-                  maxlength="5" (input)="formatExpiry($event)">
-                <span class="error"
-                  *ngIf="paymentForm.get('cardExpiry')?.touched && paymentForm.get('cardExpiry')?.invalid">
-                  Invalid expiry date
-                </span>
-              </div>
-
-              <div class="form-group">
-                <label for="cardCvv">CVV *</label>
-                <input type="text" id="cardCvv" formControlName="cardCvv" class="form-control" placeholder="123"
-                  maxlength="4">
-                <span class="error" *ngIf="paymentForm.get('cardCvv')?.touched && paymentForm.get('cardCvv')?.invalid">
-                  Invalid CVV
-                </span>
-              </div>
+        <!-- COD info -->
+        <div *ngIf="selectedMethod === 'cod'" class="payment-form">
+          <div class="info-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#10B981" stroke-width="2"/>
+              <path d="M2 17L12 22L22 17" stroke="#10B981" stroke-width="2"/>
+              <path d="M2 12L12 17L22 12" stroke="#10B981" stroke-width="2"/>
+            </svg>
+            <div>
+              <h4>Cash on Delivery</h4>
+              <p>Please keep the exact amount ready. Our delivery agent will collect payment upon delivery.</p>
+              <ul>
+                <li>No advance payment required</li>
+                <li>Pay in cash to the delivery agent</li>
+                <li>Inspect your order before payment</li>
+              </ul>
             </div>
           </div>
+        </div>
 
-          <!-- Cash on Delivery Info -->
-          <div *ngIf="selectedPaymentMethod === 'cash_on_delivery'" class="payment-form">
-            <div class="info-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#10B981" stroke-width="2" />
-                <path d="M2 17L12 22L22 17" stroke="#10B981" stroke-width="2" />
-                <path d="M2 12L12 17L22 12" stroke="#10B981" stroke-width="2" />
-              </svg>
-              <div>
-                <h4>Cash on Delivery</h4>
-                <p>Please keep the exact amount ready. Our delivery agent will collect payment upon delivery.</p>
-                <ul>
-                  <li>No advance payment required</li>
-                  <li>Pay in cash to the delivery agent</li>
-                  <li>Inspect your order before payment</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <p class="error" *ngIf="error">{{ error }}</p>
+        <!-- Error message -->
+        <p class="error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
       </div>
 
-      <!-- Security Info -->
+      <!-- Security notice -->
       <div class="section-card security-info">
         <div class="security-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#10B981" stroke-width="2" fill="none" />
-            <path d="M9 12l2 2 4-4" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+              stroke="#10B981" stroke-width="2" fill="none"/>
+            <path d="M9 12l2 2 4-4" stroke="#10B981" stroke-width="2"
+              stroke-linecap="round"/>
           </svg>
         </div>
         <div>
           <h3>Secure Payment</h3>
-          <p>Your payment information is encrypted and secure. We never store your card details.</p>
+          <p>Your payment information is encrypted and secure.</p>
         </div>
       </div>
     </div>
 
     <!-- Order Summary Sidebar -->
-    <div class="summary-section" *ngIf="paymentInfo">
+    <div class="summary-section" *ngIf="checkoutData">
       <div class="summary-card">
         <h2>Order Summary</h2>
 
         <div class="summary-row">
           <span>Subtotal:</span>
-          <span>KSh {{ paymentInfo.subtotal | number }}</span>
+          <span>KSh {{ checkoutData.totalAmount ?? checkoutData.subtotal | number }}</span>
         </div>
 
         <div class="summary-row">
-          <span>Delivery to {{ paymentInfo.deliveryCity }}:</span>
-          <span [class.free]="paymentInfo.deliveryCost === 0">
-            {{ paymentInfo.deliveryCost === 0 ? 'FREE' : ('KSh ' + paymentInfo.deliveryCost | number) }}
+          <span>Delivery to {{ checkoutData.deliveryCity ?? 'your address' }}:</span>
+          <span [class.free]="(checkoutData.deliveryFee ?? checkoutData.deliveryCost ?? 0) === 0">
+            {{
+              (checkoutData.deliveryFee ?? checkoutData.deliveryCost ?? 0) === 0
+                ? 'FREE'
+                : 'KSh ' + (checkoutData.deliveryFee ?? checkoutData.deliveryCost)
+            }}
           </span>
         </div>
 
         <div class="summary-row total">
           <span>Total Amount:</span>
-          <span>KSh {{ paymentInfo.finalTotal | number }}</span>
+          <span>KSh {{ (checkoutData.finalTotal ?? checkoutData.totalAmount) | number }}</span>
         </div>
 
-        <button class="btn-pay" (click)="processPayment()" [disabled]="!selectedPaymentMethod || loading">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" *ngIf="!loading">
-            <path
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <button
+          class="btn-pay"
+          (click)="placeOrder()"
+          [disabled]="!selectedMethod || isLoading">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
-          {{ loading ? 'Processing...' : 'Complete Order' }}
+          Complete Order
         </button>
 
-        <button class="btn-back" (click)="goBack()">
-          ← Back to Details
-        </button>
+        <button class="btn-back" (click)="goBack()">← Back to Details</button>
 
         <div class="payment-icons">
           <p>We Accept:</p>
@@ -230,65 +182,60 @@
         </div>
       </div>
     </div>
+
+    <!-- No checkout data fallback -->
+    <div class="summary-section" *ngIf="!checkoutData">
+      <div class="summary-card">
+        <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+        <button class="btn-back" (click)="goBack()">← Back to Cart</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Processing State -->
-  <div class="processing-state" *ngIf="processingPayment && !orderCreated">
+  <!-- ── Processing state ────────────────────────────────────────────────── -->
+  <div class="processing-state" *ngIf="isLoading || isPolling">
     <div class="spinner"></div>
-    <h2>Processing Your Order...</h2>
-    <p>Please wait while we process your payment and create your order.</p>
+    <h2>{{ isPolling ? 'Waiting for M-Pesa Confirmation…' : 'Processing Your Order…' }}</h2>
+    <p *ngIf="isPolling">
+      An STK push has been sent to your phone.<br>
+      Enter your M-Pesa PIN to complete payment.
+    </p>
+    <p *ngIf="isLoading && !isPolling">
+      Please wait while we create your order.
+    </p>
     <div class="progress-steps">
-      <!-- Creating Order Step -->
-      <div class="progress-step" [class.completed]="isStepCompleted('creating_order')"
-        [class.active]="isStepActive('creating_order')">
+      <div class="progress-step" [class.active]="isLoading && !isPolling">
         <div class="step-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" *ngIf="isStepCompleted('creating_order')">
-            <circle cx="12" cy="12" r="10" fill="#22C55E" />
-            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" *ngIf="isStepActive('creating_order')">
-            <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-            *ngIf="!isStepCompleted('creating_order') && !isStepActive('creating_order')">
-            <circle cx="12" cy="12" r="10" stroke="#D1D5DB" stroke-width="2" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10"
+              [attr.stroke]="(isLoading && !isPolling) ? '#3B82F6' : '#D1D5DB'"
+              stroke-width="2"/>
+            <path *ngIf="isLoading && !isPolling"
+              d="M12 6v6l4 2" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
         <span>Creating Order</span>
       </div>
-
-      <!-- Processing Payment Step -->
-      <div class="progress-step" [class.completed]="orderCreated" [class.active]="isStepActive('processing_payment')">
+      <div class="progress-step" [class.active]="isPolling">
         <div class="step-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" *ngIf="orderCreated">
-            <circle cx="12" cy="12" r="10" fill="#22C55E" />
-            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" *ngIf="isStepActive('processing_payment')">
-            <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-            *ngIf="!orderCreated && !isStepActive('processing_payment')">
-            <circle cx="12" cy="12" r="10" stroke="#D1D5DB" stroke-width="2" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10"
+              [attr.stroke]="isPolling ? '#3B82F6' : '#D1D5DB'"
+              stroke-width="2"/>
+            <path *ngIf="isPolling"
+              d="M12 6v6l4 2" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
         <span>Processing Payment</span>
       </div>
     </div>
-  </div>
 
-  <!-- Success State -->
-  <div class="success-state" *ngIf="orderCreated && !processingPayment">
-    <div class="success-icon">
-      <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="#22C55E" stroke-width="2" />
-        <path d="M9 12l2 2 4-4" stroke="#22C55E" stroke-width="2" stroke-linecap="round" />
-      </svg>
-    </div>
-    <h2>Order Placed Successfully!</h2>
-    <p>Your order #{{ orderId }} has been confirmed.</p>
-    <a routerLink="/cart" class="back-to-cart">Place another order</a>
+    <!-- Error shown during processing -->
+    <p class="error" *ngIf="errorMessage" style="margin-top:1.5rem;" role="alert">
+      {{ errorMessage }}
+    </p>
+    <button *ngIf="errorMessage" class="btn-back" (click)="isLoading = false; isPolling = false">
+      Try Again
+    </button>
   </div>
 </div>

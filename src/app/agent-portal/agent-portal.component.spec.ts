@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AgentPortalComponent } from './agent-portal.component';
 
 describe('AgentPortalComponent', () => {
@@ -8,9 +8,11 @@ describe('AgentPortalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AgentPortalComponent]
-    })
-    .compileComponents();
+      imports: [
+        AgentPortalComponent,
+        HttpClientTestingModule
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(AgentPortalComponent);
     component = fixture.componentInstance;

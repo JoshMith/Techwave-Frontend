@@ -31,7 +31,7 @@ const serverConfig: ApplicationConfig = {
       { path: 'cart', renderMode: RenderMode.Client },
       { path: 'checkout/details', renderMode: RenderMode.Client },
       { path: 'checkout/payment', renderMode: RenderMode.Client },
-      { path: 'checkout/orders', renderMode: RenderMode.Client },
+      { path: 'checkout/orders/:orderId', renderMode: RenderMode.Client },
       { path: 'profile', renderMode: RenderMode.Client },
 
       { path: 'agent/login', renderMode: RenderMode.Client },
