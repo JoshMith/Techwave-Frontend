@@ -40,6 +40,11 @@ export const adminRoutes: Routes = [
           import('./views/admin-customers/admin-customers.component').then(m => m.AdminCustomersComponent),
       },
       {
+        path: 'offers',
+        loadComponent: () =>
+          import('./views/admin-offers/admin-offers.component').then(m => m.AdminOffersComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./views/admin-settings/admin-settings.component').then(m => m.AdminSettingsComponent),

@@ -13,19 +13,17 @@ import { AuthDraftService } from '../../services/auth-draft.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
-  showPassword = false;
+  showPassword     = false;
   passwordFieldType = 'password';
-  isLoading = false;
-  loginMessage = '';
-  errorMessage = '';
+  isLoading        = false;
+  loginMessage     = '';
+  errorMessage     = '';
   returnUrl: string = '/home';
-
-  /** Shows the "draft restored" banner for 3 seconds */
-  draftRestored = false;
+  draftRestored    = false;
 
   private destroy$ = new Subject<void>();
 
@@ -34,33 +32,30 @@ export class LoginComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private router: Router,
     private route: ActivatedRoute,
-    private draftService: AuthDraftService
+    private draftService: AuthDraftService,
   ) {
     this.loginForm = this.fb.group({
       email:    ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
   ngOnInit(): void {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
 
-    // ── Restore draft ──────────────────────────────────
+    // Restore draft email
     const draft = this.draftService.getLoginDraft();
     if (draft?.email) {
       this.loginForm.patchValue({ email: draft.email });
       this.draftRestored = true;
-      setTimeout(() => this.draftRestored = false, 3000);
+      setTimeout(() => (this.draftRestored = false), 3000);
     }
 
-    // ── Auto-save on every change (debounced 400 ms) ───
-    // Only non-sensitive fields (email) are persisted.
+    // Auto-save email (debounced)
     this.loginForm.get('email')!.valueChanges.pipe(
       debounceTime(400),
-      takeUntil(this.destroy$)
-    ).subscribe(email => {
-      this.draftService.saveLoginDraft({ email });
-    });
+      takeUntil(this.destroy$),
+    ).subscribe(email => this.draftService.saveLoginDraft({ email }));
   }
 
   ngOnDestroy(): void {
@@ -69,50 +64,54 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   togglePassword(): void {
-    this.showPassword = !this.showPassword;
+    this.showPassword      = !this.showPassword;
     this.passwordFieldType = this.showPassword ? 'text' : 'password';
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
+    if (!this.loginForm.valid) return;
 
-      const credentials = {
-        email:    this.loginForm.value.email,
-        password: this.loginForm.value.password
-      };
+    this.isLoading   = true;
+    this.errorMessage = '';
 
-      this.apiService.login(credentials).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.loginMessage = 'Login successful! Redirecting...';
+    this.apiService.login(this.loginForm.value).subscribe({
+      next: (response) => {
+        this.isLoading    = false;
+        this.loginMessage = 'Login successful! Redirecting...';
 
-          // Clear draft on success — no need to restore after login
-          this.draftService.clearLoginDraft();
+        this.draftService.clearLoginDraft();
 
-          if (response.user) {
-            localStorage.setItem('currentUser', JSON.stringify(response.user));
-          }
-
-          if (response.user?.role === 'seller') {
-            sessionStorage.setItem('sellerData', JSON.stringify(response.sellerData || {}));
-          }
-          this.router.navigateByUrl(this.returnUrl);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Login failed. Please check your credentials.';
+        if (response.user) {
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
         }
-      });
-    }
+
+        if (response.user?.role === 'seller') {
+          sessionStorage.setItem('sellerData', JSON.stringify(response.sellerData || {}));
+        }
+
+        // ── Role-based redirect ────────────────────────────────────────
+        this.redirectByRole(response.user?.role, this.returnUrl);
+      },
+      error: (error) => {
+        this.isLoading   = false;
+        this.errorMessage = error.error?.message || 'Login failed. Please check your credentials.';
+      },
+    });
+  }
+
+  /** Navigate to the correct portal based on user role. */
+  private redirectByRole(role: string | undefined, fallback: string): void {
+    const r = (role ?? '').toLowerCase();
+    if      (r === 'admin')  this.router.navigate(['/admin/overview']);
+    else if (r === 'agent')  this.router.navigate(['/agent/dashboard']);
+    else                     this.router.navigateByUrl(fallback);
   }
 
   showForgotPassword(): void { this.router.navigate(['/forgot-pwd']); }
   showSignup(): void         { this.router.navigate(['/signup']); }
 
   loginWithGoogle(): void {
-    this.isLoading = true;
+    this.isLoading    = true;
     this.loginMessage = 'Redirecting to Google...';
     const googleAuthUrl = `${this.apiService.apiUrl}/auth/google?returnUrl=${encodeURIComponent(this.returnUrl)}`;
     window.location.href = googleAuthUrl;

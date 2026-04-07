@@ -66,7 +66,7 @@ export class AgentLoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.apiService.login(this.loginForm.value).subscribe({
+    this.apiService.agentLogin(this.loginForm.value).subscribe({
       next: (response: any) => {
         this.isLoading = false;
         const role = response.user?.role?.toLowerCase();

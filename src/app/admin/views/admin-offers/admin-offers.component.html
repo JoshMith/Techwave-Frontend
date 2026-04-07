@@ -1,0 +1,292 @@
+<!-- src/app/admin/views/admin-offers/admin-offers.component.html -->
+
+<div class="page-header">
+    <h1 class="page-title">Offers & Promotions</h1>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <button class="btn" [ngClass]="activeTab==='sale' ? 'btn-primary' : 'btn-secondary'"
+            (click)="activeTab='sale'">Sale Prices</button>
+        <button class="btn" [ngClass]="activeTab==='special' ? 'btn-primary' : 'btn-secondary'"
+            (click)="activeTab='special'">Special Offers</button>
+    </div>
+</div>
+
+<div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+<div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     TAB 1 — SALE PRICES
+     Set / clear sale_price on individual products.
+══════════════════════════════════════════════════════════════ -->
+<ng-container *ngIf="activeTab === 'sale'">
+
+    <div style="margin-bottom:1.25rem;">
+        <p style="color:#64748b;font-size:0.9rem;">
+            Set a sale price below the regular price to show a strikethrough discount on the storefront.
+            Leave blank to remove the sale.
+        </p>
+    </div>
+
+    <div class="filters-container">
+        <div class="filter-group">
+            <label>Search Products</label>
+            <input type="text" [(ngModel)]="productSearch" (ngModelChange)="applyProductFilter()" class="form-input"
+                placeholder="Title or category">
+        </div>
+    </div>
+
+    <div *ngIf="isLoadingProducts" class="loading-container" style="min-height:160px;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="card" *ngIf="!isLoadingProducts">
+        <div class="table-container">
+            <div *ngIf="!filteredProducts.length" class="empty-state">
+                <p>No products found</p>
+            </div>
+
+            <table class="products-table" *ngIf="filteredProducts.length" style="min-width:660px;">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Regular Price</th>
+                        <th>Sale Price</th>
+                        <th>Discount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let p of filteredProducts">
+
+                        <!-- Product name -->
+                        <td>
+                            <div class="product-name">{{ p.title }}</div>
+                            <div class="product-description" style="color:#94a3b8;">
+                                {{ p.category_name ?? 'Uncategorised' }}
+                            </div>
+                        </td>
+
+                        <!-- Regular price -->
+                        <td style="font-weight:600;">{{ fmt(p.price) }}</td>
+
+                        <!-- Sale price — view or edit -->
+                        <td>
+                            <ng-container *ngIf="!isEditing(p.product_id)">
+                                <span *ngIf="p.sale_price" style="color:#10b981;font-weight:700;">
+                                    {{ fmt(p.sale_price) }}
+                                </span>
+                                <span *ngIf="!p.sale_price" style="color:#cbd5e1;">No sale</span>
+                            </ng-container>
+
+                            <ng-container *ngIf="isEditing(p.product_id)">
+                                <input type="number" [ngModel]="getEditingSalePrice(p)"
+                                    (ngModelChange)="updateEditingSalePrice(p, $event)" class="form-input"
+                                    style="width:130px;padding:0.45rem 0.65rem;" placeholder="e.g. 8500" min="1"
+                                    [max]="p.price - 1">
+                            </ng-container>
+                        </td>
+
+                        <!-- Discount % -->
+                        <td>
+                            <ng-container *ngIf="!isEditing(p.product_id)">
+                                <span *ngIf="p.sale_price" class="status-badge delivered">
+                                    −{{ getDiscountPercent(p.price, p.sale_price) }}%
+                                </span>
+                                <span *ngIf="!p.sale_price">—</span>
+                            </ng-container>
+                            <ng-container *ngIf="isEditing(p.product_id)">
+                                <span *ngIf="shouldShowDiscount(p)" class="status-badge delivered">
+                                    −{{ getDiscountPercent(p.price, getEditingSalePrice(p)) }}%
+                                </span>
+                            </ng-container>
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-col">
+                                <!-- Not editing -->
+                                <ng-container *ngIf="!isEditing(p.product_id)">
+                                    <button class="btn btn-small btn-primary" (click)="startEdit(p)">
+                                        {{ p.sale_price ? 'Edit' : 'Set Sale' }}
+                                    </button>
+                                    <button *ngIf="p.sale_price" class="btn btn-small btn-danger"
+                                        (click)="clearSalePrice(p)">
+                                        Remove
+                                    </button>
+                                </ng-container>
+
+                                <!-- Editing -->
+                                <ng-container *ngIf="isEditing(p.product_id)">
+                                    <button class="btn btn-small btn-success" (click)="saveSalePrice(p)"
+                                        [disabled]="isSaving(p.product_id)">
+                                        {{ isSaving(p.product_id) ? 'Saving…' : 'Save' }}
+                                    </button>
+                                    <button class="btn btn-small btn-secondary" (click)="cancelEdit(p.product_id)">
+                                        Cancel
+                                    </button>
+                                </ng-container>
+                            </div>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</ng-container>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     TAB 2 — SPECIAL OFFERS
+     Banner / promotional offers (site-wide or category-wide).
+══════════════════════════════════════════════════════════════ -->
+<ng-container *ngIf="activeTab === 'special'">
+
+    <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
+        <p style="color:#64748b;font-size:0.9rem;">
+            Special offers appear as promotional banners or deal sections on the storefront.
+        </p>
+        <button class="btn btn-primary" (click)="openOfferForm()">+ New Offer</button>
+    </div>
+
+    <div *ngIf="isLoadingOffers" class="loading-container" style="min-height:160px;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="card" *ngIf="!isLoadingOffers">
+        <div *ngIf="!specialOffers.length" class="empty-state">
+            <p>No special offers yet</p>
+            <small>Create your first promotional offer to display on the storefront.</small>
+            <button class="btn btn-primary" (click)="openOfferForm()" style="margin-top:1rem;">+ Create Offer</button>
+        </div>
+
+        <div *ngIf="specialOffers.length" class="table-container">
+            <table class="orders-table" style="min-width:620px;">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Discount</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let o of specialOffers">
+                        <td>
+                            <div style="font-weight:600;color:#1e293b;">{{ o.title }}</div>
+                            <div *ngIf="o.description"
+                                style="font-size:0.78rem;color:#94a3b8;margin-top:0.15rem;max-width:240px;white-space:normal;">
+                                {{ o.description }}
+                            </div>
+                        </td>
+                        <td>
+                            <span *ngIf="o.discount_value || o.discount_percentage" class="status-badge delivered">
+                                −{{ o.discount_value ?? o.discount_percentage }}%
+                            </span>
+                            <span *ngIf="!o.discount_value && !o.discount_percentage">—</span>
+                        </td>
+                        <td style="font-size:0.82rem;color:#64748b;">
+                            <div *ngIf="o.valid_from">From: {{ fmtDate(o.valid_from) }}</div>
+                            <div *ngIf="o.valid_until">To: {{ fmtDate(o.valid_until) }}</div>
+                            <div *ngIf="!o.valid_from && !o.valid_until">No dates set</div>
+                        </td>
+                        <td>
+                            <span class="status-badge" [ngClass]="o.is_active ? 'delivered' : 'cancelled'">
+                                {{ o.is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-col">
+                                <button class="btn btn-small btn-secondary" (click)="openOfferForm(o)">Edit</button>
+                                <button class="btn btn-small" [ngClass]="o.is_active ? 'btn-danger' : 'btn-success'"
+                                    (click)="toggleOfferActive(o)">
+                                    {{ o.is_active ? 'Deactivate' : 'Activate' }}
+                                </button>
+                                <button class="btn-icon" (click)="deleteOffer(o)" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</ng-container>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     SPECIAL OFFER FORM MODAL
+══════════════════════════════════════════════════════════════ -->
+<div *ngIf="showOfferForm" class="modal-overlay" (click)="closeOfferForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>{{ editingOfferId ? 'Edit Offer' : 'New Special Offer' }}</h3>
+            <button class="modal-close" (click)="closeOfferForm()">×</button>
+        </div>
+        <div class="modal-content">
+
+            <div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+            <form class="product-form">
+
+                <div class="form-group">
+                    <label>Offer Title *</label>
+                    <input type="text" [(ngModel)]="offerForm.title" name="offerTitle" class="form-input"
+                        placeholder="e.g. Mid-Year Sale">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea [(ngModel)]="offerForm.description" name="offerDesc" class="form-textarea" rows="2"
+                        placeholder="Brief description shown on the storefront (optional)"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Discount Value</label>
+                        <input type="number" [(ngModel)]="offerForm.discount_value" name="discountValue" class="form-input"
+                            min="0" placeholder="e.g. 20">
+                        <span class="help-text">Leave 0 if not a percentage-based offer.</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Type</label>
+                        <select [(ngModel)]="offerForm.discount_type" name="discountType" class="form-select">
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed_amount">Fixed Amount</option>
+                        </select>
+                        <span class="help-text">Determines how the discount is applied at checkout.</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select [(ngModel)]="offerForm.is_active" name="isActive" class="form-select">
+                            <option [ngValue]="true">Active</option>
+                            <option [ngValue]="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" [(ngModel)]="offerForm.valid_from" name="startDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" [(ngModel)]="offerForm.valid_until" name="endDate" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" (click)="closeOfferForm()">Cancel</button>
+                    <button type="button" class="btn btn-primary" (click)="submitOffer()"
+                        [disabled]="isSubmittingOffer">
+                        {{ isSubmittingOffer ? 'Saving…' : (editingOfferId ? 'Save Changes' : 'Create Offer') }}
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>

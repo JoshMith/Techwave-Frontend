@@ -59,6 +59,14 @@ export class ApiService {
     );
   }
 
+  agentLogin(credentials: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/auth/agent/login`,
+      credentials,
+      this.httpOptions,
+    );
+  }
+
   logout(): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/logout`, {}, this.httpOptions);
   }

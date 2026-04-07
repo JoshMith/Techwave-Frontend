@@ -1,6 +1,6 @@
 // src/app/admin/views/products/admin-products.component.ts
 
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -41,7 +41,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   // Loading
   isLoading = false;
   isSubmitting = false;
-  isLoadingCategories = false; // Add this
+  isLoadingCategories = false;
 
   // Messages
   successMsg: string | null = null;
@@ -67,25 +67,39 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
 
   readonly fmt = formatCurrency;
 
-  constructor(private adminApi: AdminApiService) {}
+  constructor(
+    private adminApi: AdminApiService,
+    private cdr: ChangeDetectorRef  // Add ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadProducts();
-    this.loadCategories(); // Separate method for categories
+    this.loadCategories();
   }
 
-  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+  ngOnDestroy(): void { 
+    this.destroy$.next(); 
+    this.destroy$.complete(); 
+  }
 
   // ── Load Categories ────────────────────────────────────────────────────────
   loadCategories(): void {
     this.isLoadingCategories = true;
     this.adminApi.getCategories().pipe(takeUntil(this.destroy$)).subscribe({
       next: (cats) => {
-        console.log('Categories loaded:', cats); // Debug log
-        this.categories = cats || [];
+        // console.log('Categories loaded:', cats);
+        
+        // Ensure we're setting the categories array correctly
+        this.categories = Array.isArray(cats) ? cats : [];
+        
+        // console.log('Categories array after assignment:', this.categories);
+        console.log('Number of categories:', this.categories.length);
+        
         this.isLoadingCategories = false;
         
-        // Optional: Show error if no categories
+        // Force change detection
+        this.cdr.detectChanges();
+        
         if (this.categories.length === 0) {
           console.warn('No categories returned from API');
           this.errorMsg = 'No categories found. Please add categories first.';
@@ -97,8 +111,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         this.errorMsg = 'Failed to load categories. Please check your connection.';
         this.isLoadingCategories = false;
         this.categories = [];
+        this.cdr.detectChanges();
         
-        // Clear error after 5 seconds
         setTimeout(() => {
           if (this.errorMsg === 'Failed to load categories. Please check your connection.') {
             this.errorMsg = null;
@@ -113,14 +127,16 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.adminApi.getProducts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (products) => {
-        this.allProducts = products || [];
+        this.allProducts = Array.isArray(products) ? products : [];
         this.applyFilters();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to load products:', err);
         this.errorMsg = 'Failed to load products.';
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -138,10 +154,14 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       }
       return true;
     });
+    this.cdr.detectChanges();
   }
 
   clearFilters(): void {
-    this.searchTerm = ''; this.filterCategory = ''; this.filterCondition = ''; this.filterStatus = '';
+    this.searchTerm = ''; 
+    this.filterCategory = ''; 
+    this.filterCondition = ''; 
+    this.filterStatus = '';
     this.applyFilters();
   }
 
@@ -150,14 +170,28 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.newProduct = this.emptyProduct();
     this.newSpecs   = [{ key: '', value: '' }];
     this.newImages  = [];
-    this.successMsg = null; this.errorMsg = null;
+    this.successMsg = null; 
+    this.errorMsg = null;
     this.showAddModal = true;
+    this.cdr.detectChanges();
   }
 
-  closeAdd(): void { this.showAddModal = false; }
+  closeAdd(): void { 
+    this.showAddModal = false;
+    this.cdr.detectChanges();
+  }
 
-  addSpec(): void    { this.newSpecs.push({ key: '', value: '' }); }
-  removeSpec(i: number): void { if (this.newSpecs.length > 1) this.newSpecs.splice(i, 1); }
+  addSpec(): void { 
+    this.newSpecs.push({ key: '', value: '' });
+    this.cdr.detectChanges();
+  }
+  
+  removeSpec(i: number): void { 
+    if (this.newSpecs.length > 1) {
+      this.newSpecs.splice(i, 1);
+      this.cdr.detectChanges();
+    }
+  }
 
   async onNewFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -165,6 +199,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const previews = await readFilesAsPreview(input.files);
     this.newImages.push(...previews);
     input.value = '';
+    this.cdr.detectChanges();
   }
 
   async onNewDrop(event: DragEvent): Promise<void> {
@@ -173,22 +208,42 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (!event.dataTransfer?.files.length) return;
     const previews = await readFilesAsPreview(event.dataTransfer.files);
     this.newImages.push(...previews);
+    this.cdr.detectChanges();
   }
 
-  onDragOver(e: DragEvent): void { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('drag-over'); }
-  onDragLeave(e: DragEvent): void { e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over'); }
+  onDragOver(e: DragEvent): void { 
+    e.preventDefault(); 
+    (e.currentTarget as HTMLElement).classList.add('drag-over'); 
+  }
+  
+  onDragLeave(e: DragEvent): void { 
+    e.preventDefault(); 
+    (e.currentTarget as HTMLElement).classList.remove('drag-over'); 
+  }
 
-  removeNewImage(i: number): void { this.newImages.splice(i, 1); }
+  removeNewImage(i: number): void { 
+    this.newImages.splice(i, 1);
+    this.cdr.detectChanges();
+  }
 
   submitAdd(): void {
     const err = this.validateProduct(this.newProduct);
-    if (err) { this.errorMsg = err; return; }
+    if (err) { 
+      this.errorMsg = err; 
+      this.cdr.detectChanges();
+      return; 
+    }
 
     this.isSubmitting = true;
     this.errorMsg = null;
+    this.cdr.detectChanges();
 
     const specsObj: Record<string, string> = {};
-    this.newSpecs.forEach(s => { if (s.key.trim() && s.value.trim()) specsObj[s.key.trim()] = s.value.trim(); });
+    this.newSpecs.forEach(s => { 
+      if (s.key.trim() && s.value.trim()) {
+        specsObj[s.key.trim()] = s.value.trim();
+      }
+    });
 
     const payload = {
       category_id:  this.newProduct.category_id,
@@ -219,6 +274,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       error: (e) => { 
         this.errorMsg = e?.error?.message ?? 'Failed to create product.'; 
         this.isSubmitting = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -228,7 +284,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.successMsg = warning ?? 'Product added successfully!';
     this.closeAdd();
     this.loadProducts();
-    setTimeout(() => this.successMsg = null, 4000);
+    setTimeout(() => {
+      this.successMsg = null;
+      this.cdr.detectChanges();
+    }, 4000);
   }
 
   // ── Edit product ───────────────────────────────────────────────────────────
@@ -236,7 +295,8 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.editingProduct = { ...product };
     this.editNewImages = [];
     this.editExistingImages = [];
-    this.successMsg = null; this.errorMsg = null;
+    this.successMsg = null; 
+    this.errorMsg = null;
 
     // Parse specs from JSON string or object
     const rawSpecs = product.specs;
@@ -253,16 +313,32 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       this.adminApi.getProductImages(String(product.product_id))
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (imgs) => this.editExistingImages = imgs || [],
+          next: (imgs) => {
+            this.editExistingImages = imgs || [];
+            this.cdr.detectChanges();
+          },
           error: (err) => console.error('Failed to load images:', err)
         });
     }
+    this.cdr.detectChanges();
   }
 
-  closeEdit(): void { this.editingProduct = null; }
+  closeEdit(): void { 
+    this.editingProduct = null;
+    this.cdr.detectChanges();
+  }
 
-  addEditSpec(): void    { this.editSpecs.push({ key: '', value: '' }); }
-  removeEditSpec(i: number): void { if (this.editSpecs.length > 1) this.editSpecs.splice(i, 1); }
+  addEditSpec(): void { 
+    this.editSpecs.push({ key: '', value: '' });
+    this.cdr.detectChanges();
+  }
+  
+  removeEditSpec(i: number): void { 
+    if (this.editSpecs.length > 1) {
+      this.editSpecs.splice(i, 1);
+      this.cdr.detectChanges();
+    }
+  }
 
   async onEditFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -270,9 +346,13 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     const previews = await readFilesAsPreview(input.files);
     this.editNewImages.push(...previews);
     input.value = '';
+    this.cdr.detectChanges();
   }
 
-  removeEditNewImage(i: number): void { this.editNewImages.splice(i, 1); }
+  removeEditNewImage(i: number): void { 
+    this.editNewImages.splice(i, 1);
+    this.cdr.detectChanges();
+  }
 
   removeEditExistingImage(img: ProductImage): void {
     const id = img.image_id ?? img.id ?? img.product_image_id;
@@ -281,10 +361,12 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       next: () => {
         this.editExistingImages = this.editExistingImages.filter(i =>
           (i.image_id ?? i.id ?? i.product_image_id) !== id);
+        this.cdr.detectChanges();
       },
       error: (err) => { 
         console.error('Failed to delete image:', err);
         this.errorMsg = 'Failed to delete image.'; 
+        this.cdr.detectChanges();
       },
     });
   }
@@ -292,12 +374,21 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   submitEdit(): void {
     if (!this.editingProduct?.product_id) return;
     const err = this.validateProduct(this.editingProduct);
-    if (err) { this.errorMsg = err; return; }
+    if (err) { 
+      this.errorMsg = err; 
+      this.cdr.detectChanges();
+      return; 
+    }
 
     this.isSubmitting = true;
+    this.cdr.detectChanges();
 
     const specsObj: Record<string, string> = {};
-    this.editSpecs.forEach(s => { if (s.key.trim() && s.value.trim()) specsObj[s.key.trim()] = s.value.trim(); });
+    this.editSpecs.forEach(s => { 
+      if (s.key.trim() && s.value.trim()) {
+        specsObj[s.key.trim()] = s.value.trim();
+      }
+    });
 
     const payload: any = {
       category_id:  this.editingProduct.category_id,
@@ -333,6 +424,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
         error: (e) => { 
           this.errorMsg = e?.error?.message ?? 'Failed to update product.'; 
           this.isSubmitting = false;
+          this.cdr.detectChanges();
         },
       });
   }
@@ -342,7 +434,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.successMsg = warning ?? 'Product updated successfully!';
     this.closeEdit();
     this.loadProducts();
-    setTimeout(() => this.successMsg = null, 4000);
+    setTimeout(() => {
+      this.successMsg = null;
+      this.cdr.detectChanges();
+    }, 4000);
   }
 
   // ── Delete product ─────────────────────────────────────────────────────────
@@ -352,17 +447,29 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
       next: () => { 
         this.successMsg = 'Product deleted.'; 
         this.loadProducts(); 
-        setTimeout(() => this.successMsg = null, 3000); 
+        setTimeout(() => {
+          this.successMsg = null;
+          this.cdr.detectChanges();
+        }, 3000);
       },
       error: (e) => { 
         this.errorMsg = e?.error?.message ?? 'Failed to delete product.'; 
+        this.cdr.detectChanges();
       },
     });
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   private emptyProduct() {
-    return { category_id: '', title: '', description: '', price: 0, sale_price: null as number | null, stock: 0, condition: 'new' as 'new' | 'ex_uk' };
+    return { 
+      category_id: '', 
+      title: '', 
+      description: '', 
+      price: 0, 
+      sale_price: null as number | null, 
+      stock: 0, 
+      condition: 'new' as 'new' | 'ex_uk' 
+    };
   }
 
   private validateProduct(p: any): string | null {
@@ -371,17 +478,20 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     if (!p.category_id)         return 'Please select a category.';
     if ((p.price ?? 0) <= 0)   return 'Price must be greater than 0.';
     if ((p.stock ?? 0) < 0)    return 'Stock cannot be negative.';
-    if (p.sale_price && Number(p.sale_price) >= Number(p.price)) return 'Sale price must be less than regular price.';
+    if (p.sale_price && Number(p.sale_price) >= Number(p.price)) {
+      return 'Sale price must be less than regular price.';
+    }
     return null;
   }
 
   getCategoryName(categoryId: any): string {
-    if (!this.categories || this.categories.length === 0) return '—';
+    if (!this.categories || this.categories.length === 0) {
+      return '—';
+    }
     const cat = this.categories.find(c => String(c.category_id) === String(categoryId));
     return cat?.name ?? '—';
   }
 
-  // Add a method to manually reload categories if needed
   reloadCategories(): void {
     this.loadCategories();
   }

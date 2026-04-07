@@ -18,7 +18,7 @@ export class AdminApiService {
     };
   }
 
-  constructor(private http: HttpClient, private api: ApiService) {}
+  constructor(private http: HttpClient, private api: ApiService) { }
 
   // ── Auth ───────────────────────────────────────────────────────────────────
   getCurrentUser(): Observable<any> { return this.api.getCurrentUser(); }
@@ -136,8 +136,8 @@ export class AdminApiService {
   }
   getCommissionReport(filters: { from?: string; to?: string; agent_id?: string } = {}): Observable<any> {
     const p = new URLSearchParams();
-    if (filters.from)     p.set('from', filters.from);
-    if (filters.to)       p.set('to', filters.to);
+    if (filters.from) p.set('from', filters.from);
+    if (filters.to) p.set('to', filters.to);
     if (filters.agent_id) p.set('agent_id', filters.agent_id);
     const q = p.toString() ? `?${p}` : '';
     return this.http.get(`${this.apiUrl}/agents/commissions/report${q}`, this.opts);
@@ -153,9 +153,33 @@ export class AdminApiService {
   getUserById(id: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/users/${id}`, this.opts);
   }
+  // In admin-api.service.ts - replace the getOrdersByUser method
+
   getOrdersByUser(userId: string): Observable<any[]> {
-    return this.getOrders().pipe(
-      map((orders) => orders.filter((o: any) => String(o.user_id) === String(userId))),
+    // First, try to get orders directly from the API with user filter
+    return this.http.get<any>(`${this.apiUrl}/orders/user/${userId}`, this.opts).pipe(
+      map((response: any) => {
+        // Handle different response formats
+        if (Array.isArray(response)) return response;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.orders && Array.isArray(response.orders)) return response.orders;
+        return [];
+      }),
+      catchError((error) => {
+        // Fallback: filter all orders if direct endpoint fails
+        console.warn(`Direct orders endpoint failed for user ${userId}, falling back to filter:`, error);
+        return this.getOrders().pipe(
+          map((orders) => {
+            const filtered = orders.filter((o: any) => {
+              // Try multiple possible field names for user/customer reference
+              const orderUserId = o.user_id || o.customer_id || o.userId || o.customerId;
+              return String(orderUserId) === String(userId);
+            });
+            console.log(`Found ${filtered.length} orders for user ${userId}`);
+            return filtered;
+          })
+        );
+      })
     );
   }
 
