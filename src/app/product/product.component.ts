@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ProductService, Product, Review } from '../services/product.service';
 import { CartService } from '../services/cart.service';
 import { ApiService } from '../services/api.service';
@@ -368,6 +368,11 @@ export class ProductComponent implements OnInit, OnDestroy {
     return this.hoverRating || this.reviewForm.rating;
   }
 
+  getUserOrderForProduct(): Observable<number | null> {
+    // This assumes you have an endpoint that checks if user has purchased this product
+    return this.apiService.getUserOrderForProduct(this.product!.product_id);
+  }
+
   /**
    * Submit review
    */
@@ -387,40 +392,57 @@ export class ProductComponent implements OnInit, OnDestroy {
 
     this.submittingReview = true;
 
-    const reviewData = {
-      product_id: this.product.product_id,
-      rating: this.reviewForm.rating,
-      comment: this.reviewForm.comment.trim()
-    };
-
-    this.apiService.createReview(reviewData).subscribe({
-      next: (response) => {
-        console.log('Review submitted successfully:', response);
-        alert('Thank you for your review!');
-
-        // Reload reviews
-        this.loadReviewsOnly(this.product!.product_id.toString());
-
-        // Reset and hide form
-        this.resetReviewForm();
-        this.showReviewForm = false;
-        this.submittingReview = false;
-
-        // Reload product to get updated rating
-        this.loadProduct(this.product!.product_id.toString());
-      },
-      error: (err) => {
-        console.error('Error submitting review:', err);
-
-        if (err.status === 401) {
-          alert('Please log in to submit a review');
-          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-        } else if (err.error?.message) {
-          alert(err.error.message);
-        } else {
-          alert('Failed to submit review. Please try again.');
+    // First, get the user's order for this product
+    this.apiService.getUserOrderForProduct(this.product.product_id).subscribe({
+      next: (orderResponse) => {
+        if (!orderResponse.order_id) {
+          alert('You can only review products you have purchased and received.');
+          this.submittingReview = false;
+          return;
         }
 
+        const reviewData = {
+          product_id: this.product!.product_id,
+          order_id: orderResponse.order_id,  // Add order_id
+          rating: this.reviewForm.rating,
+          comment: this.reviewForm.comment.trim()
+        };
+
+        this.apiService.createReview(reviewData).subscribe({
+          next: (response) => {
+            console.log('Review submitted successfully:', response);
+            alert('Thank you for your review!');
+
+            // Reload reviews
+            this.loadReviewsOnly(this.product!.product_id.toString());
+
+            // Reset and hide form
+            this.resetReviewForm();
+            this.showReviewForm = false;
+            this.submittingReview = false;
+
+            // Reload product to get updated rating
+            this.loadProduct(this.product!.product_id.toString());
+          },
+          error: (err) => {
+            console.error('Error submitting review:', err);
+
+            if (err.status === 401) {
+              alert('Please log in to submit a review');
+              this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+            } else if (err.error?.message) {
+              alert(err.error.message);
+            } else {
+              alert('Failed to submit review. Please try again.');
+            }
+
+            this.submittingReview = false;
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error checking order:', err);
+        alert('Unable to verify purchase. You can only review products you have purchased.');
         this.submittingReview = false;
       }
     });

@@ -13,16 +13,22 @@
 
 <div *ngIf="!isLoading && !error">
 
-  <!-- Header -->
+  <!-- Header - Mobile optimized -->
   <div class="dashboard-header">
-    <h1 class="dashboard-title">Dashboard Overview</h1>
-    <p class="dashboard-subtitle">TechWave Electronics Kenya · Admin Portal</p>
-    <button class="refresh-btn" (click)="load()">🔄 Refresh</button>
+    <div class="header-content">
+      <div>
+        <h1 class="dashboard-title">Dashboard Overview</h1>
+        <p class="dashboard-subtitle">TechWave Electronics Kenya · Admin Portal</p>
+      </div>
+      <button class="refresh-btn" (click)="load()">
+        <span class="refresh-icon">🔄</span>
+        <span class="refresh-text">Refresh</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Stats cards -->
+  <!-- Stats cards - Responsive grid -->
   <div class="admin-stats-grid">
-
     <div class="stat-card">
       <div class="stat-header">
         <div>
@@ -39,8 +45,9 @@
         <div>
           <div class="stat-title">Total Orders</div>
           <div class="stat-value">{{ stats?.orders?.total ?? '…' }}</div>
-          <div class="stat-change positive">
-            {{ stats?.orders?.pending ?? 0 }} pending · {{ stats?.orders?.delivered ?? 0 }} delivered
+          <div class="stat-change" [ngClass]="(stats?.orders?.pending ?? 0) > 0 ? 'positive' : ''">
+            <span class="stat-badge pending-badge">{{ stats?.orders?.pending ?? 0 }} pending</span>
+            <span class="stat-badge delivered-badge">{{ stats?.orders?.delivered ?? 0 }} delivered</span>
           </div>
         </div>
         <div class="stat-icon orders">📦</div>
@@ -70,23 +77,25 @@
         <div class="stat-icon products">📱</div>
       </div>
     </div>
-
   </div>
 
+  <!-- Responsive two-column layout - Stack on mobile -->
   <div class="admin-grid">
-    <div style="display:flex;flex-direction:column;gap:1.5rem;">
-
+    <!-- Left Column -->
+    <div class="grid-col">
       <!-- Revenue chart -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Monthly Revenue</h2>
-          <button class="view-all-btn" (click)="goTo('/admin/orders')">View Orders</button>
+          <button class="view-all-btn" (click)="goTo('/admin/orders')">View Orders →</button>
         </div>
-        <div *ngIf="revenueTrend.length > 0" class="revenue-chart">
-          <div *ngFor="let d of revenueTrend" class="revenue-chart-bar">
-            <span style="font-size:0.68rem;font-weight:600;color:#374151;">{{ fmt(d.revenue) }}</span>
-            <div class="revenue-chart-fill" [style.height.px]="barHeight(d.revenue)"></div>
-            <span class="revenue-chart-label">{{ d.month }}</span>
+        <div *ngIf="revenueTrend.length > 0" class="revenue-chart-container">
+          <div class="revenue-chart">
+            <div *ngFor="let d of revenueTrend" class="revenue-chart-bar">
+              <div class="revenue-chart-fill" [style.height.%]="barHeight(d.revenue)"></div>
+              <div class="revenue-chart-value">{{ fmt(d.revenue) }}</div>
+              <div class="revenue-chart-label">{{ d.month }}</div>
+            </div>
           </div>
         </div>
         <div *ngIf="!revenueTrend.length" class="empty-state" style="min-height:160px;">
@@ -94,17 +103,21 @@
         </div>
       </div>
 
-      <!-- Recent orders -->
+      <!-- Recent orders - Mobile responsive table -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Recent Orders</h2>
-          <button class="view-all-btn" (click)="goTo('/admin/orders')">View All</button>
+          <button class="view-all-btn" (click)="goTo('/admin/orders')">View All →</button>
         </div>
-        <div class="table-container">
-          <div *ngIf="!recentOrders.length" class="empty-state"><p>No orders yet</p></div>
+        <div *ngIf="!recentOrders.length" class="empty-state"><p>No orders yet</p></div>
+        
+        <!-- Desktop Table View -->
+        <div class="table-container desktop-view">
           <table class="orders-table" *ngIf="recentOrders.length">
             <thead>
-              <tr><th>ID</th><th>Customer</th><th>Amount</th><th>Agent</th><th>Status</th><th>Date</th></tr>
+              <tr>
+                <th>ID</th><th>Customer</th><th>Amount</th><th>Agent</th><th>Status</th><th>Date</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let o of recentOrders" (click)="goTo('/admin/orders/' + o.order_id)" style="cursor:pointer">
@@ -122,12 +135,39 @@
             </tbody>
           </table>
         </div>
-      </div>
 
+        <!-- Mobile Card View -->
+        <div class="mobile-orders-list mobile-view" *ngIf="recentOrders.length">
+          <div *ngFor="let o of recentOrders" class="order-card" (click)="goTo('/admin/orders/' + o.order_id)">
+            <div class="order-card-header">
+              <span class="order-id">#{{ o.order_id }}</span>
+              <span class="status-badge" [ngClass]="statusClass(o.status)">{{ statusLabel(o.status) }}</span>
+            </div>
+            <div class="order-card-body">
+              <div class="order-card-row">
+                <span class="order-card-label">Customer:</span>
+                <span class="order-card-value">{{ o.customer_name ?? '—' }}</span>
+              </div>
+              <div class="order-card-row">
+                <span class="order-card-label">Amount:</span>
+                <span class="order-card-value amount">{{ fmt(o.total_amount) }}</span>
+              </div>
+              <div class="order-card-row">
+                <span class="order-card-label">Agent:</span>
+                <span class="agent-badge" [class.direct]="!o.agent_code">{{ o.agent_code ?? 'Direct' }}</span>
+              </div>
+              <div class="order-card-row">
+                <span class="order-card-label">Date:</span>
+                <span class="order-card-value">{{ fmtDate(o.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:1.5rem;">
-
+    <!-- Right Column -->
+    <div class="grid-col">
       <!-- Quick actions -->
       <div class="card">
         <div class="card-header"><h3 class="card-title">Quick Actions</h3></div>
@@ -151,21 +191,20 @@
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Top Agents</h3>
-          <button class="view-all-btn" (click)="goTo('/admin/agents')">View All</button>
+          <button class="view-all-btn" (click)="goTo('/admin/agents')">View All →</button>
         </div>
         <div *ngIf="!topAgents.length" class="empty-state"><p>No agent data yet</p></div>
-        <div *ngFor="let a of topAgents; let i = index"
-             style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #f1f5f9;">
-          <div style="display:flex;align-items:center;gap:0.6rem;">
+        <div *ngFor="let a of topAgents; let i = index" class="agent-list-item">
+          <div class="agent-info">
             <span class="rank-badge" [class.top-rank]="i < 3">{{ i + 1 }}</span>
-            <div>
-              <div style="font-weight:600;font-size:0.88rem;color:#1e293b;">{{ a.full_name }}</div>
-              <div style="font-size:0.75rem;color:#94a3b8;">{{ a.agent_code }}</div>
+            <div class="agent-details">
+              <div class="agent-name">{{ a.full_name }}</div>
+              <div class="agent-code">{{ a.agent_code }}</div>
             </div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-weight:700;color:#10b981;font-size:0.88rem;">{{ fmt(a.total_commission) }}</div>
-            <div style="font-size:0.72rem;color:#94a3b8;">{{ a.total_orders }} orders</div>
+          <div class="agent-stats">
+            <div class="agent-commission">{{ fmt(a.total_commission) }}</div>
+            <div class="agent-orders">{{ a.total_orders }} orders</div>
           </div>
         </div>
       </div>
@@ -173,12 +212,11 @@
       <!-- Low stock -->
       <div class="card" *ngIf="lowStock.length > 0">
         <div class="card-header">
-          <h3 class="card-title">⚠ Low Stock</h3>
-          <button class="view-all-btn" (click)="goTo('/admin/products')">View All</button>
+          <h3 class="card-title">⚠️ Low Stock Alert</h3>
+          <button class="view-all-btn" (click)="goTo('/admin/products')">View All →</button>
         </div>
-        <div *ngFor="let p of lowStock"
-             style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;">
-          <span style="color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">{{ p.title }}</span>
+        <div *ngFor="let p of lowStock" class="low-stock-item">
+          <span class="product-title" [title]="p.title">{{ p.title }}</span>
           <span class="stock-low">{{ p.stock }} left</span>
         </div>
       </div>
@@ -187,19 +225,17 @@
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Top Products</h3>
-          <button class="view-all-btn" (click)="goTo('/admin/products')">View All</button>
+          <button class="view-all-btn" (click)="goTo('/admin/products')">View All →</button>
         </div>
         <div *ngIf="!topProducts.length" class="empty-state"><p>No data yet</p></div>
-        <div *ngFor="let p of topProducts; let i = index"
-             style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;">
-          <div style="display:flex;gap:0.5rem;align-items:center;">
+        <div *ngFor="let p of topProducts; let i = index" class="product-list-item">
+          <div class="product-info">
             <span class="rank-badge" [class.top-rank]="i < 3">{{ i + 1 }}</span>
-            <span style="color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">{{ p.title }}</span>
+            <span class="product-name" [title]="p.title">{{ p.title }}</span>
           </div>
-          <span style="color:#64748b;">{{ p.unitsSold ?? p.units_sold ?? 0 }} sold</span>
+          <span class="product-sold">{{ p.unitsSold ?? p.units_sold ?? 0 }} sold</span>
         </div>
       </div>
-
     </div>
   </div>
 </div>

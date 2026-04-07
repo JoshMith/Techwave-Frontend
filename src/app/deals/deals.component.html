@@ -56,7 +56,11 @@
                     </div>
                     <div class="deal-content">
                         <div class="deal-image">
-                            <div class="image-placeholder">{{deal.image}}</div>
+                            <img *ngIf="deal.banner_image_url" [src]="deal.banner_image_url" [alt]="deal.title"
+                                (error)="onImageError($event)" style="width:100%;height:100%;object-fit:cover;">
+                            <div *ngIf="!deal.banner_image_url" class="image-placeholder">
+                                {{ deal.image }}
+                            </div>
                         </div>
                         <div class="deal-info">
                             <h3>{{deal.title}}</h3>

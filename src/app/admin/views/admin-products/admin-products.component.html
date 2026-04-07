@@ -6,13 +6,14 @@
 </div>
 
 <div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
-<div *ngIf="errorMsg"   class="alert alert-error">{{ errorMsg }}</div>
+<div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
 
 <!-- Filters -->
 <div class="filters-container">
   <div class="filter-group">
     <label>Search</label>
-    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" class="form-input" placeholder="Title or description">
+    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" class="form-input"
+      placeholder="Title or description">
   </div>
   <div class="filter-group">
     <label>Category</label>
@@ -57,7 +58,15 @@
 
     <table class="products-table" *ngIf="filteredProducts.length">
       <thead>
-        <tr><th>Product</th><th>Category</th><th>Condition</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Condition</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
       </thead>
       <tbody>
         <tr *ngFor="let p of filteredProducts">
@@ -67,7 +76,7 @@
               <div class="product-description">{{ p.description | slice:0:55 }}…</div>
             </div>
           </td>
-          <td>{{ getCategoryName(p.category_id) }}</td>
+          <td>{{ p.category_name || getCategoryName(p.category_id) || '—' }}</td>
           <td>
             <span class="condition-badge" [class.new]="p.condition === 'new'" [class.ex-uk]="p.condition === 'ex_uk'">
               {{ p.condition === 'ex_uk' ? 'Ex-UK' : 'New' }}
@@ -116,7 +125,8 @@
 
         <div class="form-group">
           <label>Description *</label>
-          <textarea [(ngModel)]="newProduct.description" name="desc" class="form-textarea" rows="3" placeholder="Product description"></textarea>
+          <textarea [(ngModel)]="newProduct.description" name="desc" class="form-textarea" rows="3"
+            placeholder="Product description"></textarea>
         </div>
 
         <div class="form-row">
@@ -155,12 +165,13 @@
         <!-- Images -->
         <div class="form-section">
           <h3 class="section-title">Product Images</h3>
-          <div class="image-upload-area" (click)="addFileInput.click()"
-               (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onNewDrop($event)">
+          <div class="image-upload-area" (click)="addFileInput.click()" (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)" (drop)="onNewDrop($event)">
             <div class="upload-icon">📷</div>
             <div class="upload-text">Click to upload or drag & drop</div>
             <div class="upload-subtext">PNG, JPG up to 5MB · First image = primary</div>
-            <input #addFileInput type="file" class="file-input" multiple accept="image/*" (change)="onNewFileSelected($event)">
+            <input #addFileInput type="file" class="file-input" multiple accept="image/*"
+              (change)="onNewFileSelected($event)">
           </div>
           <div class="image-preview" *ngIf="newImages.length">
             <div *ngFor="let img of newImages; let i = index" class="image-preview-item">
@@ -176,8 +187,10 @@
           <h3 class="section-title">Specifications</h3>
           <div class="specs-container">
             <div *ngFor="let s of newSpecs; let i = index" class="spec-row">
-              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}" placeholder="e.g. RAM">
-              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}" placeholder="e.g. 8GB">
+              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}"
+                placeholder="e.g. RAM">
+              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}"
+                placeholder="e.g. 8GB">
               <button type="button" class="remove-spec-btn" (click)="removeSpec(i)">×</button>
             </div>
             <button type="button" class="add-spec-btn" (click)="addSpec()">+ Add Spec</button>
@@ -240,7 +253,8 @@
           </div>
           <div class="form-group">
             <label>Sale Price (KSh)</label>
-            <input type="number" [(ngModel)]="editingProduct.sale_price" name="editSalePrice" class="form-input" min="0">
+            <input type="number" [(ngModel)]="editingProduct.sale_price" name="editSalePrice" class="form-input"
+              min="0">
           </div>
           <div class="form-group">
             <label>Stock *</label>
@@ -253,7 +267,7 @@
           <h3 class="section-title">Current Images</h3>
           <div class="image-preview">
             <div *ngFor="let img of editExistingImages" class="image-preview-item">
-              <img [src]="img.image_url" [alt]="img.alt_text" class="preview-image">
+              <img [src]="img.image_url" [alt]="img.alt_text || 'Product image'" class="preview-image">
               <button type="button" class="remove-image" (click)="removeEditExistingImage(img)">×</button>
               <span *ngIf="img.is_primary" class="primary-badge">Primary</span>
             </div>
@@ -266,7 +280,8 @@
           <div class="image-upload-area" (click)="editFileInput.click()">
             <div class="upload-icon">📷</div>
             <div class="upload-text">Click to upload</div>
-            <input #editFileInput type="file" class="file-input" multiple accept="image/*" (change)="onEditFileSelected($event)">
+            <input #editFileInput type="file" class="file-input" multiple accept="image/*"
+              (change)="onEditFileSelected($event)">
           </div>
           <div class="image-preview" *ngIf="editNewImages.length">
             <div *ngFor="let img of editNewImages; let i = index" class="image-preview-item">
@@ -282,8 +297,10 @@
           <h3 class="section-title">Specifications</h3>
           <div class="specs-container">
             <div *ngFor="let s of editSpecs; let i = index" class="spec-row">
-              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}" placeholder="Key">
-              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}" placeholder="Value">
+              <input type="text" class="spec-key" [(ngModel)]="s.key" [ngModelOptions]="{standalone:true}"
+                placeholder="Key">
+              <input type="text" class="spec-value" [(ngModel)]="s.value" [ngModelOptions]="{standalone:true}"
+                placeholder="Value">
               <button type="button" class="remove-spec-btn" (click)="removeEditSpec(i)">×</button>
             </div>
             <button type="button" class="add-spec-btn" (click)="addEditSpec()">+ Add Spec</button>

@@ -636,6 +636,20 @@ export class ApiService {
     );
   }
 
+  getUserOrderForProduct(productId: number): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/orders/user/product/${productId}`,
+      this.httpOptions
+    );
+  }
+
+  getOrdersByUser(userId: string): Observable<any[]> {
+    return this.http.get<any>(
+      `${this.apiUrl}/orders/user/${userId}`,
+      this.httpOptions,
+    );
+  }
+
   createOrder(orderData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/orders`, orderData, this.httpOptions);
   }

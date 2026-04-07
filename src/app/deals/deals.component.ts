@@ -1,8 +1,8 @@
 // deals.component.ts
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID, OnDestroy } from '@angular/core';
-import { RouterModule, Router, RouterLink } from '@angular/router';
-import { Observable, catchError, forkJoin, map, of, switchMap, Subscription } from 'rxjs';
+import { RouterModule, Router } from '@angular/router';
+import { Observable, catchError, forkJoin, map, of, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { CartService } from '../services/cart.service';
@@ -16,17 +16,10 @@ interface Product {
   price: number;
   sale_price: number | null;
   stock: number;
-  specs: {
-    type?: string;
-    brand?: string;
-    connectivity?: string;
-    features?: string;
-    [key: string]: any;
-  };
+  specs: any;
   rating: number;
   review_count: number;
   category_name: string;
-  seller_name: string;
   images: ProductImage[];
   discount_percentage?: number;
 }
@@ -37,16 +30,32 @@ interface ProductImage {
   is_primary: boolean;
 }
 
+interface SpecialOffer {
+  offer_id: string;
+  title: string;
+  description: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  discount_percent: number | null;
+  banner_image_url: string | null;
+  valid_from: string;
+  valid_until: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 interface Deal {
-  id: number;
+  id: string;
   title: string;
   description: string;
   discount: number;
+  discount_type: string;
   expiration: string;
-  category: string;
-  products: number;
+  category?: string;
+  products?: number;
   image: string;
-  product_ids: number[];
+  banner_image_url: string | null;
+  product_ids?: number[];
 }
 
 @Component({
@@ -71,7 +80,8 @@ export class DealsComponent implements OnInit, OnDestroy {
   loading = true;
   errorMessage: string | null = null;
 
-  // Deals data
+  // Deals data from special offers
+  allSpecialOffers: SpecialOffer[] = [];
   featuredDeals: Deal[] = [];
   activeDeals: Deal[] = [];
   expiringDeals: Deal[] = [];
@@ -93,15 +103,15 @@ export class DealsComponent implements OnInit, OnDestroy {
   // Countdown timer
   countdownInterval: any;
   countdown = {
-    days: 2,
-    hours: 14,
-    minutes: 38,
-    seconds: 22
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
   };
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.loadAllProducts();
+      this.loadSpecialOffers();
       this.subscribeToCart();
       this.startCountdown();
     }
@@ -129,41 +139,95 @@ export class DealsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Start countdown timer
+   * Start countdown timer to next expiring offer
    */
   private startCountdown(): void {
+    this.updateCountdown();
     this.countdownInterval = setInterval(() => {
-      if (this.countdown.seconds > 0) {
-        this.countdown.seconds--;
-      } else if (this.countdown.minutes > 0) {
-        this.countdown.minutes--;
-        this.countdown.seconds = 59;
-      } else if (this.countdown.hours > 0) {
-        this.countdown.hours--;
-        this.countdown.minutes = 59;
-        this.countdown.seconds = 59;
-      } else if (this.countdown.days > 0) {
-        this.countdown.days--;
-        this.countdown.hours = 23;
-        this.countdown.minutes = 59;
-        this.countdown.seconds = 59;
-      }
+      this.updateCountdown();
     }, 1000);
   }
 
+  private updateCountdown(): void {
+    // Find the soonest expiring active offer
+    const activeOffers = this.allSpecialOffers.filter(
+      offer => offer.is_active && new Date(offer.valid_until) > new Date()
+    );
+    
+    if (activeOffers.length === 0) {
+      // Default countdown if no offers
+      this.countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      return;
+    }
+    
+    const soonestExpiry = Math.min(
+      ...activeOffers.map(offer => new Date(offer.valid_until).getTime())
+    );
+    const now = new Date().getTime();
+    const diff = soonestExpiry - now;
+    
+    if (diff <= 0) {
+      this.countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      return;
+    }
+    
+    this.countdown = {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000)
+    };
+  }
+
   /**
-   * Load all products from all categories
+   * Load special offers from API
    */
-  private loadAllProducts(): void {
+  private loadSpecialOffers(): void {
     this.loading = true;
     this.errorMessage = null;
 
-    // Load products from all categories
+    this.apiService.getSpecialOffers().subscribe({
+      next: (response: any) => {
+        // Handle different response formats
+        let offers: SpecialOffer[] = [];
+        if (Array.isArray(response)) {
+          offers = response;
+        } else if (response?.data && Array.isArray(response.data)) {
+          offers = response.data;
+        } else if (response?.offers && Array.isArray(response.offers)) {
+          offers = response.offers;
+        }
+
+        this.allSpecialOffers = offers.filter(offer => offer.is_active);
+        
+        console.log('✅ Loaded special offers:', this.allSpecialOffers.length);
+        
+        if (this.allSpecialOffers.length === 0) {
+          this.loading = false;
+          this.errorMessage = 'No active special offers at the moment. Check back soon!';
+          return;
+        }
+        
+        // Load products to get category info for offers
+        this.loadProductsForOffers();
+      },
+      error: (err) => {
+        console.error('Error loading special offers:', err);
+        this.errorMessage = 'Failed to load special offers. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Load products to associate with offers
+   */
+  private loadProductsForOffers(): void {
+    // Load products from all categories to get discount info
     const categoryNames = this.categories
       .filter(cat => cat.name !== 'All Deals')
       .map(cat => cat.name);
 
-    // Create requests for all categories
     const categoryRequests = categoryNames.map(categoryName =>
       this.apiService.getProductsByCategoryName(categoryName).pipe(
         catchError(error => {
@@ -173,23 +237,22 @@ export class DealsComponent implements OnInit, OnDestroy {
       )
     );
 
-    // Load all products from all categories
     forkJoin(categoryRequests).subscribe({
       next: (results: Product[][]) => {
-        // Flatten all products and calculate discounts
         this.allProducts = results.flat().map(product => ({
           ...product,
           discount_percentage: this.calculateDiscount(product)
         }));
 
-        console.log('✅ Loaded products:', this.allProducts.length);
-
-        // Load images for all products
+        console.log('✅ Loaded products for offers:', this.allProducts.length);
+        
+        // Load images
         this.loadProductImages();
       },
       error: (err) => {
         console.error('Error loading products:', err);
-        this.errorMessage = 'Failed to load products. Please try again later.';
+        // Generate deals without products
+        this.generateDealsFromSpecialOffers();
         this.loading = false;
       }
     });
@@ -217,10 +280,7 @@ export class DealsComponent implements OnInit, OnDestroy {
         })),
         catchError(error => {
           console.warn(`Failed to load images for product ${product.product_id}:`, error);
-          return of({
-            ...product,
-            images: []
-          });
+          return of({ ...product, images: [] });
         })
       )
     );
@@ -229,23 +289,17 @@ export class DealsComponent implements OnInit, OnDestroy {
       forkJoin(imageRequests).subscribe({
         next: (productsWithImages: Product[]) => {
           this.allProducts = productsWithImages;
-          
-          // Generate deals after products are loaded with images
-          this.generateDealsFromProducts();
-          
+          this.generateDealsFromSpecialOffers();
           this.loading = false;
         },
         error: (err) => {
-          console.error('Unexpected error in image loading:', err);
-          this.allProducts = this.allProducts.map(p => ({ ...p, images: [] }));
-          
-          // Generate deals even if images fail
-          this.generateDealsFromProducts();
-          
+          console.error('Error loading images:', err);
+          this.generateDealsFromSpecialOffers();
           this.loading = false;
         }
       });
     } else {
+      this.generateDealsFromSpecialOffers();
       this.loading = false;
     }
   }
@@ -263,14 +317,11 @@ export class DealsComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    return images.map(img => {
-      const imageUrl = img.full_url || img.image_url;
-      return {
-        image_url: this.ensureAbsoluteUrl(imageUrl),
-        alt_text: img.alt_text || 'Product image',
-        is_primary: img.is_primary || false
-      };
-    });
+    return images.map(img => ({
+      image_url: this.ensureAbsoluteUrl(img.full_url || img.image_url),
+      alt_text: img.alt_text || 'Product image',
+      is_primary: img.is_primary || false
+    }));
   }
 
   private ensureAbsoluteUrl(url: string): string {
@@ -300,118 +351,68 @@ export class DealsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Generate deals from loaded products
+   * Generate deals from special offers
    */
-  private generateDealsFromProducts(): void {
-    if (this.allProducts.length === 0) {
-      console.warn('⚠️ No products to generate deals from');
-      return;
-    }
-
-    // Filter products with discounts
-    const productsWithDiscounts = this.allProducts.filter(p => 
-      p.discount_percentage && p.discount_percentage > 0
-    );
-
-    // Group products by category
-    const productsByCategory = this.allProducts.reduce((acc, product) => {
-      const category = product.category_name;
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(product);
-      return acc;
-    }, {} as Record<string, Product[]>);
-
-    // Generate featured deals (highest discounts)
-    const potentialFeaturedDeals = Object.entries(productsByCategory)
-      .map(([category, products]) => {
-        const discountedProducts = products.filter(p => p.discount_percentage && p.discount_percentage > 0);
-        
-        if (discountedProducts.length === 0) return null;
-
-        const topProducts = discountedProducts
-          .sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0))
-          .slice(0, 3);
-
-        const maxDiscount = Math.max(...topProducts.map(p => p.discount_percentage || 0));
-
-        return {
-          id: Math.floor(Math.random() * 10000),
-          title: `Flash Sale: ${category}`,
-          description: `Up to ${maxDiscount}% off on premium ${category.toLowerCase()}`,
-          discount: maxDiscount,
-          expiration: this.generateFutureDate(7),
-          category,
-          products: discountedProducts.length,
-          image: this.getCategoryEmoji(category),
-          product_ids: topProducts.map(p => p.product_id)
-        };
-      })
-      .filter((deal): deal is NonNullable<typeof deal> => deal !== null);
-
-    this.featuredDeals = potentialFeaturedDeals
-      .sort((a, b) => b.discount - a.discount)
-      .slice(0, 2);
-
-    // Generate active deals
-    this.activeDeals = Object.entries(productsByCategory)
-      .map(([category, products]) => {
-        const discountedProducts = products.filter(p => p.discount_percentage && p.discount_percentage > 0);
-        
-        const avgDiscount = discountedProducts.length > 0
-          ? Math.round(
-              discountedProducts.reduce((sum, p) => sum + (p.discount_percentage || 0), 0) / 
-              discountedProducts.length
-            )
-          : 10; // Default 10% for categories without discounts
-
-        return {
-          id: Math.floor(Math.random() * 10000),
-          title: `${category} Special`,
-          description: `Premium ${category.toLowerCase()} at special prices`,
-          discount: avgDiscount,
-          expiration: this.generateFutureDate(14),
-          category,
-          products: products.length,
-          image: this.getCategoryEmoji(category),
-          product_ids: products.map(p => p.product_id)
-        };
-      });
-
-    // Generate expiring deals (within 3 days)
-    this.expiringDeals = Object.entries(productsByCategory)
-      .filter(([_, products]) => products.some(p => p.discount_percentage && p.discount_percentage > 0))
-      .map(([category, products]) => {
-        const discountedProducts = products.filter(p => p.discount_percentage && p.discount_percentage > 0);
-        
-        const avgDiscount = Math.round(
-          discountedProducts.reduce((sum, p) => sum + (p.discount_percentage || 0), 0) / 
-          discountedProducts.length
-        );
-
-        return {
-          id: Math.floor(Math.random() * 10000),
-          title: `Last Chance: ${category}`,
-          description: `Final discounts on ${category.toLowerCase()} - Don't miss out!`,
-          discount: avgDiscount,
-          expiration: this.generateFutureDate(3),
-          category,
-          products: discountedProducts.length,
-          image: this.getCategoryEmoji(category),
-          product_ids: discountedProducts.map(p => p.product_id)
-        };
-      })
-      .slice(0, 4);
-
+  private generateDealsFromSpecialOffers(): void {
+    const now = new Date();
+    
+    // Process each special offer
+    const deals: Deal[] = this.allSpecialOffers.map(offer => {
+      const validUntil = new Date(offer.valid_until);
+      const isExpiringSoon = (validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) <= 3;
+      
+      // Find products that could be part of this offer (if applicable)
+      const relatedProducts = this.allProducts.filter(p => 
+        p.discount_percentage && p.discount_percentage > 0
+      );
+      
+      return {
+        id: offer.offer_id,
+        title: offer.title,
+        description: offer.description || `Get ${offer.discount_value}% off on selected items!`,
+        discount: offer.discount_value,
+        discount_type: offer.discount_type,
+        expiration: offer.valid_until,
+        image: offer.banner_image_url || this.getRandomCategoryEmoji(),
+        banner_image_url: offer.banner_image_url,
+        products: relatedProducts.length,
+        product_ids: relatedProducts.slice(0, 5).map(p => p.product_id)
+      };
+    });
+    
+    // Sort by discount value (highest first)
+    const sortedDeals = [...deals].sort((a, b) => b.discount - a.discount);
+    
+    // Featured deals: top 2 highest discounts
+    this.featuredDeals = sortedDeals.slice(0, 2);
+    
+    // Active deals: all active offers
+    this.activeDeals = deals;
+    
+    // Expiring deals: offers ending within 3 days
+    const now_time = new Date();
+    this.expiringDeals = deals.filter(deal => {
+      const expDate = new Date(deal.expiration);
+      const daysRemaining = (expDate.getTime() - now_time.getTime()) / (1000 * 60 * 60 * 24);
+      return daysRemaining <= 3 && daysRemaining > 0;
+    });
+    
     // Update category counts
     this.updateCategoryCounts();
-
-    console.log('✅ Deals generated:', {
+    
+    console.log('✅ Deals generated from special offers:', {
+      total: this.activeDeals.length,
       featured: this.featuredDeals.length,
-      active: this.activeDeals.length,
       expiring: this.expiringDeals.length
     });
+  }
+
+  /**
+   * Get random emoji for fallback
+   */
+  private getRandomCategoryEmoji(): string {
+    const emojis = ['🔥', '🎉', '💎', '⚡', '🎁', '🏷️', '💰'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
   }
 
   /**
@@ -426,26 +427,13 @@ export class DealsComponent implements OnInit, OnDestroy {
    * Update category counts
    */
   private updateCategoryCounts(): void {
+    // For now, just set total count
     this.categories = this.categories.map(category => {
       if (category.name === 'All Deals') {
-        return { 
-          ...category, 
-          count: this.activeDeals.length + this.expiringDeals.length 
-        };
+        return { ...category, count: this.activeDeals.length };
       }
-
-      const matchingDeals = [...this.activeDeals, ...this.expiringDeals].filter(
-        deal => deal.category === category.name
-      );
-
-      return { ...category, count: matchingDeals.length };
+      return { ...category, count: Math.floor(this.activeDeals.length / 3) };
     });
-  }
-
-  private generateFutureDate(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString();
   }
 
   // Filter deals by category
@@ -456,11 +444,10 @@ export class DealsComponent implements OnInit, OnDestroy {
   // Get filtered deals based on selection
   get filteredDeals(): Deal[] {
     if (this.selectedCategory === 'All Deals') {
-      return [...this.activeDeals, ...this.expiringDeals];
+      return [...this.activeDeals];
     }
-    return [...this.activeDeals, ...this.expiringDeals].filter(
-      deal => deal.category === this.selectedCategory
-    );
+    // For now, return all deals since we don't have category mapping
+    return [...this.activeDeals];
   }
 
   // Calculate days remaining for a deal
@@ -485,18 +472,20 @@ export class DealsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigate to deal category
+   * Navigate to deal products
    */
   viewDealCategory(deal: Deal): void {
-    if (deal.product_ids.length > 0) {
-      this.router.navigate([`/categories/${deal.category.toLowerCase().replace(/\s+/g, '-')}`], {
-        queryParams: { deal: deal.id }
+    if (deal.product_ids && deal.product_ids.length > 0) {
+      this.router.navigate(['/shop'], {
+        queryParams: { offer: deal.id }
       });
+    } else {
+      this.router.navigate(['/shop']);
     }
   }
 
   /**
-   * Shop now button - navigate to category
+   * Shop now button
    */
   shopNow(): void {
     this.router.navigate(['/shop']);

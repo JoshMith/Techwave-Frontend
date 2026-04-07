@@ -69,6 +69,7 @@ export class AdminApiService {
   getProductImages(productId: string): Observable<any[]> {
     return this.api.serveProductImagesSafe(productId);
   }
+
   createProduct(data: any): Observable<string> {
     return this.http.post<any>(`${this.apiUrl}/products`, data, this.opts).pipe(
       map((res) => {
