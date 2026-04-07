@@ -107,7 +107,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     else                     this.router.navigateByUrl(fallback);
   }
 
-  showForgotPassword(): void { this.router.navigate(['/forgot-pwd']); }
+  showForgotPassword(): void { this.router.navigate(['/forgot-password']); }
   showSignup(): void         { this.router.navigate(['/signup']); }
 
   loginWithGoogle(): void {

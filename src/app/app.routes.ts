@@ -107,13 +107,13 @@ export const routes: Routes = [
         (m) => m.PaymentComponent,
       ),
   },
-  { 
-    path: 'orders/:id', 
-    loadComponent: () => 
+  {
+    path: 'orders/:id',
+    loadComponent: () =>
       import('./checkout/orders/orders.component').then(
         m => m.OrdersComponent
-      ), 
-    },
+      ),
+  },
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   {
@@ -127,11 +127,17 @@ export const routes: Routes = [
       import('./auth/signup/signup.component').then((m) => m.SignupComponent),
   },
   {
-    path: 'forgot-pwd',
+    path: 'forgot-password',
     loadComponent: () =>
       import('./auth/forgot-pwd/forgot-pwd.component').then(
         (m) => m.ForgotPwdComponent,
       ),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => 
+      import('./auth/reset-pwd/reset-pwd.component').then
+        (m => m.ResetPwdComponent),
   },
 
   // ── User pages ────────────────────────────────────────────────────────────

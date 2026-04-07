@@ -23,11 +23,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // ── Loading / error state ──────────────────────────────────────────────────
-  isLoading  = true;
+  isLoading = true;
   error: string | null = null;
 
   // ── Data ───────────────────────────────────────────────────────────────────
-  user: any     = null;
+  user: any = null;
   orders: any[] = [];
   addresses: any[] = [];
   payments: any[] = [];
@@ -41,10 +41,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   // ── Address management ─────────────────────────────────────────────────────
   showAddAddressForm = false;
-  isAddingAddress    = false;
+  isAddingAddress = false;
   editingAddressId: number | null = null;
   addressSuccess: string | null = null;
-  addressError: string | null   = null;
+  addressError: string | null = null;
 
   newAddress = this.emptyAddress();
   editAddressData: any = {};
@@ -84,6 +84,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       error: () => {
         this.error = 'Failed to load profile. Please try again.';
         this.isLoading = false;
+        // Navigate to login after a short delay, since this likely means the user is not authenticated and set redirect url to the profile page after login
+        setTimeout(() => this.router.navigate(['/login'], { queryParams: { redirect: '/profile' } }), 3000);
+
       },
     });
   }
@@ -151,12 +154,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   getOrderStatusClass(status: string): string {
     const map: Record<string, string> = {
-      pending:    'status-pending',
-      paid:       'status-paid',
+      pending: 'status-pending',
+      paid: 'status-paid',
       processing: 'status-processing',
-      shipped:    'status-shipped',
-      delivered:  'status-delivered',
-      cancelled:  'status-cancelled',
+      shipped: 'status-shipped',
+      delivered: 'status-delivered',
+      cancelled: 'status-cancelled',
     };
     return map[status?.toLowerCase()] ?? '';
   }
@@ -191,7 +194,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // ── Profile edit ───────────────────────────────────────────────────────────
   toggleEditProfile(): void {
     this.editUserData = {
-      name:  this.user?.name  ?? '',
+      name: this.user?.name ?? '',
       email: this.user?.email ?? '',
       phone: this.user?.phone ?? '',
     };
@@ -219,24 +222,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   toggleAddAddressForm(): void {
     this.showAddAddressForm = !this.showAddAddressForm;
     if (this.showAddAddressForm) this.newAddress = this.emptyAddress();
-    this.addressError   = null;
+    this.addressError = null;
     this.addressSuccess = null;
   }
 
   addNewAddress(): void {
     this.isAddingAddress = true;
-    this.addressError    = null;
+    this.addressError = null;
 
     this.apiService.createAddress(this.newAddress).pipe(takeUntil(this.destroy$)).subscribe({
       next: (addr: any) => {
         this.addresses.push(addr?.address ?? addr);
         this.showAddAddressForm = false;
-        this.isAddingAddress    = false;
-        this.addressSuccess     = 'Address added successfully.';
+        this.isAddingAddress = false;
+        this.addressSuccess = 'Address added successfully.';
         setTimeout(() => this.addressSuccess = null, 4000);
       },
       error: (e: any) => {
-        this.addressError    = e?.error?.message ?? 'Failed to add address.';
+        this.addressError = e?.error?.message ?? 'Failed to add address.';
         this.isAddingAddress = false;
       },
     });
@@ -244,12 +247,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   startEditAddress(address: any): void {
     this.editingAddressId = address.address_id;
-    this.editAddressData  = { ...address };
+    this.editAddressData = { ...address };
   }
 
   cancelEditAddress(): void {
     this.editingAddressId = null;
-    this.editAddressData  = {};
+    this.editAddressData = {};
   }
 
   saveAddress(addressId: number): void {
@@ -259,7 +262,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           const idx = this.addresses.findIndex(a => a.address_id === addressId);
           if (idx !== -1) this.addresses[idx] = { ...this.addresses[idx], ...this.editAddressData };
           this.editingAddressId = null;
-          this.addressSuccess   = 'Address updated.';
+          this.addressSuccess = 'Address updated.';
           setTimeout(() => this.addressSuccess = null, 3000);
         },
         error: (e: any) => { this.addressError = e?.error?.message ?? 'Failed to update address.'; },

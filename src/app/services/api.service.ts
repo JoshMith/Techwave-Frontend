@@ -71,14 +71,6 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/auth/logout`, {}, this.httpOptions);
   }
 
-  forgotPassword(email: string): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/auth/forgot-password`,
-      { email },
-      this.httpOptions
-    );
-  }
-
   verifyEmail(token: string): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/auth/verifyEmail?token=${token}`,
@@ -86,11 +78,34 @@ export class ApiService {
     );
   }
 
-  // Add this to handle the Google callback
   handleGoogleCallback(): Observable<any> {
     return this.http.get(`${this.apiUrl}/auth/google/callback`, {
       withCredentials: true,
     });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/auth/reset-password`,
+      { token, newPassword },
+      this.httpOptions
+    );
+  }
+
+  verifyResetToken(token: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/auth/verify-reset-token`,
+      { token },
+      this.httpOptions
+    );
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/auth/forgot-password`,
+      { email },
+      this.httpOptions
+    );
   }
 
   // ========== User Routes ==========
@@ -201,7 +216,7 @@ export class ApiService {
       this.httpOptions,
     );
   }
- 
+
   setDefaultAddress(id: string): Observable<any> {
     return this.http.patch(
       `${this.apiUrl}/addresses/${id}/default`,
@@ -636,7 +651,7 @@ export class ApiService {
   deleteOrder(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/orders/${id}`, this.httpOptions);
   }
-  
+
 
   // ========== Order Item Routes ==========
   getOrderItems(): Observable<any> {
@@ -713,7 +728,7 @@ export class ApiService {
       this.httpOptions,
     );
   }
-  
+
 
   // ========== Agent Routes (Agent self-service) ==========
 

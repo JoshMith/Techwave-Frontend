@@ -18,18 +18,26 @@
                     <strong>Effective Date:</strong> November 10, 2025
                 </div>
                 <div class="meta-item">
-                    <strong>Last Updated:</strong> November 10, 2025
+                    <strong>Last Updated:</strong> April 2026
+                </div>
+                <div class="meta-item">
+                    <strong>Version:</strong> 2.0
                 </div>
             </div>
         </div>
 
         <div class="intro-text">
-            <p><strong>TechWave Electronics Kenya</strong> ("Techwave," "we," "us," or "our") is committed to protecting
-                your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal
-                information when you use our e-commerce platform and services.</p>
-            <p>By using our Services, you consent to the data practices described in this Privacy Policy.</p>
+            <p><strong>TechWave Electronics Kenya</strong> ("TechWave," "we," "us," or "our") is committed to
+                protecting your privacy and complying with the <strong>Kenya Data Protection Act, 2019</strong>. This
+                Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you
+                use our e-commerce platform and services at <strong>techwaveelectronics.co.ke</strong>.</p>
+            <p>By using our Services, you acknowledge that you have read this Privacy Policy and consent to the data
+                practices described herein. You may withdraw consent at any time as described in Section 5.</p>
+            <p><strong>TechWave Electronics Kenya is registered as a Data Controller with the Office of the Data
+                    Protection Commissioner (ODPC) under the Kenya Data Protection Act, 2019.</strong></p>
         </div>
 
+        <!-- ==================== SECTION 1 ==================== -->
         <div class="section">
             <h3>1. Information We Collect</h3>
 
@@ -40,32 +48,23 @@
                 <li>Full name</li>
                 <li>Email address</li>
                 <li>Phone number (Kenya format: +254)</li>
-                <li>Password (encrypted)</li>
-            </ul>
-
-            <p><strong>Seller Registration (Additional)</strong></p>
-            <ul>
-                <li>Business name</li>
-                <li>Tax identification number</li>
-                <li>Business license number</li>
-                <li>Business address</li>
+                <li>Password (stored as a secure hash — never in plain text)</li>
             </ul>
 
             <p><strong>Delivery Information</strong></p>
             <ul>
                 <li>City</li>
                 <li>Street address</li>
-                <li>Building/apartment number</li>
+                <li>Building / apartment number</li>
                 <li>Postal code</li>
                 <li>Default address preference</li>
             </ul>
 
             <p><strong>Payment Information</strong></p>
             <ul>
-                <li>M-PESA phone number</li>
-                <li>M-PESA transaction codes</li>
-                <li>Payment method preferences</li>
-                <li>Transaction references</li>
+                <li>M-PESA phone number used for payment</li>
+                <li>M-PESA transaction confirmation codes</li>
+                <li>Transaction references (for reconciliation purposes only)</li>
             </ul>
 
             <p><strong>User-Generated Content</strong></p>
@@ -83,19 +82,20 @@
                 <li>Browser type and version</li>
                 <li>Device type and operating system</li>
                 <li>Pages viewed and time spent</li>
-                <li>Referral source</li>
+                <li>Referral source (including agent referral links — see Section 3.5)</li>
                 <li>Click patterns and navigation paths</li>
             </ul>
 
             <p><strong>Cookies and Tracking Technologies</strong></p>
             <ul>
-                <li>Session cookies (authentication)</li>
-                <li>Access tokens (JWT)</li>
+                <li>Session cookies (for authentication)</li>
+                <li>Access tokens (JWT — HTTP-only cookies)</li>
                 <li>Refresh tokens</li>
-                <li>Browser storage (for cart functionality)</li>
+                <li>Browser session storage (for shopping cart functionality)</li>
+                <li>Agent referral identifier (stored in session storage for the duration of your browsing session only)</li>
             </ul>
 
-            <p><strong>Shopping Behavior</strong></p>
+            <p><strong>Shopping Behaviour</strong></p>
             <ul>
                 <li>Products viewed</li>
                 <li>Cart items</li>
@@ -108,8 +108,7 @@
 
             <p><strong>Google OAuth Authentication</strong></p>
             <ul>
-                <li>Name</li>
-                <li>Email address</li>
+                <li>Name and email address</li>
                 <li>Profile picture (optional)</li>
                 <li>Google account ID</li>
             </ul>
@@ -117,409 +116,466 @@
             <p><strong>Payment Processors</strong></p>
             <ul>
                 <li>M-PESA transaction confirmations</li>
-                <li>Payment status updates</li>
+                <li>Payment status updates from Safaricom Daraja API</li>
                 <li>Transaction receipts</li>
+            </ul>
+
+            <div class="highlight-box">
+                <h4>Data Minimisation Commitment</h4>
+                <p>We only collect personal data that is necessary for the purposes set out in this Policy. We do not
+                    collect sensitive data such as national ID numbers, date of birth, or biometric data unless there is
+                    a specific, documented legal requirement to do so.</p>
+            </div>
+        </div>
+
+        <!-- ==================== SECTION 2 ==================== -->
+        <div class="section">
+            <h3>2. Legal Basis for Processing (Section 25, Kenya Data Protection Act 2019)</h3>
+            <p>We process your personal data only where we have a lawful basis to do so. The legal bases we rely on
+                are:</p>
+
+            <ul>
+                <li><strong>Contract:</strong> Processing necessary to fulfil your order, manage your account, process
+                    payments, and arrange delivery.</li>
+                <li><strong>Legal Obligation:</strong> Retaining financial records for tax compliance; responding to
+                    lawful government requests.</li>
+                <li><strong>Legitimate Interests:</strong> Fraud detection, platform security, service improvement, and
+                    analytics — where these interests are not overridden by your rights.</li>
+                <li><strong>Consent:</strong> Marketing communications and non-essential analytics cookies — you may
+                    withdraw consent at any time.</li>
             </ul>
         </div>
 
+        <!-- ==================== SECTION 3 ==================== -->
         <div class="section">
-            <h3>2. How We Use Your Information</h3>
-            <p>We use your personal information for the following purposes:</p>
+            <h3>3. How We Use Your Information</h3>
 
-            <h4>2.1 Service Delivery</h4>
+            <h4>3.1 Service Delivery</h4>
             <ul>
                 <li>Create and manage your account</li>
-                <li>Process orders and payments</li>
+                <li>Process orders and payments via M-PESA</li>
                 <li>Arrange product delivery</li>
                 <li>Provide customer support</li>
-                <li>Send order confirmations and updates</li>
+                <li>Send order confirmations and delivery updates</li>
             </ul>
 
-            <h4>2.2 Platform Operations</h4>
+            <h4>3.2 Platform Operations</h4>
             <ul>
-                <li>Authenticate users (JWT tokens)</li>
-                <li>Maintain shopping carts</li>
-                <li>Manage seller accounts and product listings</li>
-                <li>Calculate delivery fees based on location</li>
+                <li>Authenticate users (JWT tokens via HTTP-only cookies)</li>
+                <li>Maintain shopping carts across browsing sessions</li>
+                <li>Calculate delivery fees based on your location</li>
                 <li>Process returns and refunds</li>
             </ul>
 
-            <h4>2.3 Communication</h4>
+            <h4>3.3 Communication</h4>
             <ul>
                 <li>Send transactional emails (order confirmations, shipping updates)</li>
                 <li>Respond to customer inquiries</li>
-                <li>Send account-related notifications</li>
-                <li>Provide customer support</li>
+                <li>Send account-related security notifications</li>
             </ul>
 
-            <h4>2.4 Improvement and Analytics</h4>
+            <h4>3.4 Improvement and Analytics</h4>
             <ul>
-                <li>Analyze usage patterns and trends</li>
-                <li>Improve platform functionality</li>
-                <li>Enhance user experience</li>
-                <li>Develop new features</li>
+                <li>Analyse usage patterns to improve platform functionality</li>
+                <li>Enhance user experience and develop new features</li>
                 <li>Monitor platform performance</li>
             </ul>
 
-            <h4>2.5 Marketing (With Consent)</h4>
+            <h4>3.5 Agent Referral Attribution</h4>
+            <div class="highlight-box">
+                <h4>⚠ Agent Referral Tracking Disclosure</h4>
+                <p>TechWave operates a Sales Agent Programme. When you access our website through a unique agent
+                    referral link, a session identifier is stored temporarily in your browser's session storage. This
+                    identifier is used to attribute your order to the relevant sales agent for commission purposes.</p>
+                <p><strong>What this means for you:</strong></p>
+                <ul>
+                    <li>If you arrive on techwaveelectronics.co.ke via an agent's referral link, your completed order
+                        may be attributed to that agent.</li>
+                    <li>The attribution is session-based only — it does not persist across separate browsing sessions or
+                        after you close your browser.</li>
+                    <li>Agents do not place orders on your behalf — you shop independently.</li>
+                    <li>Agents receive only aggregate commission information and do not have access to your personal data
+                        beyond what is necessary for their role.</li>
+                </ul>
+                <p>This disclosure is required under Section 25 of the Kenya Data Protection Act, 2019. By shopping via
+                    a referral link, you consent to this attribution.</p>
+            </div>
+
+            <h4>3.6 Marketing (With Consent)</h4>
             <ul>
                 <li>Send promotional offers and special deals</li>
-                <li>Notify you about new products</li>
-                <li>Share personalized recommendations</li>
-                <li>Provide information about sales events</li>
+                <li>Notify you about new products and sales events</li>
+                <li>Provide personalised product recommendations</li>
             </ul>
+            <p>You may opt out of marketing communications at any time using the unsubscribe link in any marketing
+                email or by contacting us.</p>
 
-            <h4>2.6 Security and Fraud Prevention</h4>
+            <h4>3.7 Security and Fraud Prevention</h4>
             <ul>
                 <li>Detect and prevent fraudulent transactions</li>
-                <li>Monitor for suspicious activity</li>
-                <li>Protect against security threats</li>
-                <li>Enforce our Terms of Service</li>
+                <li>Monitor for suspicious platform activity</li>
+                <li>Protect against security threats and enforce our Terms of Service</li>
             </ul>
 
-            <h4>2.7 Legal Compliance</h4>
+            <h4>3.8 Legal Compliance</h4>
             <ul>
-                <li>Comply with legal obligations</li>
-                <li>Respond to legal requests</li>
-                <li>Protect our rights and property</li>
-                <li>Resolve disputes</li>
+                <li>Comply with obligations under the Kenya Data Protection Act, 2019</li>
+                <li>Respond to lawful requests from regulatory bodies or courts</li>
+                <li>Maintain financial records as required by Kenyan tax law</li>
+                <li>Resolve disputes and protect our legal rights</li>
             </ul>
         </div>
 
+        <!-- ==================== SECTION 4 ==================== -->
         <div class="section">
-            <h3>3. How We Share Your Information</h3>
-            <p>We do not sell your personal information. We share information only in the following circumstances:</p>
+            <h3>4. How We Share Your Information</h3>
+            <p>We do not sell your personal information. We share information only in the following limited
+                circumstances:</p>
 
-            <h4>3.1 Service Providers</h4>
-            <p>We share information with trusted third-party service providers who assist us:</p>
+            <h4>4.1 Service Providers</h4>
+            <p>We share information with trusted third-party service providers who assist us in operating the platform,
+                all of whom are bound by data processing agreements:</p>
             <ul>
-                <li>Payment processors (M-PESA, payment gateways)</li>
-                <li>Delivery and logistics partners</li>
-                <li>Cloud hosting providers (Render, database services)</li>
-                <li>Email service providers</li>
-                <li>Analytics services</li>
+                <li>Payment processors (Safaricom M-PESA via Daraja API)</li>
+                <li>Delivery and logistics partners (your delivery address and contact details only)</li>
+                <li>Cloud hosting providers (VPS infrastructure, database services)</li>
+                <li>Email service providers (transactional and marketing emails)</li>
+                <li>Analytics services (where consent has been obtained)</li>
             </ul>
 
-            <h4>3.2 Sellers</h4>
-            <p>When you purchase from a seller:</p>
+            <h4>4.2 Sales Agents</h4>
+            <p>Our sales agents receive only the information necessary for commission calculation purposes:</p>
             <ul>
-                <li>Order details (products, quantity, pricing)</li>
-                <li>Delivery address</li>
-                <li>Contact information (for order fulfillment)</li>
+                <li>Aggregate order attribution data (e.g., number of referred orders, total commission earned)</li>
+                <li>Agents do <strong>not</strong> receive your name, contact details, delivery address, or payment
+                    information</li>
             </ul>
 
-            <h4>3.3 Business Transfers</h4>
+            <h4>4.3 Business Transfers</h4>
             <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred to the
-                acquiring entity.</p>
+                acquiring entity, and you will be notified in advance.</p>
 
-            <h4>3.4 Legal Requirements</h4>
-            <p>We may disclose information when required by law:</p>
+            <h4>4.4 Legal Requirements</h4>
+            <p>We may disclose personal data when required by law or in response to:</p>
             <ul>
-                <li>Court orders or legal processes</li>
-                <li>Government or regulatory requests</li>
-                <li>Protection of rights, property, or safety</li>
+                <li>Valid court orders or legal processes</li>
+                <li>Requests from the ODPC or other regulatory authorities</li>
+                <li>To protect the rights, property, or safety of TechWave, our users, or the public</li>
                 <li>Investigation of fraud or security issues</li>
             </ul>
 
-            <h4>3.5 With Your Consent</h4>
-            <p>We may share information for other purposes with your explicit consent.</p>
+            <h4>4.5 With Your Consent</h4>
+            <p>We may share information for other purposes where you have given explicit consent.</p>
         </div>
 
+        <!-- ==================== SECTION 5 ==================== -->
         <div class="section">
-            <h3>4. Data Security</h3>
+            <h3>5. Your Data Subject Rights (Section 26, Kenya Data Protection Act 2019)</h3>
+            <p>You have the following rights in relation to your personal data. To exercise any of these rights,
+                contact our Data Protection Officer at <strong>dpo&#64;techwaveelectronics.co.ke</strong>. We will
+                respond within <strong>30 days</strong> of receiving your request.</p>
+
+            <h4>5.1 Right of Access</h4>
+            <p>You have the right to request a copy of the personal data we hold about you.</p>
+            <p><strong>How to exercise:</strong> Log into your account and navigate to Profile Settings, or contact our
+                DPO.</p>
+
+            <h4>5.2 Right to Rectification</h4>
+            <p>You have the right to request correction of inaccurate or incomplete personal data.</p>
+            <p><strong>How to exercise:</strong> Update your details directly in your account settings, or contact us.</p>
+
+            <h4>5.3 Right to Erasure (Right to be Forgotten)</h4>
+            <p>You have the right to request deletion of your personal data, subject to legal retention requirements
+                (e.g., financial records we are required to keep for 7 years).</p>
+            <p><strong>How to exercise:</strong> Contact our support team at support&#64;techwaveelectronics.co.ke</p>
+
+            <h4>5.4 Right to Data Portability</h4>
+            <p>You may request a copy of your personal data in a structured, machine-readable format (e.g., JSON or
+                CSV).</p>
+
+            <h4>5.5 Right to Object</h4>
+            <p>You may object to processing of your personal data for marketing purposes or where we rely on legitimate
+                interests as our legal basis.</p>
+
+            <h4>5.6 Right to Withdraw Consent</h4>
+            <p>Where processing is based on your consent (e.g., marketing emails, analytics cookies), you may withdraw
+                consent at any time without affecting the lawfulness of processing carried out before withdrawal.</p>
+
+            <h4>5.7 Right to Lodge a Complaint</h4>
+            <p>If you believe your data protection rights have been violated, you have the right to lodge a complaint
+                with the <strong>Office of the Data Protection Commissioner (ODPC)</strong>:</p>
+            <ul>
+                <li><strong>Website:</strong> odpc.go.ke</li>
+                <li><strong>Email:</strong> info&#64;odpc.go.ke</li>
+                <li><strong>Address:</strong> Upper Hill, Nairobi, Kenya</li>
+            </ul>
+        </div>
+
+        <!-- ==================== SECTION 6 ==================== -->
+        <div class="section">
+            <h3>6. Data Security</h3>
             <p>We implement industry-standard security measures to protect your information:</p>
 
-            <h4>4.1 Technical Safeguards</h4>
+            <h4>6.1 Technical Safeguards</h4>
             <ul>
-                <li><strong>Encryption:</strong> All passwords are hashed using bcrypt</li>
-                <li><strong>Secure Connections:</strong> HTTPS/TLS for data transmission</li>
-                <li><strong>JWT Authentication:</strong> Secure token-based authentication with HTTP-only cookies</li>
-                <li><strong>Database Security:</strong> PostgreSQL with parameterized queries to prevent SQL injection
+                <li><strong>Password Hashing:</strong> All passwords are hashed using bcrypt — never stored in plain
+                    text</li>
+                <li><strong>Secure Connections:</strong> HTTPS/TLS enforced for all data transmission via Nginx with
+                    SSL certificates</li>
+                <li><strong>JWT Authentication:</strong> Secure token-based authentication stored in HTTP-only cookies
+                    to prevent XSS attacks</li>
+                <li><strong>Database Security:</strong> PostgreSQL with parameterised queries to prevent SQL injection
                 </li>
                 <li><strong>Session Management:</strong> Secure session handling with configurable timeouts</li>
+                <li><strong>M-Pesa Data:</strong> We do not store M-PESA PINs or sensitive payment credentials beyond
+                    what is required for reconciliation</li>
             </ul>
 
-            <h4>4.2 Access Controls</h4>
+            <h4>6.2 Access Controls</h4>
             <ul>
-                <li>Role-based access control (admin, seller, customer)</li>
-                <li>Multi-factor authentication options</li>
-                <li>Regular security audits</li>
-                <li>Employee access restrictions</li>
+                <li>Role-based access control (admin, sales agent, customer) — each role has strictly scoped
+                    permissions</li>
+                <li>Sales agents cannot access customer personal data beyond their attributed order counts</li>
+                <li>Server access secured via SSH key authentication</li>
+                <li>Regular security reviews</li>
             </ul>
 
-            <h4>4.3 Data Storage</h4>
+            <h4>6.3 Data Storage</h4>
             <ul>
-                <li>Secure cloud infrastructure</li>
-                <li>Regular backups</li>
-                <li>Geographic redundancy</li>
-                <li>SSL/TLS encryption at rest</li>
+                <li>Secure cloud infrastructure (Ubuntu VPS with Nginx and PM2)</li>
+                <li>Regular automated backups</li>
+                <li>TLS encryption in transit</li>
             </ul>
 
             <div class="highlight-box">
                 <p><strong>Note:</strong> While we implement strong security measures, no system is completely secure.
-                    We cannot guarantee absolute security of your information.</p>
+                    We cannot guarantee absolute security of your information. In the event of a data breach affecting
+                    your personal data, we will notify the ODPC within 72 hours and inform you without undue delay, as
+                    required by Section 43 of the Kenya Data Protection Act, 2019.</p>
             </div>
         </div>
 
+        <!-- ==================== SECTION 7 ==================== -->
         <div class="section">
-            <h3>5. Your Privacy Rights</h3>
+            <h3>7. Cookies and Tracking</h3>
 
-            <h4>5.1 Access and Correction</h4>
-            <p>You have the right to:</p>
+            <h4>7.1 Types of Cookies We Use</h4>
+
+            <p><strong>Essential Cookies (No Consent Required)</strong></p>
             <ul>
-                <li>Access your personal information</li>
-                <li>Update or correct inaccurate information</li>
-                <li>View your account details and order history</li>
-            </ul>
-            <p><strong>How to Exercise:</strong> Log into your account and navigate to profile settings.</p>
-
-            <h4>5.2 Data Deletion</h4>
-            <p>You have the right to:</p>
-            <ul>
-                <li>Request deletion of your account</li>
-                <li>Remove specific information (subject to legal requirements)</li>
-            </ul>
-            <p><strong>How to Exercise:</strong> Contact our support team at support&#64;techwave.co.ke</p>
-
-            <h4>5.3 Data Portability</h4>
-            <p>You may request a copy of your personal data in a structured, machine-readable format.</p>
-
-            <h4>5.4 Opt-Out Rights</h4>
-            <p>You can opt out of:</p>
-            <ul>
-                <li>Marketing communications (unsubscribe link in emails)</li>
-                <li>Non-essential cookies (browser settings)</li>
-                <li>Promotional notifications</li>
+                <li><code>access_token</code>: Authentication token (30-minute expiry)</li>
+                <li><code>refresh_token</code>: Long-term authentication session (30-day expiry)</li>
+                <li>Session management cookies required for platform functionality</li>
             </ul>
 
-            <h4>5.5 Withdrawal of Consent</h4>
-            <p>You may withdraw consent for data processing where consent is the legal basis.</p>
-        </div>
-
-        <div class="section">
-            <h3>6. Cookies and Tracking</h3>
-
-            <h4>6.1 Types of Cookies We Use</h4>
-
-            <p><strong>Essential Cookies</strong></p>
+            <p><strong>Functional Cookies (No Consent Required)</strong></p>
             <ul>
-                <li><code>access_token</code>: Authentication token (30 minutes expiry)</li>
-                <li><code>refresh_token</code>: Long-term authentication (30 days expiry)</li>
-                <li>Session management cookies</li>
+                <li>Shopping cart session persistence</li>
+                <li>User interface preferences</li>
             </ul>
 
-            <p><strong>Functional Cookies</strong></p>
+            <p><strong>Agent Referral Session Storage (Disclosed — No Consent Required)</strong></p>
             <ul>
-                <li>Shopping cart persistence</li>
-                <li>User preferences</li>
-                <li>Language settings</li>
+                <li>A session storage key is set when you arrive via a sales agent referral link</li>
+                <li>This key is session-only and is cleared when you close your browser tab</li>
+                <li>It is used solely to attribute your completed order to the referring agent</li>
             </ul>
 
-            <p><strong>Analytics Cookies (With Consent)</strong></p>
+            <p><strong>Analytics Cookies (Consent Required)</strong></p>
             <ul>
-                <li>Usage statistics</li>
-                <li>Performance monitoring</li>
-                <li>User behavior analysis</li>
+                <li>Usage statistics and performance monitoring (only placed after your consent)</li>
             </ul>
 
-            <h4>6.2 Managing Cookies</h4>
+            <h4>7.2 Managing Cookies</h4>
             <p>You can control cookies through:</p>
             <ul>
-                <li>Browser settings (block or delete cookies)</li>
-                <li>Opt-out preferences in your account</li>
-                <li>Third-party cookie management tools</li>
+                <li>The cookie consent banner displayed on your first visit to our platform</li>
+                <li>Your browser settings (block or delete cookies at any time)</li>
+                <li>Opt-out preferences in your account settings</li>
             </ul>
 
             <div class="highlight-box">
-                <p><strong>Note:</strong> Disabling essential cookies may affect platform functionality.</p>
+                <p><strong>Note:</strong> Disabling essential cookies will prevent you from logging in and using core
+                    platform features. Non-essential analytics cookies are only placed after you provide explicit
+                    consent.</p>
             </div>
         </div>
 
+        <!-- ==================== SECTION 8 ==================== -->
         <div class="section">
-            <h3>7. Third-Party Services</h3>
+            <h3>8. Third-Party Services</h3>
 
-            <h4>7.1 Google OAuth</h4>
-            <p>When you sign in with Google, we receive:</p>
-            <ul>
-                <li>Name and email address</li>
-                <li>Profile information as authorized</li>
-                <li>Google account identifier</li>
-            </ul>
-            <p>Google's privacy practices are governed by their privacy policy.</p>
+            <h4>8.1 Google OAuth</h4>
+            <p>When you sign in with Google, we receive your name, email address, profile information as authorised,
+                and a Google account identifier. Google's privacy practices are governed by
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.
+            </p>
 
-            <h4>7.2 Payment Services</h4>
-            <p>M-PESA and other payment processors collect:</p>
-            <ul>
-                <li>Transaction amounts</li>
-                <li>Phone numbers</li>
-                <li>Transaction references</li>
-            </ul>
-            <p>Payment processors have their own privacy policies.</p>
+            <h4>8.2 M-PESA / Safaricom Daraja API</h4>
+            <p>Payment processing is handled via Safaricom's Daraja API (STK Push). Safaricom collects transaction
+                amounts, your M-PESA phone number, and transaction references. We do not store your M-PESA PIN. Please
+                refer to
+                <a href="https://www.safaricom.co.ke/personal/privacy-policy" target="_blank" rel="noopener">Safaricom's
+                    Privacy Policy</a> for their data practices.</p>
 
-            <h4>7.3 Delivery Partners</h4>
-            <p>Courier services receive:</p>
-            <ul>
-                <li>Delivery address</li>
-                <li>Contact information</li>
-                <li>Package details</li>
-            </ul>
+            <h4>8.3 Delivery Partners</h4>
+            <p>Courier and logistics services receive your delivery address, contact information, and package details
+                strictly for the purpose of fulfilling your order.</p>
         </div>
 
+        <!-- ==================== SECTION 9 ==================== -->
         <div class="section">
-            <h3>8. Data Retention</h3>
-            <p>We retain your information for as long as necessary to:</p>
-            <ul>
-                <li>Maintain your account</li>
-                <li>Provide services</li>
-                <li>Comply with legal obligations</li>
-                <li>Resolve disputes</li>
-                <li>Enforce our policies</li>
-            </ul>
+            <h3>9. Data Retention</h3>
+            <p>We retain your personal information only for as long as necessary to fulfil the purposes outlined in
+                this Policy, or as required by law.</p>
 
-            <h4>8.1 Retention Periods</h4>
+            <h4>9.1 Retention Periods</h4>
             <ul>
-                <li><strong>Account Information:</strong> Duration of active account + 3 years</li>
-                <li><strong>Order History:</strong> 7 years (for tax and legal compliance)</li>
+                <li><strong>Account Information:</strong> Duration of active account + 2 years after last activity</li>
+                <li><strong>Order History:</strong> 7 years (as required by Kenyan tax law)</li>
                 <li><strong>Payment Records:</strong> 7 years (as required by law)</li>
                 <li><strong>Marketing Communications:</strong> Until you unsubscribe</li>
-                <li><strong>Cookies:</strong> Per cookie policy settings</li>
+                <li><strong>Agent Referral Session Data:</strong> Session only — cleared when you close your browser
+                </li>
+                <li><strong>Essential Cookies:</strong> Per session or up to 30 days (refresh tokens)</li>
             </ul>
 
-            <h4>8.2 Deletion</h4>
-            <p>Upon account deletion, we will:</p>
+            <h4>9.2 Deletion Process</h4>
+            <p>Upon receiving a valid account deletion request, we will:</p>
             <ul>
-                <li>Remove personal identifiers</li>
-                <li>Retain anonymized data for analytics</li>
-                <li>Preserve data required for legal compliance</li>
+                <li>Remove your personal identifiers from active systems</li>
+                <li>Anonymise data retained for analytics purposes</li>
+                <li>Preserve records required for legal and tax compliance, appropriately secured</li>
             </ul>
         </div>
 
+        <!-- ==================== SECTION 10 ==================== -->
         <div class="section">
-            <h3>9. Children's Privacy</h3>
-            <p>Our Services are not intended for children under 18. We do not knowingly collect information from
-                children. If you believe a child has provided information, please contact us immediately.</p>
+            <h3>10. Children's Privacy</h3>
+            <p>Our Services are not directed at children under 18 years of age. We do not knowingly collect personal
+                information from minors. If you believe a child has provided us with personal data, please contact us
+                immediately at support&#64;techwaveelectronics.co.ke and we will promptly delete that information.</p>
         </div>
 
+        <!-- ==================== SECTION 11 ==================== -->
         <div class="section">
-            <h3>10. International Data Transfers</h3>
-            <p>Your information may be processed in Kenya or other countries where our service providers operate. We
-                ensure appropriate safeguards are in place for international transfers.</p>
+            <h3>11. International Data Transfers</h3>
+            <p>Your information is primarily processed and stored in Kenya. Where we use third-party service providers
+                based outside Kenya (e.g., cloud infrastructure), we ensure appropriate contractual safeguards are in
+                place to protect your data in accordance with the Kenya Data Protection Act, 2019.</p>
         </div>
 
+        <!-- ==================== SECTION 12 ==================== -->
         <div class="section">
-            <h3>11. Changes to This Privacy Policy</h3>
-            <p>We may update this Privacy Policy periodically. Changes will be effective immediately upon posting. We
-                will notify you of material changes via:</p>
+            <h3>12. Data Breach Response</h3>
+            <p>In the event of a personal data breach, we will:</p>
             <ul>
-                <li>Email notification</li>
-                <li>Prominent notice on our website</li>
+                <li>Immediately contain and assess the breach</li>
+                <li>Notify the <strong>ODPC within 72 hours</strong> of becoming aware of the breach, as required by
+                    Section 43 of the Kenya Data Protection Act, 2019</li>
+                <li>Notify affected users without undue delay where the breach is likely to result in a high risk to
+                    their rights and freedoms</li>
+                <li>Document the breach and our response in our internal records</li>
+            </ul>
+        </div>
+
+        <!-- ==================== SECTION 13 ==================== -->
+        <div class="section">
+            <h3>13. Changes to This Privacy Policy</h3>
+            <p>We may update this Privacy Policy periodically to reflect changes in our practices, technology, or
+                applicable law. We will notify you of material changes via:</p>
+            <ul>
+                <li>Email notification to your registered address</li>
+                <li>A prominent notice on our website</li>
                 <li>In-app notifications</li>
             </ul>
-            <p>Your continued use of our Services after changes constitutes acceptance of the updated Privacy Policy.
-            </p>
+            <p>The updated Policy will indicate the revised "Last Updated" date at the top. Your continued use of our
+                Services after changes constitutes acceptance of the updated Privacy Policy.</p>
         </div>
 
+        <!-- ==================== CONTACT ==================== -->
         <div class="contact-box">
-            <h3>12. Contact Us</h3>
-            <p>For questions, concerns, or requests regarding this Privacy Policy or your personal information:</p>
+            <h3>14. Contact Us & Data Protection Officer</h3>
+            <p>For questions, concerns, or requests regarding this Privacy Policy, your personal information, or to
+                exercise your data subject rights, please contact:</p>
             <div class="contact-info">
                 <div class="contact-item">
                     <strong>Company:</strong> TechWave Electronics Kenya
                 </div>
                 <div class="contact-item">
-                    <strong>Department:</strong> Privacy Officer
+                    <strong>Website:</strong> techwaveelectronics.co.ke
                 </div>
                 <div class="contact-item">
-                    <strong>Email:</strong> techwaveelectronics4&#64;gmail.com
+                    <strong>DPO Email:</strong> dpo&#64;techwaveelectronics.co.ke
                 </div>
                 <div class="contact-item">
-                    <strong>Support:</strong> support&#64;techwave.co.ke
+                    <strong>Support Email:</strong> support&#64;techwaveelectronics.co.ke
                 </div>
                 <div class="contact-item">
-                    <strong>Phone:</strong> +254 742 841406 / +254 741 677623
+                    <strong>General Email:</strong> techwaveelectronics4&#64;gmail.com
+                </div>
+                <div class="contact-item">
+                    <strong>Phone:</strong> +254 116 632881
                 </div>
                 <div class="contact-item">
                     <strong>Address:</strong> Nairobi, Kenya
                 </div>
             </div>
-            <p style="margin-top: 1rem;"><strong>Response Time:</strong> We aim to respond to all inquiries within 5
-                business days.</p>
+            <p style="margin-top: 1rem;"><strong>Response Time:</strong> We aim to respond to all data subject
+                requests within 30 days, and all general inquiries within 5 business days.</p>
         </div>
 
-        <div class="section">
-            <h3>13. Your Consent</h3>
-            <p>By using TechWave Electronics Kenya, you consent to:</p>
-            <ul>
-                <li>Collection of information as described</li>
-                <li>Use of information for stated purposes</li>
-                <li>Sharing of information as outlined</li>
-                <li>Cookie usage as specified</li>
-            </ul>
-            <p>You may withdraw consent at any time by contacting us or adjusting your account settings.</p>
-        </div>
-
-        <div class="section">
-            <h3>14. Additional Information for Kenya Users</h3>
-
-            <h4>14.1 Data Protection Act Compliance</h4>
-            <p>We comply with Kenya's Data Protection Act, 2019. You have the right to:</p>
-            <ul>
-                <li>Lodge a complaint with the Office of the Data Protection Commissioner</li>
-                <li>Seek remedies for violations of your data protection rights</li>
-            </ul>
-
-            <h4>14.2 Data Protection Officer</h4>
-            <p>For data protection inquiries specific to Kenya:</p>
-            <div class="contact-info">
-                <div class="contact-item">
-                    <strong>Email:</strong> dpo&#64;techwave.co.ke
-                </div>
-                <div class="contact-item">
-                    <strong>Phone:</strong> +254 700 000 001
-                </div>
-            </div>
-        </div>
-
+        <!-- ==================== SECTION 15 ==================== -->
         <div class="section">
             <h3>15. Glossary</h3>
             <ul>
-                <li><strong>Personal Information:</strong> Information that identifies you as an individual</li>
-                <li><strong>Processing:</strong> Any operation performed on personal data</li>
-                <li><strong>Data Controller:</strong> TechWave Electronics Kenya (entity determining data processing
-                    purposes)</li>
-                <li><strong>Data Processor:</strong> Third parties processing data on our behalf</li>
-                <li><strong>Cookies:</strong> Small text files stored on your device</li>
-                <li><strong>JWT:</strong> JSON Web Token used for secure authentication</li>
+                <li><strong>Personal Data / Personal Information:</strong> Any information relating to an identified or
+                    identifiable natural person</li>
+                <li><strong>Processing:</strong> Any operation performed on personal data, including collection,
+                    storage, use, and deletion</li>
+                <li><strong>Data Controller:</strong> TechWave Electronics Kenya — the entity that determines the
+                    purposes and means of processing personal data</li>
+                <li><strong>Data Processor:</strong> Third parties who process data on our behalf (e.g., cloud
+                    providers, email services)</li>
+                <li><strong>ODPC:</strong> Office of the Data Protection Commissioner — Kenya's data protection
+                    regulatory authority</li>
+                <li><strong>DPO:</strong> Data Protection Officer — our designated privacy compliance contact</li>
+                <li><strong>Cookies:</strong> Small text files stored on your device by your browser</li>
+                <li><strong>JWT:</strong> JSON Web Token — a secure, compact format used for user authentication</li>
+                <li><strong>Session Storage:</strong> Temporary browser-side storage cleared when you close a browser
+                    tab</li>
+                <li><strong>Agent Referral Link:</strong> A unique URL issued to TechWave sales agents used to track
+                    order attributions</li>
             </ul>
         </div>
 
         <div class="highlight-box">
             <p><strong>Thank you for trusting TechWave Electronics Kenya with your information. Your privacy is our
                     priority.</strong></p>
-            <p><strong>Last Reviewed:</strong> November 10, 2025</p>
+            <p><strong>Last Reviewed:</strong> April 2026 | <strong>Version:</strong> 2.0</p>
+            <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #555;">This Privacy Policy was prepared in
+                accordance with the Kenya Data Protection Act, 2019, and should be reviewed by a qualified Kenyan legal
+                professional before or immediately after the platform goes live.</p>
         </div>
     </div>
 
     <footer class="footer">
         <p>&copy; 2025 TechWave Electronics Kenya. All rights reserved.</p>
-        <p><a routerLink="privacy-policy.html">Privacy Policy</a> | <a routerLink="terms-of-service.html">Terms of
-                Service</a></p>
+        <p>
+            <a routerLink="/privacy-policy">Privacy Policy</a> |
+            <a routerLink="/terms-of-service">Terms of Service</a> |
+            <a routerLink="/refund-policy">Refund Policy</a> |
+            <a routerLink="/cookie-policy">Cookie Policy</a>
+        </p>
     </footer>
 
     <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
 
     <script>
-        // Back to top button
         const backToTop = document.getElementById('backToTop');
-
         window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
+            backToTop.classList.toggle('visible', window.pageYOffset > 300);
         });
-
         backToTop.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
