@@ -54,6 +54,8 @@ app.get('/sitemap.xml', (req, res) => {
     { loc: `${base}/categories/Audio%20%26%20Sound`, priority: '0.7', changefreq: 'weekly'  },
     { loc: `${base}/termsofservice`,                 priority: '0.2', changefreq: 'yearly'  },
     { loc: `${base}/privacypolicy`,                  priority: '0.2', changefreq: 'yearly'  },
+    { loc: `${base}/refundpolicy`,                  priority: '0.2', changefreq: 'yearly'  },
+    { loc: `${base}/cookiepolicy`,                  priority: '0.2', changefreq: 'yearly'  },
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
