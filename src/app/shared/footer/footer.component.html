@@ -1,58 +1,67 @@
 <footer class="deals-footer">
     <div class="footer-content">
+
+        <!-- Brand & Contact -->
         <div class="footer-section">
             <h3>TechWave Kenya</h3>
-            <br>
             <p>Your trusted electronics partner in Kenya</p>
             <div class="contact-info">
-                <p>Email: techwaveelectronics4&#64;gmail.com</p>
-                <p>Phone: +254 116 632881</p>
-
+                <p>Email: <a href="mailto:techwaveelectronics4@gmail.com">techwaveelectronics4&#64;gmail.com</a></p>
+                <p>Phone: <a href="tel:+254116632881">+254 116 632881</a></p>
                 <div class="social-icons">
-                    <p><a href="https://wa.me/+254116632881" target="_blank" rel="noopener noreferrer"><i
-                                class="fa-brands fa-whatsapp"></i></a></p>
-                    <p><a href="https://web.facebook.com/profile.php?id=61577689410885" target="_blank" rel="noopener noreferrer"><i
-                                class="fa-brands fa-facebook-f"></i></a></p>
-                    <p><a href="http://instagram.com/techwave_.electronics/" target="_blank" rel="noopener noreferrer"><i
-                                class="fa-brands fa-instagram"></i></a></p>
-                    <p><a href="https://www.tiktok.com/@_.techwave" target="_blank" rel="noopener noreferrer"><i
-                                class="fa-brands fa-tiktok"></i></a></p>
-                    <p><a href="https://x.com/_techWave01" target="_blank" rel="noopener noreferrer"><i
-                                class="fa-brands fa-x-twitter"></i></a></p>
+                    <p><a href="https://wa.me/+254116632881" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></p>
+                    <p><a href="https://web.facebook.com/profile.php?id=61577689410885" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a></p>
+                    <p><a href="http://instagram.com/techwave_.electronics/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a></p>
+                    <p><a href="https://www.tiktok.com/@_.techwave" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a></p>
+                    <p><a href="https://x.com/_techWave01" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a></p>
                 </div>
             </div>
         </div>
 
+        <!-- Quick Links -->
         <div class="footer-section">
             <h4>Quick Links</h4>
-            <br>
             <ul>
                 <li><a routerLink="/">Home</a></li>
                 <li><a routerLink="/shop">Shop</a></li>
                 <li><a routerLink="/deals">Deals</a></li>
-                <li><a routerLink="/contact">Contact Us</a></li>
+                <li><a routerLink="/agent/login">Agent Portal</a></li>
             </ul>
         </div>
+
+        <!-- Legal -->
+        <div class="footer-section">
+            <h4>Legal</h4>
+            <ul>
+                <li><a routerLink="/privacypolicy">Privacy Policy</a></li>
+                <li><a routerLink="/termsofservice">Terms of Service</a></li>
+                <li><a routerLink="/refundpolicy">Refund &amp; Returns Policy</a></li>
+                <li><a routerLink="/cookiepolicy">Cookie Policy</a></li>
+            </ul>
+        </div>
+
+        <!-- Newsletter & Payments -->
         <div class="footer-section">
             <h4>Deal Alerts</h4>
-            <br>
             <p>Subscribe to get notified about new deals</p>
             <div class="subscribe-form">
-                <input type="email" placeholder="Your email address">
-                <button>Subscribe</button>
+                <input type="email" placeholder="Your email address" aria-label="Email address for newsletter">
+                <button type="button">Subscribe</button>
             </div>
-        </div>
-        <div class="footer-section">
-            <h4>We Accept</h4>
             <br>
+            <h4>We Accept</h4>
             <div class="payment-methods">
                 <div class="payment-method">M-PESA</div>
                 <div class="payment-method">VISA</div>
                 <div class="payment-method">MasterCard</div>
             </div>
         </div>
+
     </div>
     <div class="copyright">
-        &copy; 2025 TechWave Kenya. All rights reserved.
+        &copy; 2025 TechWave Kenya. All rights reserved. |
+        <a routerLink="/privacypolicy">Privacy</a> ·
+        <a routerLink="/termsofservice">Terms</a> ·
+        <a routerLink="/cookiepolicy">Cookies</a>
     </div>
 </footer>

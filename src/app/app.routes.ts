@@ -135,7 +135,7 @@ export const routes: Routes = [
   },
   {
     path: 'reset-password',
-    loadComponent: () => 
+    loadComponent: () =>
       import('./auth/reset-pwd/reset-pwd.component').then
         (m => m.ResetPwdComponent),
   },
@@ -160,6 +160,21 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./legal/privacypolicy/privacypolicy.component').then(
         (m) => m.PrivacypolicyComponent,
+      ),
+  },
+
+  {
+    path: 'refundpolicy',
+    loadComponent: () =>
+      import('./legal/refund-policy/refund-policy.component').then(
+        (m) => m.RefundPolicyComponent,
+      ),
+  },
+  {
+    path: 'cookiepolicy',
+    loadComponent: () =>
+      import('./legal/cookie-policy/cookie-policy.component').then(
+        (m) => m.CookiePolicyComponent,
       ),
   },
 

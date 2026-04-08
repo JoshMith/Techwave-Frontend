@@ -1,0 +1,521 @@
+/* legal-styles.css - Stylesheet for Techwave Legal Pages */
+
+/* ========================================
+   RESET & BASE STYLES
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-blue: #0072ff;
+    --dark-blue: #004999;
+    --light-blue: #e6f2ff;
+    --text-dark: #1a1a1a;
+    --text-gray: #666;
+    --border-color: #ddd;
+    --bg-gray: #f8f9fa;
+    --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 12px rgba(0, 114, 255, 0.3);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: #fff;
+}
+
+/* ========================================
+   HEADER STYLES
+   ======================================== */
+.header {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    color: white;
+    padding: 2rem 0;
+    box-shadow: var(--shadow-light);
+    display: flex;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+logo, img {
+  border-radius: 27px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0 20px;
+}
+
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.back-to-signup {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: auto;
+    padding: 1rem 2rem;
+    transition: color 0.3s ease;
+}
+
+
+/* ========================================
+   CONTAINER & LAYOUT
+   ======================================== */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+/* ========================================
+   DOCUMENT HEADER
+   ======================================== */
+.document-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--light-blue);
+}
+
+.document-header h2 {
+  font-size: 2.5rem;
+  color: var(--dark-blue);
+  margin-bottom: 1rem;
+}
+
+.meta-info {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  color: var(--text-gray);
+  font-size: 0.9rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta-item strong {
+  color: var(--text-dark);
+}
+
+/* ========================================
+   INTRO TEXT
+   ======================================== */
+.intro-text {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--bg-gray);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-blue);
+}
+
+.intro-text p {
+  margin-bottom: 1rem;
+}
+
+.intro-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   SECTION STYLES
+   ======================================== */
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section h3 {
+  font-size: 1.5rem;
+  color: var(--dark-blue);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section h4 {
+  font-size: 1.2rem;
+  color: var(--text-dark);
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 600;
+}
+
+.section p {
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.section ul,
+.section ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.section li {
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.section strong {
+  color: var(--dark-blue);
+  font-weight: 600;
+}
+
+.section code {
+  background-color: var(--bg-gray);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+  color: var(--dark-blue);
+}
+
+/* ========================================
+   HIGHLIGHT BOX
+   ======================================== */
+.highlight-box {
+  background-color: var(--light-blue);
+  border-left: 4px solid var(--primary-blue);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+.highlight-box h4 {
+  margin-top: 0;
+  color: var(--dark-blue);
+}
+
+.highlight-box p {
+  margin-bottom: 0.75rem;
+}
+
+.highlight-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   CONTACT BOX
+   ======================================== */
+.contact-box {
+  background-color: var(--bg-gray);
+  padding: 2rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  border: 1px solid var(--border-color);
+}
+
+.contact-box h3,
+.contact-box h4 {
+  color: var(--dark-blue);
+  margin-bottom: 1rem;
+}
+
+.contact-info {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.contact-item strong {
+  min-width: 100px;
+  color: var(--text-gray);
+  font-weight: 600;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer {
+  background-color: var(--bg-gray);
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-gray);
+  border-top: 1px solid var(--border-color);
+  margin-top: 3rem;
+}
+
+.footer p {
+  margin-bottom: 0.5rem;
+}
+
+.footer a {
+  color: var(--primary-blue);
+  text-decoration: none;
+  margin: 0 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: var(--dark-blue);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ========================================
+   BACK TO TOP BUTTON
+   ======================================== */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: var(--primary-blue);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-medium);
+  transition: all 0.3s ease;
+  font-size: 1.5rem;
+  z-index: 1000;
+}
+
+.back-to-top:hover {
+  background-color: var(--dark-blue);
+  transform: translateY(-3px);
+}
+
+.back-to-top.visible {
+  display: flex;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+  }
+
+  .container {
+    padding: 2rem 1rem;
+  }
+
+  .document-header h2 {
+    font-size: 2rem;
+  }
+
+  .meta-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .section h3 {
+    font-size: 1.3rem;
+  }
+
+  .section h4 {
+    font-size: 1.1rem;
+  }
+
+  .highlight-box,
+  .contact-box {
+    padding: 1rem;
+  }
+
+  .contact-item {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .contact-item strong {
+    min-width: auto;
+  }
+
+  .back-to-top {
+    width: 45px;
+    height: 45px;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .document-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .section h3 {
+    font-size: 1.2rem;
+  }
+
+  .section h4 {
+    font-size: 1rem;
+  }
+
+  .footer {
+    padding: 1.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+  .header,
+  .footer,
+  .back-to-top {
+    display: none;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .section {
+    page-break-inside: avoid;
+  }
+
+  .highlight-box,
+  .contact-box {
+    border: 1px solid #000;
+    background: none;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+a:focus,
+button:focus {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* Ensure sufficient color contrast */
+.section li,
+.section p {
+  color: #212529;
+}
+
+/* Improve readability */
+.section {
+  max-width: 100%;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+.text-center {
+  text-align: center;
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 1rem;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+a:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .header,
+  .sidebar,
+  .footer,
+  .nav-item,
+  button {
+    display: none !important;
+  }
+
+  .profile-content {
+    flex-direction: column;
+  }
+
+  .dashboard {
+    width: 100%;
+  }
+}

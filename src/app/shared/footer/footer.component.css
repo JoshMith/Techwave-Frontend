@@ -69,6 +69,8 @@
 
 .footer-section a:hover {
   color: white;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .subscribe-form {

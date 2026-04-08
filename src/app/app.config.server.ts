@@ -14,6 +14,8 @@ const serverConfig: ApplicationConfig = {
       { path: 'deals', renderMode: RenderMode.Prerender },
       { path: 'termsofservice', renderMode: RenderMode.Prerender },
       { path: 'privacypolicy', renderMode: RenderMode.Prerender },
+      { path: 'refundpolicy', renderMode: RenderMode.Prerender },
+      { path: 'cookiepolicy', renderMode: RenderMode.Prerender },
       { path: 'categories/Phones', renderMode: RenderMode.Prerender },
       { path: 'categories/Laptops', renderMode: RenderMode.Prerender },
       { path: 'categories/Accessories', renderMode: RenderMode.Prerender },
