@@ -166,12 +166,12 @@
         <div class="form-section">
           <h3 class="section-title">Product Images</h3>
           <div class="image-upload-area" (click)="addFileInput.click()" (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave($event)" (drop)="onNewDrop($event)">
+            (dragleave)="onDragLeave($event)" (drop)="onNewDrop($event)" >
             <div class="upload-icon">📷</div>
             <div class="upload-text">Click to upload or drag & drop</div>
             <div class="upload-subtext">PNG, JPG up to 5MB · First image = primary</div>
             <input #addFileInput type="file" class="file-input" multiple accept="image/*"
-              (change)="onNewFileSelected($event)">
+              (change)="onNewFileSelected($event)" (click)="$event.stopPropagation()">
           </div>
           <div class="image-preview" *ngIf="newImages.length">
             <div *ngFor="let img of newImages; let i = index" class="image-preview-item">
@@ -281,7 +281,7 @@
             <div class="upload-icon">📷</div>
             <div class="upload-text">Click to upload</div>
             <input #editFileInput type="file" class="file-input" multiple accept="image/*"
-              (change)="onEditFileSelected($event)">
+              (change)="onEditFileSelected($event)" (click)="$event.stopPropagation()">
           </div>
           <div class="image-preview" *ngIf="editNewImages.length">
             <div *ngFor="let img of editNewImages; let i = index" class="image-preview-item">

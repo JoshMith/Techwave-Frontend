@@ -322,12 +322,8 @@ export class ProductComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Toggle wishlist
-   */
-  toggleWishlist(): void {
-    this.isWishlisted = !this.isWishlisted;
-    // TODO: Implement wishlist API call
+  encodeURIComponent(value: string): string {
+    return encodeURIComponent(value);
   }
 
   /**

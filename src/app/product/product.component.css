@@ -332,20 +332,43 @@ logo, img {
   box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
 }
 
-.wishlist-btn {
-  background: white;
-  border: 2px solid #3b82f6;
-  color: #3b82f6;
-  padding: 1rem;
+/* ── WhatsApp enquiry button ─────────────────────────────────────────────────
+ ─────────────────────────────────────────────────────────────────────────── */
+
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #25d366;
+  color: #fff;
+  border: none;
+  padding: 1rem 1.25rem;
   border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  flex-shrink: 0;
 }
 
-.wishlist-btn:hover {
-  background: #3b82f6;
-  color: white;
+.whatsapp-btn:hover {
+  background: #1ebe5d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
 }
+
+.whatsapp-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-btn svg {
+  flex-shrink: 0;
+}
+
 
 .delivery-info {
   background: #eff6ff;
@@ -768,6 +791,18 @@ logo, img {
     white-space: nowrap;
     min-width: 120px;
   }
+
+  .whatsapp-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .whatsapp-btn:hover {
+    transform: translateY(-1px);
+  }
+  
 }
 
 .hidden {

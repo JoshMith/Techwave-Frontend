@@ -316,16 +316,26 @@ export class ApiService {
       )
       .pipe(
         map((response: any) => {
-          // Handle the response format from your API
+          let images: any[] = [];
+
           if (response && response.success && Array.isArray(response.images)) {
-            return response.images;
+            images = response.images;
+          } else if (Array.isArray(response)) {
+            images = response;
           }
-          return [];
+
+          // Re-build full_url using the Angular-side apiUrl so it is always
+          // correct regardless of what the backend reported as its own host.
+          return images.map((img: any) => ({
+            ...img,
+            // Use image_url (relative path like /uploads/products/xxx.jpg)
+            // combined with the known-correct apiUrl base.
+            full_url: img.image_url
+              ? `${this.apiUrl}${img.image_url.startsWith('/') ? '' : '/'}${img.image_url}`
+              : null,
+          }));
         }),
-        catchError((error) => {
-          // console.warn(`No images found for product ${productId}:`, error.message);
-          return of([]);
-        }),
+        catchError(() => of([])),
       );
   }
 
