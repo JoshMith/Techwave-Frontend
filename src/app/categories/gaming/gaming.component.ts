@@ -62,7 +62,7 @@ export class GamingComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
 
   // Filters
-  priceRange = { min: 0, max: 1000000 };
+  priceRange = { min: 0, max: 250000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
   features: string[] = [
@@ -280,7 +280,7 @@ export class GamingComponent implements OnInit, OnDestroy {
       const price = product.sale_price || product.price;
 
       // Price filter - only filter by price if the range is valid
-      if (this.priceRange.min !== 0 || this.priceRange.max !== 1000000) {
+      if (this.priceRange.min !== 0 || this.priceRange.max !== 250000) {
         if (price < this.priceRange.min || price > this.priceRange.max) {
           return false;
         }
@@ -311,7 +311,7 @@ export class GamingComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.priceRange = { min: 0, max: 1000000 };
+    this.priceRange = { min: 0, max: 250000 };
     this.selectedBrands = [];
     this.selectedFeatures = [];
     this.selectedSort = 'popularity';

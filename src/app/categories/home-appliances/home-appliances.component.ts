@@ -66,7 +66,7 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   loading = true;
   errorMessage: string | null = null;
 
-  priceRange = { min: 0, max: 3000000 };
+  priceRange = { min: 0, max: 1000000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
   applianceTypes = [
@@ -309,7 +309,7 @@ export class HomeAppliancesComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.priceRange = { min: 0, max: 3000000 };
+    this.priceRange = { min: 0, max: 1000000 };
     this.selectedBrands = [];
     this.selectedTypes = [];
     this.selectedSort = 'popularity';
