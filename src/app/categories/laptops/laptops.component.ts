@@ -65,7 +65,7 @@ export class LaptopsComponent implements OnInit, OnDestroy {
   loading = true;
   errorMessage: string | null = null;
 
-  priceRange = { min: 10000, max: 300000 };
+  priceRange = { min: 0, max: 3000000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
   features = ['Windows', 'MacOS', '8GB+ RAM', 'SSD Storage'];
@@ -324,7 +324,7 @@ export class LaptopsComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.priceRange = { min: 10000, max: 300000 };
+    this.priceRange = { min: 0, max: 3000000 };
     this.selectedBrands = [];
     this.selectedFeatures = [];
     this.selectedSort = 'popularity';

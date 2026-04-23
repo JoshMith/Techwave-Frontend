@@ -88,9 +88,13 @@
         </div>
 
         <div class="action-buttons">
-          <button class="add-to-cart-btn" (click)="addToCart()" [disabled]="product.stock < 1 || addingToCart">
-            {{ cartButtonText }}
+          <button class="add-to-cart-btn"
+            [class.added-to-cart]="isAddedToCart"
+            (click)="handleCartAction()"
+            [disabled]="product.stock < 1 || addingToCart">
+            {{ cartButtonLabel }}
           </button>
+
           <a [href]="'https://wa.me/254116632881?text=' + encodeURIComponent('Hi! I\'m interested in: ' + product.title)"
             target="_blank" rel="noopener noreferrer" class="whatsapp-btn" title="Chat on WhatsApp">
             <!-- WhatsApp SVG icon -->
@@ -259,4 +263,12 @@
     </div>
   </div>
 </main>
+
+<app-image-lightbox
+  *ngIf="lightboxOpen"
+  [images]="lightboxImages"
+  [startIndex]="lightboxStartIndex"
+  (closed)="lightboxOpen = false">
+</app-image-lightbox>
+
 <app-footer></app-footer>

@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../shared/header/header.component';
 import { FooterComponent } from '../shared/footer/footer.component';
+import { ImageLightboxComponent, LightboxImage } from '../shared/image-lightbox/image-lightbox.component';
 
 interface Thumbnail {
   imageSrc: string;
@@ -24,7 +25,7 @@ interface Specification {
 
 @Component({
   selector: 'app-product',
-  imports: [CommonModule, RouterModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, FormsModule, HeaderComponent, FooterComponent, ImageLightboxComponent],
   templateUrl: './product.component.html',
   styleUrls: ['./product.component.css']
 })
@@ -41,11 +42,9 @@ export class ProductComponent implements OnInit, OnDestroy {
   // Loading and error states
   isLoading = true;
   errorMessage: string | null = null;
-
   // Product data
   product: Product | null = null;
   reviews: Review[] = [];
-
   // UI State
   cartCount: number = 0;
   searchQuery: string = '';
@@ -54,7 +53,12 @@ export class ProductComponent implements OnInit, OnDestroy {
   mainImageSrc: string = '';
   cartButtonText: string = 'Add to Cart';
   addingToCart = false;
-
+  // Product detail cart state
+  isAddedToCart = false;
+  // Lightbox
+  lightboxOpen = false;
+  lightboxStartIndex = 0;
+  lightboxImages: LightboxImage[] = [];
   // Review form state
   showReviewForm: boolean = false;
   submittingReview: boolean = false;
@@ -204,10 +208,8 @@ export class ProductComponent implements OnInit, OnDestroy {
    */
   private setupImages(): void {
     if (!this.product) return;
-
     const productImage = this.productService.getProductImage(this.product);
     this.mainImageSrc = productImage || this.getFallbackImage();
-
     if (this.product.images && this.product.images.length > 0) {
       this.thumbnails = this.product.images.map((img, index) => ({
         imageSrc: img.image_url,
@@ -215,6 +217,9 @@ export class ProductComponent implements OnInit, OnDestroy {
         altText: img.alt_text || `${this.product!.title} - Image ${index + 1}`,
         active: img.is_primary || index === 0
       }));
+      this.lightboxImages = this.thumbnails.map(t => ({ src: t.imageSrc, alt: t.altText }));
+    } else {
+      this.lightboxImages = [{ src: this.mainImageSrc, alt: this.product.title }];
     }
   }
 
@@ -284,6 +289,28 @@ export class ProductComponent implements OnInit, OnDestroy {
     thumbnail.active = true;
   }
 
+  // Lightbox
+  openLightboxFromMain(): void {
+    const idx = this.thumbnails.findIndex(t => t.active);
+    this.lightboxStartIndex = idx >= 0 ? idx : 0;
+    this.lightboxOpen = true;
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxStartIndex = index;
+    this.lightboxOpen = true;
+  }
+
+  get cartButtonLabel(): string {
+    if (this.addingToCart) return 'Adding…';
+    return this.isAddedToCart ? 'Go to Cart →' : 'Add to Cart';
+  }
+
+  handleCartAction(): void {
+    if (this.isAddedToCart) { this.router.navigate(['/cart']); return; }
+    this.addToCart();
+  }
+
   /**
    * Show specific tab
    */
@@ -296,15 +323,12 @@ export class ProductComponent implements OnInit, OnDestroy {
    */
   addToCart(): void {
     if (!this.product || this.addingToCart) return;
-
     if (this.product.stock < 1) {
       alert('This product is out of stock.');
       return;
     }
-
     this.addingToCart = true;
     this.cartButtonText = 'Adding...';
-
     this.cartService.addToCart(this.product.product_id, 1).subscribe({
       next: (response) => {
         this.cartButtonText = 'Added to Cart!';

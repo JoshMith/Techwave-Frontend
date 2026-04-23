@@ -60,7 +60,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
 
   // Filters
-  priceRange = { min: 500, max: 50000 };
+  priceRange = { min: 0, max: 100000 };
   brands: string[] = [];
   selectedBrands: string[] = [];
   accessoryTypes = [
@@ -314,7 +314,7 @@ export class AccessoriesComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.priceRange = { min: 500, max: 50000 };
+    this.priceRange = { min: 0, max: 100000 };
     this.selectedBrands = [];
     this.selectedTypes = [];
     this.selectedSort = 'popularity';

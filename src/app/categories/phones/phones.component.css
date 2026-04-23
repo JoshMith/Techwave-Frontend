@@ -400,6 +400,18 @@
   transform: translateY(-1px);
 }
 
+.add-to-cart.in-cart {
+  background: #059669;          /* emerald-600 — distinct from the default blue */
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+  cursor: pointer;
+}
+
+.add-to-cart.in-cart:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+
 .view-details {
   background: #10b981;
   color: white;

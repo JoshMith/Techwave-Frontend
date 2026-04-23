@@ -70,7 +70,7 @@ export class PhonesComponent implements OnInit, OnDestroy {
   totalPages = 0;
 
   filters: Filters = {
-    priceRange: { min: 5000, max: 200000 },
+    priceRange: { min: 0, max: 1000000 },
     brands: [],
     features: { has5G: false, has128GB: false, has8GBRAM: false },
   };
@@ -339,7 +339,7 @@ export class PhonesComponent implements OnInit, OnDestroy {
 
   resetFilters(): void {
     this.filters = {
-      priceRange: { min: 5000, max: 200000 },
+      priceRange: { min: 0, max: 1000000 },
       brands: [],
       features: { has5G: false, has128GB: false, has8GBRAM: false },
     };
