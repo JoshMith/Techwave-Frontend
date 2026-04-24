@@ -73,7 +73,7 @@
           <td>
             <div class="product-info">
               <div class="product-name">{{ p.title }}</div>
-              <div class="product-description">{{ p.description | slice:0:55 }}…</div>
+              <!-- <div class="product-description">{{ p.description | slice:0:55 }}…</div> -->
             </div>
           </td>
           <td>{{ p.category_name || getCategoryName(p.category_id) || '—' }}</td>
