@@ -184,7 +184,7 @@ export class HomepageComponent implements OnInit, OnDestroy {
       { name: 'Phones',          icon: '📱', count: 0, key: 'phones',          category_id: 1, description: '', featured: true, icon_path: '', created_at: '' },
       { name: 'Laptops',         icon: '💻', count: 0, key: 'laptops',         category_id: 2, description: '', featured: true, icon_path: '', created_at: '' },
       { name: 'Accessories',     icon: '🎧', count: 0, key: 'accessories',     category_id: 3, description: '', featured: true, icon_path: '', created_at: '' },
-      { name: 'Home Appliances', icon: '🏠', count: 0, key: 'home-appliances', category_id: 4, description: '', featured: true, icon_path: '', created_at: '' },
+      { name: 'Home Appliances & Electronics', icon: '🏠', count: 0, key: 'home-appliances', category_id: 4, description: '', featured: true, icon_path: '', created_at: '' },
       { name: 'Gaming',          icon: '🎮', count: 0, key: 'gaming',          category_id: 5, description: '', featured: true, icon_path: '', created_at: '' },
       { name: 'Audio & Sound',   icon: '🔊', count: 0, key: 'audio-sound',     category_id: 6, description: '', featured: true, icon_path: '', created_at: '' },
     ];
