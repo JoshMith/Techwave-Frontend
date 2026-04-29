@@ -93,7 +93,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     { name: 'Phones', icon: '📱', count: 0, category_id: 1 },
     { name: 'Laptops', icon: '💻', count: 0, category_id: 2 },
     { name: 'Accessories', icon: '🎧', count: 0, category_id: 3 },
-    { name: 'Home Appliances', icon: '🏠', count: 0, category_id: 4 },
+    { name: 'Home Appliances & Electronics', icon: '🏠', count: 0, category_id: 4 },
     { name: 'Gaming', icon: '🎮', count: 0, category_id: 5 },
     { name: 'Audio & Sound', icon: '🔊', count: 0, category_id: 6 }
   ];
